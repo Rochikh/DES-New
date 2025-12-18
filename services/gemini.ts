@@ -1,10 +1,11 @@
+
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData } from "../types";
 import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const CHAT_MODEL = "gemini-3-flash-preview";
+const CHAT_MODEL = "gemini-3-pro-preview";
 const ANALYSIS_MODEL = "gemini-3-pro-preview";
 const TUTOR_NAME = "Argos";
 
@@ -44,13 +45,11 @@ Ajoute toujours ces balises pédagogiques en fin de message :
 };
 
 export const sendMessage = async (chat: Chat, message: string) => {
-  try {
-    const response = await chat.sendMessage({ message });
-    return { text: response.text || "Argos réfléchit... peux-tu reformuler ta pensée ?" };
-  } catch (e: any) {
-    console.error("Gemini Error:", e);
-    return { text: "Oups, une petite déconnexion. Vérifie ta clé API ou ta connexion internet." };
+  const response = await chat.sendMessage({ message });
+  if (!response.text) {
+    throw new Error("L'IA n'a pas renvoyé de texte. Possible blocage de sécurité ou erreur réseau.");
   }
+  return { text: response.text };
 };
 
 export const generateAnalysis = async (

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Chat } from "@google/genai";
@@ -26,36 +27,37 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isStarted = useRef(false);
 
-  useEffect(() => {
-    if (isStarted.current || !chatInstance) return;
+  const initChat = useCallback(async () => {
+    if (!chatInstance || isStarted.current) return;
     
-    const initChat = async () => {
-      if (messages.length === 0) {
-        setIsLoading(true);
-        setError(null);
-        try {
-          // On demande explicitement à Argos de dire Bonjour au prénom de l'étudiant
-          const res = await sendMessage(chatInstance, `Bonjour Argos, je suis ${config.studentName} et je suis prêt. Salue-moi par mon prénom et lance la session sur le sujet : ${config.topic}.`);
-          const aiMsg: Message = {
-            id: crypto.randomUUID(),
-            role: 'model',
-            text: res.text,
-            timestamp: Date.now()
-          };
-          setMessages([aiMsg]);
-          setLastActivityAt(Date.now());
-          isStarted.current = true;
-        } catch (e) { 
-          setError("Échec de l'initialisation. Réessaie.");
-        } finally { 
-          setIsLoading(false); 
-        }
-      } else {
-        isStarted.current = true;
-      }
-    };
-    initChat();
-  }, [chatInstance]);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await sendMessage(chatInstance, `Bonjour Argos, je suis ${config.studentName} et je suis prêt. Salue-moi par mon prénom et lance la session sur le sujet : ${config.topic}.`);
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: 'model',
+        text: res.text,
+        timestamp: Date.now()
+      };
+      setMessages([aiMsg]);
+      setLastActivityAt(Date.now());
+      isStarted.current = true;
+    } catch (e: any) { 
+      console.error("Initialization error:", e);
+      setError("Argos semble indisponible pour le moment. Vérifie ta connexion ou la configuration de l'API.");
+    } finally { 
+      setIsLoading(false); 
+    }
+  }, [chatInstance, config.studentName, config.topic, setMessages]);
+
+  useEffect(() => {
+    if (messages.length === 0 && chatInstance && !isStarted.current) {
+      initChat();
+    } else if (messages.length > 0) {
+      isStarted.current = true;
+    }
+  }, [chatInstance, messages.length, initChat]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,8 +92,9 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
       };
       setMessages(prev => [...prev, aiMsg]);
       setLastActivityAt(Date.now());
-    } catch (error) {
-      setError("Le message n'a pas été envoyé.");
+    } catch (error: any) {
+      console.error("Send message error:", error);
+      setError("Le message n'a pas été envoyé. Argos rencontre une difficulté technique.");
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +141,19 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scrollbar-hide">
+        {messages.length === 0 && !isLoading && error && (
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+             <AlertCircle size={48} className="text-rose-500" />
+             <p className="text-sm font-medium text-slate-600 text-center max-w-xs">{error}</p>
+             <button 
+               onClick={() => initChat()}
+               className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-indigo-700 transition-all"
+             >
+               Réessayer de lancer la discussion
+             </button>
+          </div>
+        )}
+
         {messages.map((msg) => (
           <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-3xl px-6 py-5 shadow-sm border ${msg.role === 'user' ? 'bg-slate-900 text-white border-slate-800 rounded-br-none' : 'bg-white text-slate-800 border-slate-100 rounded-bl-none shadow-indigo-100/50'}`}>
@@ -160,7 +176,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
           </div>
         )}
 
-        {error && (
+        {error && messages.length > 0 && (
           <div className="mx-auto max-w-md bg-rose-50 border border-rose-100 text-rose-800 px-4 py-3 rounded-2xl flex items-center gap-3">
             <AlertCircle size={18} className="shrink-0" />
             <p className="text-[10px] font-black uppercase tracking-widest">{error}</p>
@@ -176,13 +192,13 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
             onChange={(e) => setInputText(e.target.value)} 
             onKeyDown={handleKeyPress} 
             placeholder="Écris ton raisonnement ici..." 
-            disabled={isLoading}
+            disabled={isLoading || (messages.length === 0 && !error)}
             className="w-full bg-slate-50 rounded-2xl pl-5 pr-14 py-4 border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:bg-white min-h-[64px] resize-none outline-none transition-all text-sm disabled:opacity-50" 
             rows={Math.min(5, inputText.split('\n').length || 1)} 
           />
           <button 
             onClick={handleSend} 
-            disabled={!inputText.trim() || isLoading} 
+            disabled={!inputText.trim() || isLoading || (messages.length === 0)} 
             className="absolute right-3 bottom-3 p-2.5 bg-slate-900 text-white rounded-xl disabled:opacity-20 hover:bg-indigo-600 transition-all active:scale-90"
           >
             <Send size={20} />
