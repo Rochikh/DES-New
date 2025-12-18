@@ -3,7 +3,6 @@ import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData } from "../types";
 import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
-// On utilise une fonction pour récupérer l'instance afin d'être sûr de lire la clé au dernier moment
 const getAI = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
@@ -12,8 +11,6 @@ const getAI = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-// Modèle Flash pour la discussion (plus rapide, moins de quota) 
-// et Pro pour l'analyse finale (plus profond)
 const CHAT_MODEL = "gemini-3-flash-preview"; 
 const ANALYSIS_MODEL = "gemini-3-pro-preview";
 const TUTOR_NAME = "Argos";
@@ -56,7 +53,7 @@ Ajoute toujours ces balises pédagogiques en fin de message :
 export const sendMessage = async (chat: Chat, message: string) => {
   const response = await chat.sendMessage({ message });
   if (!response.text) {
-    throw new Error("Réponse vide de l'IA. Vérifiez vos quotas ou les filtres de sécurité.");
+    throw new Error("Réponse vide de l'IA.");
   }
   return { text: response.text };
 };
@@ -70,26 +67,33 @@ export const generateAnalysis = async (
   const transcriptText = transcript.map(m => `[${m.role === "user" ? "Étudiant" : TUTOR_NAME}]: ${m.text}`).join("\n");
 
   const prompt = `
-Analyse avec précision ce dialogue socratique sur le sujet "${topic}".
-L'étudiant déclare ceci sur son usage de l'IA : "${aiDeclaration}"
+En tant qu'expert en pédagogie et pensée critique, analyse cet échange socratique sur le sujet "${topic}".
 
-Transcription :
+TRANSCRIPTION DU DIALOGUE :
 ${transcriptText}
 
-Évalue sur 100 les dimensions de pensée critique suivantes : ${CRITICAL_THINKING_CRITERIA.join(", ")}.
-Réponds au format JSON strict.
+DÉCLARATION D'USAGE IA DE L'ÉTUDIANT :
+"${aiDeclaration}"
+
+TON RÔLE :
+1. Produis une synthèse riche et nuancée de la progression cognitive de l'étudiant.
+2. Évalue rigoureusement les scores sur 100.
+3. Analyse la cohérence entre le style de l'étudiant et sa déclaration d'usage IA (détection de copier-coller vs réflexion originale).
+4. Liste des points de force précis et des pistes de progrès actionnables.
+
+FORMAT DE RÉPONSE : JSON uniquement.
   `.trim();
 
   const response = await ai.models.generateContent({
     model: ANALYSIS_MODEL,
     contents: prompt,
     config: {
-      temperature: 0.2,
+      temperature: 0.1, // Plus bas pour plus de précision
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          summary: { type: Type.STRING },
+          summary: { type: Type.STRING, description: "Une synthèse pédagogique détaillée (min 150 mots) avec des citations du dialogue." },
           reasoningScore: { type: Type.INTEGER },
           clarityScore: { type: Type.INTEGER },
           skepticismScore: { type: Type.INTEGER },
@@ -99,7 +103,7 @@ Réponds au format JSON strict.
           aiDeclarationCoherenceScore: { type: Type.INTEGER },
           keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
           weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-          aiUsageAnalysis: { type: Type.STRING }
+          aiUsageAnalysis: { type: Type.STRING, description: "Analyse critique de l'honnêteté intellectuelle et de l'usage des outils." }
         },
         required: ["summary", "reasoningScore", "aiDeclarationCoherenceScore", "keyStrengths", "weaknesses", "aiUsageAnalysis"]
       }

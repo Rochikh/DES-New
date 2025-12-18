@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
   <head>
@@ -18,7 +19,6 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      /* Style de base fluide pour l'écran */
       html, body {
         height: 100%;
         margin: 0;
@@ -35,27 +35,26 @@
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* --- CONFIGURATION IMPRESSION PDF --- */
+      /* --- CONFIGURATION IMPRESSION PDF OPTIMISÉE --- */
       @media print {
         @page {
           size: A4;
-          margin: 15mm;
+          margin: 10mm;
         }
 
-        /* Déverrouillage des hauteurs pour l'impression */
         html, body, #root, main {
           height: auto !important;
           overflow: visible !important;
-          position: static !important;
           background: white !important;
           display: block !important;
+          color: #000 !important;
         }
 
         .no-print {
           display: none !important;
         }
 
-        /* Rendu fidèle des couleurs et fonds */
+        /* Forcer les couleurs et fonds */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -64,12 +63,30 @@
         .print-break-avoid {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
+          margin-bottom: 1rem;
         }
 
         .recharts-responsive-container {
           width: 100% !important;
-          height: 350px !important;
-          display: block !important;
+          height: 300px !important;
+        }
+        
+        /* Ajustement typographique pour le papier */
+        .prose {
+          font-size: 11pt !important;
+          max-width: 100% !important;
+          color: #1a1a1a !important;
+        }
+        
+        /* Supprimer les ombres qui bavent à l'impression */
+        .shadow-2xl, .shadow-xl, .shadow-sm {
+          shadow: none !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+
+        header {
+          border-radius: 0 !important;
+          margin-bottom: 2rem !important;
         }
       }
     </style>
@@ -89,7 +106,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-50 text-slate-900">
+  <body class="bg-slate-50 text-slate-900 font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
