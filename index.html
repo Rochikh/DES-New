@@ -18,55 +18,56 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+      /* Style de base */
       body { font-family: 'Inter', sans-serif; }
-      
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* --- SOLUTION TECHNIQUE IMPRESSION PDF --- */
+      /* --- SOLUTION TECHNIQUE D'IMPRESSION PDF ARGOS --- */
       @media print {
-        /* 1. On réinitialise les conteneurs racines pour permettre le scroll vertical infini */
-        html, body, #root, .flex-col, .flex-1 {
+        /* On force tout le document à redevenir un flux vertical simple */
+        html, body, #root, #root > div {
           height: auto !important;
-          min-height: 0 !important;
+          min-height: 100% !important;
           overflow: visible !important;
           display: block !important;
           position: static !important;
           background: white !important;
-        }
-
-        /* 2. On désactive les contraintes de hauteur de Tailwind */
-        .h-screen, .h-full, .overflow-hidden, .overflow-y-auto {
-          height: auto !important;
-          overflow: visible !important;
-          max-height: none !important;
-        }
-
-        /* 3. Masquage des éléments inutiles sur le document papier/PDF */
-        .no-print, button, footer, nav, .fixed, .absolute {
-          display: none !important;
-          height: 0 !important;
-          width: 0 !important;
           margin: 0 !important;
           padding: 0 !important;
         }
 
-        /* 4. Forçage du rendu des couleurs (Badges, Graphiques, Fonds de cartes) */
+        /* On désactive les conteneurs flexbox qui cassent la pagination sur plusieurs pages */
+        .flex, .grid, .flex-col, .flex-1 {
+          display: block !important;
+          height: auto !important;
+          overflow: visible !important;
+          max-height: none !important;
+          width: 100% !important;
+        }
+
+        /* On masque les éléments d'interface inutiles sur le papier */
+        .no-print, button, footer, nav, .fixed, .absolute, .shadow-2xl, .shadow-xl {
+          display: none !important;
+          visibility: hidden !important;
+        }
+
+        /* On s'assure que les couleurs et les fonds sont imprimés (essentiel pour le design) */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
           color-adjust: exact !important;
+          box-shadow: none !important;
         }
 
-        /* 5. Empêcher les coupures de texte au milieu d'une carte */
+        /* Empêche les cartes de se couper en deux entre deux pages PDF */
         .print-break-avoid {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-bottom: 20px !important;
+          margin-bottom: 2rem !important;
           display: block !important;
         }
 
-        /* 6. Mise en page A4 */
         @page {
           size: A4;
           margin: 15mm;
@@ -75,6 +76,13 @@
         .max-w-5xl {
           max-width: 100% !important;
           width: 100% !important;
+          margin: 0 !important;
+        }
+
+        /* Forçage de la taille des graphiques pour le rendu PDF */
+        .recharts-responsive-container {
+          width: 100% !important;
+          height: 300px !important;
         }
       }
     </style>
@@ -95,7 +103,8 @@
 </script>
 </head>
   <body class="bg-slate-50 text-slate-900">
-    <div id="root" class="h-screen w-full overflow-hidden flex flex-col"></div>
+    <!-- Le root n'a plus de overflow-hidden pour permettre le scroll d'impression -->
+    <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

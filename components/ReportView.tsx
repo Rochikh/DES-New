@@ -47,23 +47,25 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
   };
 
   const handlePrint = () => {
-    // Retirer le focus pour éviter le contour bleu au clic sur l'imprimé
+    // Retrait immédiat du focus pour éviter les artefacts de sélection
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    // Appel direct : window.print() déclenche l'imprimante native (et donc le "Enregistrer en PDF")
+    
+    // Appel direct au service d'impression. 
+    // Le navigateur gère le passage en PDF via le dialogue d'impression.
     window.print();
   };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-indigo-50/20">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
-      <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Argos génère l'audit...</h2>
-      <p className="text-slate-400 text-xs mt-2 uppercase tracking-widest font-bold">Analyse des patterns de réflexion</p>
+      <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter text-center">Argos génère l'audit...</h2>
+      <p className="text-slate-400 text-xs mt-2 uppercase tracking-widest font-bold text-center px-4">Analyse socratique en cours</p>
     </div>
   );
 
-  if (!analysis) return <div className="p-8 text-center font-bold">L'audit a rencontré une difficulté technique.</div>;
+  if (!analysis) return <div className="p-8 text-center font-bold">L'audit n'a pas pu être généré. Veuillez recommencer.</div>;
 
   const chartData = [
     { name: 'Raisonnement', score: analysis.reasoningScore, color: '#4f46e5' },
@@ -92,7 +94,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:grid-cols-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:block">
           <div className="lg:col-span-2 space-y-8 print:space-y-6">
             
             <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
@@ -108,7 +110,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
               <h3 className="text-xs font-black text-indigo-900 mb-4 uppercase tracking-widest flex items-center gap-2">
                 <ShieldCheck size={16} /> Audit d'Honnêteté Intellectuelle
               </h3>
-              <p className="text-sm text-indigo-800 leading-relaxed mb-6">"{analysis.aiUsageAnalysis}"</p>
+              <p className="text-sm text-indigo-800 leading-relaxed mb-6 italic">"{analysis.aiUsageAnalysis}"</p>
               <div className="bg-white p-5 rounded-2xl text-[11px] font-medium border border-indigo-100">
                 <span className="opacity-50 uppercase block mb-1 text-[9px] font-black text-slate-400 tracking-widest">Ta déclaration :</span>
                 <span className="text-slate-700 italic">{aiDeclaration}</span>
@@ -139,7 +141,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 print:mt-10">
             <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
               <h3 className="text-[10px] font-black text-center uppercase text-slate-400 mb-8 tracking-[0.2em]">Profil de Pensée Critique</h3>
               <div className="h-64 w-full">
@@ -157,20 +159,20 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
             </div>
 
             <div className="bg-slate-900 p-8 rounded-[2rem] space-y-4 shadow-2xl no-print">
-              <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2 text-center">Exportation & Partage</h3>
+              <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2 text-center">Sauvegarder mon travail</h3>
               <button 
                 type="button"
                 onClick={handlePrint} 
                 className="w-full flex items-center justify-center gap-3 bg-white text-slate-900 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg group"
               >
-                <Printer size={16} className="group-hover:text-indigo-600" /> Enregistrer / Imprimer
+                <Printer size={16} className="group-hover:text-indigo-600" /> Enregistrer en PDF
               </button>
               <button 
                 type="button"
                 onClick={downloadJSON} 
                 className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all"
               >
-                <FileJson size={16} /> Fichier Source (.JSON)
+                <FileJson size={16} /> Exporter en JSON
               </button>
               <button 
                 type="button"

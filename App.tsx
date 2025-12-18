@@ -20,12 +20,9 @@ const App: React.FC = () => {
 
   const handleStartSession = (newConfig: SessionConfig) => {
     setConfig(newConfig);
-    setMessages([]); // Reset messages for new session
-    
-    // Initialisation de la session de chat
+    setMessages([]);
     const chat = createChatSession(newConfig.mode, newConfig.topic, []);
     setChatInstance(chat);
-    
     setAppMode(AppMode.CHAT);
   };
 
@@ -33,10 +30,8 @@ const App: React.FC = () => {
     setConfig(restoredConfig);
     setMessages(restoredMessages);
     setAiDeclaration(restoredDeclaration);
-
     const chat = createChatSession(restoredConfig.mode, restoredConfig.topic, restoredMessages);
     setChatInstance(chat);
-
     setAppMode(AppMode.CHAT);
   };
 
@@ -53,9 +48,12 @@ const App: React.FC = () => {
     setAppMode(AppMode.SETUP);
   };
 
+  // Crucial : En mode REPORT, on ne doit PAS avoir de overflow-hidden ou de h-screen strict sur le parent
+  const isReportMode = appMode === AppMode.REPORT;
+
   return (
-    <div className="flex flex-col h-full w-full">
-      <div className="flex-1 overflow-hidden relative">
+    <div className={`flex flex-col ${isReportMode ? 'min-h-screen' : 'h-screen'} w-full`}>
+      <div className={`flex-1 relative ${isReportMode ? '' : 'overflow-hidden'}`}>
         {appMode === AppMode.LOGIN && (
           <LoginView onSuccess={handleLoginSuccess} />
         )}
