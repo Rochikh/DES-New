@@ -47,13 +47,6 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
   };
 
   const handlePrint = () => {
-    // Retrait immédiat du focus pour éviter les artefacts de sélection
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    
-    // Appel direct au service d'impression. 
-    // Le navigateur gère le passage en PDF via le dialogue d'impression.
     window.print();
   };
 
@@ -75,10 +68,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
   ];
 
   return (
-    <div className="h-full bg-slate-50 p-4 sm:p-8 overflow-y-auto print:bg-white print:p-0 print:overflow-visible">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-8 print:bg-white print:p-0">
       <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700 print:space-y-6">
         
-        {/* Header du rapport */}
+        {/* Header du Rapport */}
         <header className="bg-gradient-to-br from-slate-900 to-indigo-900 text-white p-10 rounded-[2.5rem] flex justify-between items-end shadow-2xl print:rounded-none print:shadow-none print:bg-slate-900 print:p-8">
           <div>
             <div className="flex items-center gap-2 text-indigo-300 mb-2">
@@ -95,6 +88,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:block">
+          {/* Colonne Gauche */}
           <div className="lg:col-span-2 space-y-8 print:space-y-6">
             
             <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
@@ -141,6 +135,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
             </div>
           </div>
 
+          {/* Colonne Droite */}
           <div className="space-y-6 print:mt-10">
             <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
               <h3 className="text-[10px] font-black text-center uppercase text-slate-400 mb-8 tracking-[0.2em]">Profil de Pensée Critique</h3>
@@ -163,14 +158,14 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
               <button 
                 type="button"
                 onClick={handlePrint} 
-                className="w-full flex items-center justify-center gap-3 bg-white text-slate-900 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg group"
+                className="w-full flex items-center justify-center gap-3 bg-white text-slate-900 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-95 group"
               >
                 <Printer size={16} className="group-hover:text-indigo-600" /> Enregistrer en PDF
               </button>
               <button 
                 type="button"
                 onClick={downloadJSON} 
-                className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95"
               >
                 <FileJson size={16} /> Exporter en JSON
               </button>

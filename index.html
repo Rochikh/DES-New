@@ -18,71 +18,58 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      /* Style de base */
-      body { font-family: 'Inter', sans-serif; }
+      /* Style de base fluide pour l'écran */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc;
+      }
+      
+      #root {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* --- SOLUTION TECHNIQUE D'IMPRESSION PDF ARGOS --- */
+      /* --- CONFIGURATION IMPRESSION PDF --- */
       @media print {
-        /* On force tout le document à redevenir un flux vertical simple */
-        html, body, #root, #root > div {
-          height: auto !important;
-          min-height: 100% !important;
-          overflow: visible !important;
-          display: block !important;
-          position: static !important;
-          background: white !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* On désactive les conteneurs flexbox qui cassent la pagination sur plusieurs pages */
-        .flex, .grid, .flex-col, .flex-1 {
-          display: block !important;
-          height: auto !important;
-          overflow: visible !important;
-          max-height: none !important;
-          width: 100% !important;
-        }
-
-        /* On masque les éléments d'interface inutiles sur le papier */
-        .no-print, button, footer, nav, .fixed, .absolute, .shadow-2xl, .shadow-xl {
-          display: none !important;
-          visibility: hidden !important;
-        }
-
-        /* On s'assure que les couleurs et les fonds sont imprimés (essentiel pour le design) */
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          box-shadow: none !important;
-        }
-
-        /* Empêche les cartes de se couper en deux entre deux pages PDF */
-        .print-break-avoid {
-          break-inside: avoid !important;
-          page-break-inside: avoid !important;
-          margin-bottom: 2rem !important;
-          display: block !important;
-        }
-
         @page {
           size: A4;
           margin: 15mm;
         }
 
-        .max-w-5xl {
-          max-width: 100% !important;
-          width: 100% !important;
-          margin: 0 !important;
+        /* Déverrouillage des hauteurs pour l'impression */
+        html, body, #root, main {
+          height: auto !important;
+          overflow: visible !important;
+          position: static !important;
+          background: white !important;
+          display: block !important;
         }
 
-        /* Forçage de la taille des graphiques pour le rendu PDF */
+        .no-print {
+          display: none !important;
+        }
+
+        /* Rendu fidèle des couleurs et fonds */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .print-break-avoid {
+          break-inside: avoid !important;
+          page-break-inside: avoid !important;
+        }
+
         .recharts-responsive-container {
           width: 100% !important;
-          height: 300px !important;
+          height: 350px !important;
+          display: block !important;
         }
       }
     </style>
@@ -103,7 +90,6 @@
 </script>
 </head>
   <body class="bg-slate-50 text-slate-900">
-    <!-- Le root n'a plus de overflow-hidden pour permettre le scroll d'impression -->
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

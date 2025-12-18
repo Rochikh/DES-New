@@ -48,12 +48,11 @@ const App: React.FC = () => {
     setAppMode(AppMode.SETUP);
   };
 
-  // Crucial : En mode REPORT, on ne doit PAS avoir de overflow-hidden ou de h-screen strict sur le parent
   const isReportMode = appMode === AppMode.REPORT;
 
   return (
-    <div className={`flex flex-col ${isReportMode ? 'min-h-screen' : 'h-screen'} w-full`}>
-      <div className={`flex-1 relative ${isReportMode ? '' : 'overflow-hidden'}`}>
+    <div className="flex flex-col min-h-screen w-full bg-slate-50">
+      <main className={`flex-1 w-full ${isReportMode ? 'block overflow-visible h-auto' : 'h-[calc(100vh-28px)] overflow-hidden flex flex-col'}`}>
         {appMode === AppMode.LOGIN && (
           <LoginView onSuccess={handleLoginSuccess} />
         )}
@@ -83,7 +82,8 @@ const App: React.FC = () => {
             onRestart={handleRestart}
           />
         )}
-      </div>
+      </main>
+      
       {appMode !== AppMode.LOGIN && (
         <footer className="shrink-0 py-1 text-center text-[10px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print">
           Rochane Kherbouche en CC BY SA
