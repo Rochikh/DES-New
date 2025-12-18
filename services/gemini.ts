@@ -3,9 +3,18 @@ import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData } from "../types";
 import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+// On utilise une fonction pour récupérer l'instance afin d'être sûr de lire la clé au dernier moment
+const getAI = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey === "undefined" || apiKey === "") {
+    throw new Error("Clé API manquante : Assurez-vous d'avoir configuré la variable d'environnement API_KEY dans Vercel.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
-const CHAT_MODEL = "gemini-3-pro-preview";
+// Modèle Flash pour la discussion (plus rapide, moins de quota) 
+// et Pro pour l'analyse finale (plus profond)
+const CHAT_MODEL = "gemini-3-flash-preview"; 
 const ANALYSIS_MODEL = "gemini-3-pro-preview";
 const TUTOR_NAME = "Argos";
 
@@ -47,7 +56,7 @@ Ajoute toujours ces balises pédagogiques en fin de message :
 export const sendMessage = async (chat: Chat, message: string) => {
   const response = await chat.sendMessage({ message });
   if (!response.text) {
-    throw new Error("L'IA n'a pas renvoyé de texte. Possible blocage de sécurité ou erreur réseau.");
+    throw new Error("Réponse vide de l'IA. Vérifiez vos quotas ou les filtres de sécurité.");
   }
   return { text: response.text };
 };
@@ -68,48 +77,35 @@ Transcription :
 ${transcriptText}
 
 Évalue sur 100 les dimensions de pensée critique suivantes : ${CRITICAL_THINKING_CRITERIA.join(", ")}.
-Identifie si l'étudiant a progressé dans son autonomie de pensée ou s'il s'est reposé sur des généralités.
-
 Réponds au format JSON strict.
   `.trim();
 
-  try {
-    const response = await ai.models.generateContent({
-      model: ANALYSIS_MODEL,
-      contents: prompt,
-      config: {
-        temperature: 0.2,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            summary: { type: Type.STRING },
-            reasoningScore: { type: Type.INTEGER },
-            clarityScore: { type: Type.INTEGER },
-            skepticismScore: { type: Type.INTEGER },
-            processScore: { type: Type.INTEGER },
-            reflectionScore: { type: Type.INTEGER },
-            disciplinaryDiscernmentScore: { type: Type.INTEGER },
-            aiDeclarationCoherenceScore: { type: Type.INTEGER },
-            keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-            weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-            aiUsageAnalysis: { type: Type.STRING }
-          },
-          required: ["summary", "reasoningScore", "aiDeclarationCoherenceScore", "keyStrengths", "weaknesses", "aiUsageAnalysis"]
-        }
+  const response = await ai.models.generateContent({
+    model: ANALYSIS_MODEL,
+    contents: prompt,
+    config: {
+      temperature: 0.2,
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary: { type: Type.STRING },
+          reasoningScore: { type: Type.INTEGER },
+          clarityScore: { type: Type.INTEGER },
+          skepticismScore: { type: Type.INTEGER },
+          processScore: { type: Type.INTEGER },
+          reflectionScore: { type: Type.INTEGER },
+          disciplinaryDiscernmentScore: { type: Type.INTEGER },
+          aiDeclarationCoherenceScore: { type: Type.INTEGER },
+          keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+          weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
+          aiUsageAnalysis: { type: Type.STRING }
+        },
+        required: ["summary", "reasoningScore", "aiDeclarationCoherenceScore", "keyStrengths", "weaknesses", "aiUsageAnalysis"]
       }
-    });
+    }
+  });
 
-    const jsonStr = response.text?.trim() || "{}";
-    return { ...JSON.parse(jsonStr), transcript, aiDeclaration };
-  } catch (e) {
-    console.error("Analysis Error:", e);
-    return { 
-      summary: "L'analyse automatique n'a pas pu être finalisée.", 
-      reasoningScore: 0, clarityScore: 0, skepticismScore: 0, processScore: 0, reflectionScore: 0, 
-      disciplinaryDiscernmentScore: 0, aiDeclarationCoherenceScore: 0, 
-      keyStrengths: [], weaknesses: [], aiUsageAnalysis: "Erreur technique lors de l'audit.", 
-      transcript, aiDeclaration 
-    };
-  }
+  const jsonStr = response.text.trim();
+  return { ...JSON.parse(jsonStr), transcript, aiDeclaration };
 };

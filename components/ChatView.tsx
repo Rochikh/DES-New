@@ -28,6 +28,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
   const isStarted = useRef(false);
 
   const initChat = useCallback(async () => {
+    // Si déjà lancé ou si pas d'instance, on ne fait rien
     if (!chatInstance || isStarted.current) return;
     
     setIsLoading(true);
@@ -45,13 +46,14 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
       isStarted.current = true;
     } catch (e: any) { 
       console.error("Initialization error:", e);
-      setError("Argos semble indisponible pour le moment. Vérifie ta connexion ou la configuration de l'API.");
+      setError(e.message || "Argos semble indisponible pour le moment. Vérifiez votre connexion ou la configuration de l'API (clé manquante ?)");
     } finally { 
       setIsLoading(false); 
     }
   }, [chatInstance, config.studentName, config.topic, setMessages]);
 
   useEffect(() => {
+    // Déclenchement automatique de la première interaction
     if (messages.length === 0 && chatInstance && !isStarted.current) {
       initChat();
     } else if (messages.length > 0) {
@@ -92,9 +94,9 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
       };
       setMessages(prev => [...prev, aiMsg]);
       setLastActivityAt(Date.now());
-    } catch (error: any) {
-      console.error("Send message error:", error);
-      setError("Le message n'a pas été envoyé. Argos rencontre une difficulté technique.");
+    } catch (e: any) {
+      console.error("Send message error:", e);
+      setError(e.message || "Le message n'a pas été envoyé. Argos rencontre une difficulté technique.");
     } finally {
       setIsLoading(false);
     }
@@ -141,21 +143,33 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scrollbar-hide">
-        {messages.length === 0 && !isLoading && error && (
-          <div className="flex flex-col items-center justify-center h-full space-y-4">
-             <AlertCircle size={48} className="text-rose-500" />
-             <p className="text-sm font-medium text-slate-600 text-center max-w-xs">{error}</p>
+        {/* Affichage des erreurs critiques d'initialisation */}
+        {error && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full space-y-4 px-6 text-center">
+             <div className="p-4 bg-rose-100 text-rose-600 rounded-full">
+               <AlertCircle size={48} />
+             </div>
+             <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter">Erreur de Connexion</h3>
+             <p className="text-sm font-medium text-slate-600 max-w-sm">{error}</p>
              <button 
                onClick={() => initChat()}
-               className="px-6 py-2 bg-indigo-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-indigo-700 transition-all"
+               className="px-8 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-indigo-700 transition-all shadow-lg active:scale-95"
              >
-               Réessayer de lancer la discussion
+               Réessayer de contacter Argos
              </button>
           </div>
         )}
 
+        {/* Message d'attente initial */}
+        {isLoading && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+             <RefreshCw className="animate-spin text-indigo-500" size={32} />
+             <p className="text-[10px] text-indigo-600 font-black uppercase tracking-widest">Argos prépare ton audit...</p>
+          </div>
+        )}
+
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div key={msg.id} className={`flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-3xl px-6 py-5 shadow-sm border ${msg.role === 'user' ? 'bg-slate-900 text-white border-slate-800 rounded-br-none' : 'bg-white text-slate-800 border-slate-100 rounded-bl-none shadow-indigo-100/50'}`}>
               <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'prose-slate'}`}>
                 <ReactMarkdown>{msg.text || "..."}</ReactMarkdown>
@@ -167,7 +181,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
           </div>
         ))}
 
-        {isLoading && (
+        {isLoading && messages.length > 0 && (
           <div className="flex justify-start">
             <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4 flex items-center gap-3 shadow-sm animate-pulse">
               <RefreshCw className="animate-spin text-indigo-500" size={14} />
@@ -177,7 +191,7 @@ export const ChatView: React.FC<ChatViewProps> = ({ chatInstance, config, messag
         )}
 
         {error && messages.length > 0 && (
-          <div className="mx-auto max-w-md bg-rose-50 border border-rose-100 text-rose-800 px-4 py-3 rounded-2xl flex items-center gap-3">
+          <div className="mx-auto max-w-md bg-rose-50 border border-rose-100 text-rose-800 px-4 py-3 rounded-2xl flex items-center gap-3 animate-in fade-in">
             <AlertCircle size={18} className="shrink-0" />
             <p className="text-[10px] font-black uppercase tracking-widest">{error}</p>
           </div>

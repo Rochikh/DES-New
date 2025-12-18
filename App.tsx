@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppMode, SessionConfig, Message } from './types';
 import { SetupView } from './components/SetupView';
@@ -6,6 +7,7 @@ import { ReportView } from './components/ReportView';
 import { LoginView } from './components/LoginView';
 import { Chat } from "@google/genai";
 import { createChatSession } from './services/gemini';
+import { AlertCircle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>(AppMode.LOGIN);
@@ -13,26 +15,38 @@ const App: React.FC = () => {
   const [chatInstance, setChatInstance] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiDeclaration, setAiDeclaration] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleLoginSuccess = () => {
     setAppMode(AppMode.SETUP);
   };
 
   const handleStartSession = (newConfig: SessionConfig) => {
-    setConfig(newConfig);
-    setMessages([]);
-    const chat = createChatSession(newConfig.mode, newConfig.topic, []);
-    setChatInstance(chat);
-    setAppMode(AppMode.CHAT);
+    setError(null);
+    try {
+      const chat = createChatSession(newConfig.mode, newConfig.topic, []);
+      setConfig(newConfig);
+      setMessages([]);
+      setChatInstance(chat);
+      setAppMode(AppMode.CHAT);
+    } catch (err: any) {
+      console.error("Session creation failed:", err);
+      setError(err.message || "Impossible de créer la session. Vérifiez la configuration.");
+    }
   };
 
   const handleResumeSession = (restoredConfig: SessionConfig, restoredMessages: Message[], restoredDeclaration: string) => {
-    setConfig(restoredConfig);
-    setMessages(restoredMessages);
-    setAiDeclaration(restoredDeclaration);
-    const chat = createChatSession(restoredConfig.mode, restoredConfig.topic, restoredMessages);
-    setChatInstance(chat);
-    setAppMode(AppMode.CHAT);
+    setError(null);
+    try {
+      const chat = createChatSession(restoredConfig.mode, restoredConfig.topic, restoredMessages);
+      setConfig(restoredConfig);
+      setMessages(restoredMessages);
+      setAiDeclaration(restoredDeclaration);
+      setChatInstance(chat);
+      setAppMode(AppMode.CHAT);
+    } catch (err: any) {
+      setError("Erreur lors de la reprise de session.");
+    }
   };
 
   const handleFinishSession = (declaration: string) => {
@@ -45,6 +59,7 @@ const App: React.FC = () => {
     setChatInstance(null);
     setMessages([]);
     setAiDeclaration('');
+    setError(null);
     setAppMode(AppMode.SETUP);
   };
 
@@ -52,6 +67,16 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen w-full bg-slate-50">
+      {error && appMode === AppMode.SETUP && (
+        <div className="bg-rose-600 text-white px-6 py-3 flex items-center justify-between animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-3 text-sm font-bold">
+            <AlertCircle size={18} />
+            {error}
+          </div>
+          <button onClick={() => setError(null)} className="text-[10px] uppercase font-black opacity-70 hover:opacity-100">Fermer</button>
+        </div>
+      )}
+
       <main className={`flex-1 w-full ${isReportMode ? 'block overflow-visible h-auto' : 'h-[calc(100vh-28px)] overflow-hidden flex flex-col'}`}>
         {appMode === AppMode.LOGIN && (
           <LoginView onSuccess={handleLoginSuccess} />
