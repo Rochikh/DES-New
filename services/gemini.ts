@@ -67,45 +67,63 @@ export const generateAnalysis = async (
   const transcriptText = transcript.map(m => `[${m.role === "user" ? "Étudiant" : TUTOR_NAME}]: ${m.text}`).join("\n");
 
   const prompt = `
-En tant qu'expert en pédagogie et pensée critique, analyse cet échange socratique sur le sujet "${topic}".
+En tant qu'expert en pédagogie cognitive, analyse cet échange socratique sur le sujet "${topic}".
 
-TRANSCRIPTION DU DIALOGUE :
+TRANSCRIPTION :
 ${transcriptText}
 
-DÉCLARATION D'USAGE IA DE L'ÉTUDIANT :
-"${aiDeclaration}"
+DÉCLARATION IA : "${aiDeclaration}"
 
-TON RÔLE :
-1. Produis une synthèse riche et nuancée de la progression cognitive de l'étudiant.
-2. Évalue rigoureusement les scores sur 100.
-3. Analyse la cohérence entre le style de l'étudiant et sa déclaration d'usage IA (détection de copier-coller vs réflexion originale).
-4. Liste des points de force précis et des pistes de progrès actionnables.
+TON ANALYSE DOIT ÊTRE EXTRÊMEMENT DÉTAILLÉE :
+1. Analyse chaque critère de pensée critique avec un score (0-100) ET un feedback qualitatif d'expert.
+2. Identifie les moments pivots où la pensée a évolué (en bien ou en mal).
+3. Produis une recommandation finale pour l'étudiant.
+4. Évalue la cohérence stylistique entre les réponses et la déclaration IA.
 
-FORMAT DE RÉPONSE : JSON uniquement.
+FORMAT JSON STRICT REQUIS.
   `.trim();
 
   const response = await ai.models.generateContent({
     model: ANALYSIS_MODEL,
     contents: prompt,
     config: {
-      temperature: 0.1, // Plus bas pour plus de précision
+      temperature: 0.1,
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          summary: { type: Type.STRING, description: "Une synthèse pédagogique détaillée (min 150 mots) avec des citations du dialogue." },
-          reasoningScore: { type: Type.INTEGER },
-          clarityScore: { type: Type.INTEGER },
-          skepticismScore: { type: Type.INTEGER },
-          processScore: { type: Type.INTEGER },
-          reflectionScore: { type: Type.INTEGER },
-          disciplinaryDiscernmentScore: { type: Type.INTEGER },
-          aiDeclarationCoherenceScore: { type: Type.INTEGER },
+          summary: { type: Type.STRING },
+          diagnostic: { type: Type.STRING },
+          globalScore: { type: Type.INTEGER },
+          criteriaScores: {
+            type: Type.OBJECT,
+            properties: {
+              premises: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
+              evidence: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
+              bias: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
+              decentering: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
+              logic: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
+              integrity: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } }
+            },
+            required: ["premises", "evidence", "bias", "decentering", "logic", "integrity"]
+          },
           keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
           weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-          aiUsageAnalysis: { type: Type.STRING, description: "Analyse critique de l'honnêteté intellectuelle et de l'usage des outils." }
+          pivotalMoments: { 
+            type: Type.ARRAY, 
+            items: { 
+              type: Type.OBJECT,
+              properties: {
+                quote: { type: Type.STRING },
+                analysis: { type: Type.STRING },
+                impact: { type: Type.STRING, enum: ["positive", "negative", "neutral"] }
+              }
+            }
+          },
+          aiUsageAnalysis: { type: Type.STRING },
+          finalRecommendation: { type: Type.STRING }
         },
-        required: ["summary", "reasoningScore", "aiDeclarationCoherenceScore", "keyStrengths", "weaknesses", "aiUsageAnalysis"]
+        required: ["summary", "diagnostic", "globalScore", "criteriaScores", "keyStrengths", "weaknesses", "pivotalMoments", "aiUsageAnalysis", "finalRecommendation"]
       }
     }
   });

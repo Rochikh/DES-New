@@ -1,3 +1,4 @@
+
 export enum AppMode {
   LOGIN = 'LOGIN',
   SETUP = 'SETUP',
@@ -24,18 +25,29 @@ export interface SessionConfig {
   mode: SocraticMode;
 }
 
+export interface ScoreDetail {
+  score: number;
+  feedback: string;
+}
+
 export interface AnalysisData {
   summary: string;
-  reasoningScore: number;
-  clarityScore: number;
-  skepticismScore: number;
-  processScore: number;
-  reflectionScore: number;
-  disciplinaryDiscernmentScore: number;
-  aiDeclarationCoherenceScore: number;
+  diagnostic: string;
+  // Scores basés sur les critères du domaine
+  criteriaScores: {
+    premises: ScoreDetail;       // Mise en question des prémisses
+    evidence: ScoreDetail;       // Qualité des preuves
+    bias: ScoreDetail;           // Identification des biais
+    decentering: ScoreDetail;    // Décentrement
+    logic: ScoreDetail;          // Cohérence logique
+    integrity: ScoreDetail;      // Honnêteté intellectuelle
+  };
+  globalScore: number;
   keyStrengths: string[];
   weaknesses: string[];
+  pivotalMoments: { quote: string; analysis: string; impact: 'positive' | 'negative' | 'neutral' }[];
   aiUsageAnalysis: string;
+  finalRecommendation: string;
   transcript: Message[];
   aiDeclaration: string;
 }
