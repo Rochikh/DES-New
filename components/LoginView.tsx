@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Lock, ArrowRight } from 'lucide-react';
 
@@ -10,7 +11,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [error, setError] = useState(false);
 
   // --- RESTAURATION DU CODE ORIGINAL ---
-  const VALID_CODE = "ARGOS2025"; 
+  const VALID_CODE = "DES2025"; 
   // -------------------------------------
 
   const handleSubmit = (e: React.FormEvent) => {
