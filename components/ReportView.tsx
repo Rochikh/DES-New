@@ -47,11 +47,11 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
   };
 
   const handlePrint = () => {
-    // Retirer le focus du bouton pour un rendu propre
+    // Retirer le focus pour éviter le contour bleu au clic sur l'imprimé
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    // Appel direct à window.print() sans asynchronisme bloquant
+    // Appel direct : window.print() déclenche l'imprimante native (et donc le "Enregistrer en PDF")
     window.print();
   };
 
@@ -59,11 +59,11 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
     <div className="flex flex-col items-center justify-center h-screen bg-indigo-50/20">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
       <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Argos génère l'audit...</h2>
-      <p className="text-slate-400 text-xs mt-2 uppercase tracking-widest font-bold">Un instant, nous mesurons ton parcours</p>
+      <p className="text-slate-400 text-xs mt-2 uppercase tracking-widest font-bold">Analyse des patterns de réflexion</p>
     </div>
   );
 
-  if (!analysis) return <div className="p-8 text-center font-bold">L'audit a rencontré une difficulté.</div>;
+  if (!analysis) return <div className="p-8 text-center font-bold">L'audit a rencontré une difficulté technique.</div>;
 
   const chartData = [
     { name: 'Raisonnement', score: analysis.reasoningScore, color: '#4f46e5' },
@@ -73,15 +73,15 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
   ];
 
   return (
-    <div className="h-full bg-slate-50 p-4 sm:p-8 overflow-y-auto print:bg-white print:p-0 print:h-auto print:overflow-visible">
-      <div id="printable-area" className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700 print:space-y-4">
+    <div className="h-full bg-slate-50 p-4 sm:p-8 overflow-y-auto print:bg-white print:p-0 print:overflow-visible">
+      <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700 print:space-y-6">
         
         {/* Header du rapport */}
-        <header className="bg-gradient-to-br from-slate-900 to-indigo-900 text-white p-10 rounded-[2.5rem] flex justify-between items-end shadow-2xl print:rounded-none print:shadow-none print:p-6 print:bg-slate-900">
+        <header className="bg-gradient-to-br from-slate-900 to-indigo-900 text-white p-10 rounded-[2.5rem] flex justify-between items-end shadow-2xl print:rounded-none print:shadow-none print:bg-slate-900 print:p-8">
           <div>
             <div className="flex items-center gap-2 text-indigo-300 mb-2">
               <Sparkles size={16} />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em]">Résultat du dialogue évaluatif</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em]">Résultat de ton dialogue évaluatif</p>
             </div>
             <h1 className="text-4xl font-black tracking-tighter uppercase">{config.studentName}</h1>
             <p className="text-indigo-200/60 text-sm mt-1">Sujet : {config.topic}</p>
@@ -92,10 +92,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:grid-cols-1 print:gap-4">
-          <div className="lg:col-span-2 space-y-8 print:space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 print:grid-cols-1">
+          <div className="lg:col-span-2 space-y-8 print:space-y-6">
             
-            <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid print:p-6">
+            <section className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
               <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                 <FileText size={16} className="text-indigo-500" /> Synthèse de la réflexion
               </h3>
@@ -104,11 +104,11 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
               </div>
             </section>
 
-            <section className="bg-indigo-50/50 p-8 rounded-[2rem] border border-indigo-100 print-break-avoid print:p-6">
+            <section className="bg-indigo-50/50 p-8 rounded-[2rem] border border-indigo-100 print-break-avoid">
               <h3 className="text-xs font-black text-indigo-900 mb-4 uppercase tracking-widest flex items-center gap-2">
                 <ShieldCheck size={16} /> Audit d'Honnêteté Intellectuelle
               </h3>
-              <p className="text-sm text-indigo-800 leading-relaxed mb-6 italic">"{analysis.aiUsageAnalysis}"</p>
+              <p className="text-sm text-indigo-800 leading-relaxed mb-6">"{analysis.aiUsageAnalysis}"</p>
               <div className="bg-white p-5 rounded-2xl text-[11px] font-medium border border-indigo-100">
                 <span className="opacity-50 uppercase block mb-1 text-[9px] font-black text-slate-400 tracking-widest">Ta déclaration :</span>
                 <span className="text-slate-700 italic">{aiDeclaration}</span>
@@ -139,8 +139,8 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
             </div>
           </div>
 
-          <div className="space-y-6 print:space-y-4">
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid print:p-6">
+          <div className="space-y-6">
+            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm print-break-avoid">
               <h3 className="text-[10px] font-black text-center uppercase text-slate-400 mb-8 tracking-[0.2em]">Profil de Pensée Critique</h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">

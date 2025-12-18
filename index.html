@@ -23,66 +23,58 @@
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* SOLUTION D'IMPRESSION PDF ROBUSTE */
+      /* --- SOLUTION TECHNIQUE IMPRESSION PDF --- */
       @media print {
-        /* On force le document à devenir un flux vertical infini */
-        html, body {
+        /* 1. On réinitialise les conteneurs racines pour permettre le scroll vertical infini */
+        html, body, #root, .flex-col, .flex-1 {
           height: auto !important;
           min-height: 0 !important;
           overflow: visible !important;
           display: block !important;
-          background-color: white !important;
+          position: static !important;
+          background: white !important;
+        }
+
+        /* 2. On désactive les contraintes de hauteur de Tailwind */
+        .h-screen, .h-full, .overflow-hidden, .overflow-y-auto {
+          height: auto !important;
+          overflow: visible !important;
+          max-height: none !important;
+        }
+
+        /* 3. Masquage des éléments inutiles sur le document papier/PDF */
+        .no-print, button, footer, nav, .fixed, .absolute {
+          display: none !important;
+          height: 0 !important;
+          width: 0 !important;
           margin: 0 !important;
           padding: 0 !important;
         }
 
-        #root {
-          height: auto !important;
-          overflow: visible !important;
-          display: block !important;
-          position: static !important;
-        }
-
-        /* Désactivation massive des restrictions Flexbox et Overflow sur toute la hiérarchie */
-        .flex, .flex-col, .flex-1, .overflow-hidden, .overflow-y-auto {
-          display: block !important;
-          height: auto !important;
-          overflow: visible !important;
-          max-height: none !important;
-          position: static !important;
-        }
-
-        /* Masquage des éléments d'interface utilisateur */
-        .no-print, button, footer, .fixed, .absolute, .shadow-2xl {
-          display: none !important;
-        }
-
-        /* Force le rendu des couleurs pour les arrière-plans (badges, headers) */
+        /* 4. Forçage du rendu des couleurs (Badges, Graphiques, Fonds de cartes) */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
           color-adjust: exact !important;
         }
 
-        /* Gestion de la pagination pour éviter les coupures de blocs */
+        /* 5. Empêcher les coupures de texte au milieu d'une carte */
         .print-break-avoid {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
+          margin-bottom: 20px !important;
           display: block !important;
-          margin-bottom: 30px !important;
         }
 
-        /* Ajustement de la largeur pour le format A4 PDF */
+        /* 6. Mise en page A4 */
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+
         .max-w-5xl {
           max-width: 100% !important;
           width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        /* On sature les bordures pour qu'elles soient visibles en impression */
-        section {
-          border: 1px solid #e2e8f0 !important;
         }
       }
     </style>
