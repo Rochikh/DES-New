@@ -4,7 +4,7 @@ import { AnalysisData, SessionConfig } from '../types';
 import { generateAnalysis } from '../services/gemini';
 import { Message } from '../types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, CartesianGrid, LabelList } from 'recharts';
-import { FileText, Printer, ShieldCheck, FileJson, Check, RefreshCw, Sparkles, ClipboardCheck, Quote, AlertTriangle, Target, Lightbulb, TrendingUp, TrendingDown, BookOpenCheck, Copy, Share2, RotateCcw } from 'lucide-react';
+import { FileText, Printer, ShieldCheck, FileJson, Check, RefreshCw, Sparkles, ClipboardCheck, Quote, AlertTriangle, Target, Lightbulb, TrendingUp, TrendingDown, BookOpenCheck, Copy, Share2, RotateCcw, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ReportViewProps {
@@ -120,13 +120,13 @@ export const ReportView: React.FC<ReportViewProps> = ({ config, transcript, aiDe
             
             {/* ACTIONS RAPIDES DANS LE HEADER POUR VISIBILITÉ TOTALE */}
             <div className="flex flex-wrap gap-3 pt-4 no-print">
-              <button onClick={() => window.print()} className="flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-95">
-                <Printer size={16} /> Imprimer PDF
+              <button onClick={() => window.print()} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg active:scale-95 border border-indigo-400">
+                <Save size={16} /> Enregistrer en PDF
               </button>
-              <button onClick={downloadJSON} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg active:scale-95">
+              <button onClick={downloadJSON} className="flex items-center gap-2 bg-slate-800 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-all shadow-lg active:scale-95">
                 <FileJson size={16} /> Exporter JSON
               </button>
-              <button onClick={copyToClipboard} className="flex items-center gap-2 bg-slate-800 text-slate-300 px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-all active:scale-95">
+              <button onClick={copyToClipboard} className="flex items-center gap-2 bg-slate-700 text-slate-300 px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-600 transition-all active:scale-95">
                 {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
                 {copied ? 'Copié !' : 'Copier Résumé'}
               </button>
