@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, AlertCircle } from 'lucide-react';
+import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Chat } from "@google/genai";
 import { Message, SessionConfig, SocraticStrategy } from '../types';
@@ -28,6 +28,26 @@ export const ChatView: React.FC<{
   const getNextStrategy = () => {
     const available = STRATEGIES.filter(s => s !== lastStrategy);
     return available[Math.floor(Math.random() * available.length)];
+  };
+
+  const handleExportJSON = () => {
+    const data = {
+      metadata: {
+        student: config.studentName,
+        topic: config.topic,
+        mode: config.mode,
+        date: new Date().toISOString()
+      },
+      transcript: messages,
+      aiDeclaration: declarationText || ""
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `DES_Progression_${config.studentName}_${new Date().toLocaleDateString()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSend = async (initialPrompt?: string) => {
@@ -101,11 +121,24 @@ export const ChatView: React.FC<{
       )}
 
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10">
-        <div className="overflow-hidden">
-          <h2 className="text-sm font-black text-slate-900 uppercase truncate">{config.topic}</h2>
-          <p className="text-[9px] text-slate-400 font-bold tracking-widest">{config.studentName.toUpperCase()}</p>
+        <div className="overflow-hidden flex items-center gap-4">
+          <div className="hidden sm:block">
+            <h2 className="text-sm font-black text-slate-900 uppercase truncate">{config.topic}</h2>
+            <p className="text-[9px] text-slate-400 font-bold tracking-widest">{config.studentName.toUpperCase()}</p>
+          </div>
+          <button 
+            onClick={handleExportJSON}
+            title="Sauvegarder pour reprendre plus tard"
+            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all flex items-center gap-2"
+          >
+            <Save size={18} />
+            <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">Sauvegarder</span>
+          </button>
         </div>
-        <button onClick={() => setShowDeclarationModal(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-rose-700 transition-colors"><StopCircle size={14} /> Terminer</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowGuide(true)} className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><HelpCircle size={20} /></button>
+          <button onClick={() => setShowDeclarationModal(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"><StopCircle size={14} /> Terminer</button>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 scrollbar-hide">
