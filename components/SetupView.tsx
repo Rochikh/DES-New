@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { SocraticMode, SessionConfig, Message } from '../types';
 import { BrainCircuit, HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, ChevronRight } from 'lucide-react';
@@ -67,36 +66,18 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           <p className="text-slate-500 text-sm font-medium mt-1">Ton partenaire de réflexion critique</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Ton Prénom</label>
               <div className="relative">
                 <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                <input 
-                  type="text" 
-                  name="argos-student-first-name"
-                  autoComplete="off"
-                  required 
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                  placeholder="Ex: Jean" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                />
+                <input type="text" required className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" placeholder="Ex: Jean" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sujet à explorer</label>
-              <input 
-                type="text" 
-                name="argos-discussion-topic"
-                autoComplete="off"
-                required 
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                placeholder="Ex: La justice sociale" 
-                value={topic} 
-                onChange={(e) => setTopic(e.target.value)} 
-              />
+              <input type="text" required className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" placeholder="Ex: La justice sociale" value={topic} onChange={(e) => setTopic(e.target.value)} />
             </div>
           </div>
 

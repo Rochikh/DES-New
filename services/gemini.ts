@@ -1,12 +1,12 @@
 
 import { GoogleGenAI, Chat, Type } from "@google/genai";
-import { Message, SocraticMode, AnalysisData } from "../types";
+import { Message, SocraticMode, AnalysisData, SocraticStrategy } from "../types";
 import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
 const getAI = () => {
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    throw new Error("Clé API manquante : Assurez-vous d'avoir configuré la variable d'environnement API_KEY dans Vercel.");
+    throw new Error("Clé API manquante");
   }
   return new GoogleGenAI({ apiKey });
 };
@@ -19,22 +19,26 @@ export const createChatSession = (mode: SocraticMode, topic: string, history: Me
   const ai = getAI();
   
   const systemInstruction = `
-Tu es ${TUTOR_NAME}, un tuteur socratique bienveillant mais intellectuellement exigeant. Ton but est d'aider l'étudiant à muscler sa pensée critique sur : "${topic}".
+Tu es ${TUTOR_NAME}, un tuteur socratique expert en pensée critique. Ton but est d'accompagner l'étudiant sur : "${topic}".
 
-OBJECTIF : Évaluer et encourager la capacité de l'étudiant à raisonner par lui-même.
-CRITÈRES DE RÉFLEXION : ${CRITICAL_THINKING_CRITERIA.join(", ")}.
+STRATÉGIES DISPONIBLES :
+1. clarification (définir les termes)
+2. test_necessite (vérifier si A implique forcément B)
+3. contre_exemple (proposer un cas limite)
+4. prediction (demander les conséquences d'une idée)
+5. falsifiabilite (demander ce qui prouverait que l'idée est fausse)
+6. mecanisme_causal (expliquer le "comment")
+7. changement_cadre (changer d'échelle ou de point de vue)
+8. compression (demander de résumer l'essentiel)
+9. concession_controlee (admettre un point pour mieux tester le reste)
 
 MÉTHODE :
-- Tutoiement systématique et chaleureux.
-- Ne donne JAMAIS la réponse. Aide l'étudiant à la trouver en le questionnant.
-- Pose une seule question à la fois, courte, percutante et incitative.
-- Au tout début, salue l'étudiant par son prénom de manière amicale.
-- Mode ${mode === SocraticMode.TUTOR ? 'DÉFENSE : tu aides l\'étudiant à approfondir et solidifier sa propre argumentation' : 'CRITIQUE : tu proposes un court texte plausible contenant 2 ou 3 failles logiques que l\'étudiant doit identifier'}.
-
-STRUCTURE DES RÉPONSES (À partir du 2ème message) :
-Ajoute toujours ces balises pédagogiques en fin de message :
-💡 Exigence : [Ce que j'attends de toi maintenant pour avancer]
-🔍 Contrôle : [Le point logique ou le critère que nous surveillons ensemble]
+- Tu recevras parfois une consigne interne de stratégie. Applique-la sans la nommer.
+- Tutoiement. Une seule question courte par message.
+- Mode ${mode === SocraticMode.TUTOR ? 'DÉFENSE' : 'CRITIQUE'}.
+- Finis par :
+💡 Exigence : [Action immédiate]
+🔍 Contrôle : [Point de vigilance]
   `.trim();
 
   return ai.chats.create({
@@ -43,18 +47,14 @@ Ajoute toujours ces balises pédagogiques en fin de message :
       role: m.role, 
       parts: [{ text: m.text }] 
     })),
-    config: { 
-      systemInstruction, 
-      temperature: 0.7 
-    }
+    config: { systemInstruction, temperature: 0.7 }
   });
 };
 
-export const sendMessage = async (chat: Chat, message: string) => {
-  const response = await chat.sendMessage({ message });
-  if (!response.text) {
-    throw new Error("Réponse vide de l'IA.");
-  }
+export const sendMessage = async (chat: Chat, message: string, strategy?: SocraticStrategy) => {
+  const prompt = strategy ? `[STRATÉGIE INTERNE : ${strategy}] ${message}` : message;
+  const response = await chat.sendMessage({ message: prompt });
+  if (!response.text) throw new Error("Réponse vide");
   return { text: response.text };
 };
 
@@ -67,20 +67,20 @@ export const generateAnalysis = async (
   const transcriptText = transcript.map(m => `[${m.role === "user" ? "Étudiant" : TUTOR_NAME}]: ${m.text}`).join("\n");
 
   const prompt = `
-En tant qu'expert en pédagogie cognitive, analyse cet échange socratique sur le sujet "${topic}".
+En tant qu'expert en analyse cognitive, produis une TRACE D'APPRENTISSAGE du dialogue suivant sur "${topic}".
 
 TRANSCRIPTION :
 ${transcriptText}
 
 DÉCLARATION IA : "${aiDeclaration}"
 
-TON ANALYSE DOIT ÊTRE EXTRÊMEMENT DÉTAILLÉE :
-1. Analyse chaque critère de pensée critique avec un score (0-100) ET un feedback qualitatif d'expert.
-2. Identifie les moments pivots où la pensée a évolué (en bien ou en mal).
-3. Produis une recommandation finale pour l'étudiant.
-4. Évalue la cohérence stylistique entre les réponses et la déclaration IA.
+CONSIGNES STRICTES :
+1. AUCUNE NOTE, AUCUN CHIFFRE, AUCUN POURCENTAGE.
+2. Ton neutre, analytique, factuel. Pas d'émojis.
+3. Chaque observation doit être appuyée par des "evidenceQuotes" (citations courtes du transcript).
+4. Statuts autorisés : non_traite, evoque, etaye, stress_teste.
 
-FORMAT JSON STRICT REQUIS.
+FORMAT JSON REQUIS.
   `.trim();
 
   const response = await ai.models.generateContent({
@@ -92,42 +92,74 @@ FORMAT JSON STRICT REQUIS.
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          summary: { type: Type.STRING },
-          diagnostic: { type: Type.STRING },
-          globalScore: { type: Type.INTEGER },
-          criteriaScores: {
+          summary: {
             type: Type.OBJECT,
             properties: {
-              premises: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
-              evidence: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
-              bias: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
-              decentering: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
-              logic: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } },
-              integrity: { type: Type.OBJECT, properties: { score: { type: Type.INTEGER }, feedback: { type: Type.STRING } } }
+              built: { type: Type.STRING },
+              unstable: { type: Type.ARRAY, items: { type: Type.STRING } },
+              nextStep: { type: Type.STRING }
             },
-            required: ["premises", "evidence", "bias", "decentering", "logic", "integrity"]
+            required: ["built", "unstable", "nextStep"]
           },
-          keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-          weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-          pivotalMoments: { 
-            type: Type.ARRAY, 
-            items: { 
+          diagnostic: { type: Type.STRING },
+          criteria: {
+            type: Type.OBJECT,
+            properties: {
+              premises: { $ref: "#/definitions/trace" },
+              evidence: { $ref: "#/definitions/trace" },
+              bias: { $ref: "#/definitions/trace" },
+              decentering: { $ref: "#/definitions/trace" },
+              logic: { $ref: "#/definitions/trace" },
+              integrity: { $ref: "#/definitions/trace" }
+            }
+          },
+          argumentMap: {
+            type: Type.OBJECT,
+            properties: {
+              claim: { type: Type.STRING },
+              definitions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              assumptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              evidence: { type: Type.ARRAY, items: { type: Type.STRING } },
+              objections: { type: Type.ARRAY, items: { type: Type.STRING } },
+              rebuttals: { type: Type.ARRAY, items: { type: Type.STRING } },
+              falsifier: { type: Type.STRING }
+            }
+          },
+          deltas: { type: Type.ARRAY, items: { type: Type.STRING } },
+          pivotalMoments: {
+            type: Type.ARRAY,
+            items: {
               type: Type.OBJECT,
               properties: {
                 quote: { type: Type.STRING },
                 analysis: { type: Type.STRING },
-                impact: { type: Type.STRING, enum: ["positive", "negative", "neutral"] }
+                impact: { type: Type.STRING, enum: ["positive", "negative", "neutral"] },
+                whyItMatters: { type: Type.STRING }
               }
             }
           },
-          aiUsageAnalysis: { type: Type.STRING },
-          finalRecommendation: { type: Type.STRING }
+          aiUsageAnalysis: { type: Type.STRING }
         },
-        required: ["summary", "diagnostic", "globalScore", "criteriaScores", "keyStrengths", "weaknesses", "pivotalMoments", "aiUsageAnalysis", "finalRecommendation"]
-      }
+        definitions: {
+          trace: {
+            type: Type.OBJECT,
+            properties: {
+              status: { type: Type.STRING, enum: ["non_traite", "evoque", "etaye", "stress_teste"] },
+              evidenceQuotes: { type: Type.ARRAY, items: { type: Type.STRING } },
+              expertObservation: { type: Type.STRING },
+              nextMove: { type: Type.STRING }
+            },
+            required: ["status", "evidenceQuotes", "expertObservation", "nextMove"]
+          }
+        }
+      } as any
     }
   });
 
-  const jsonStr = response.text.trim();
-  return { ...JSON.parse(jsonStr), transcript, aiDeclaration };
+  try {
+    const jsonStr = response.text.trim().replace(/^```json/, '').replace(/```$/, '');
+    return { ...JSON.parse(jsonStr), transcript, aiDeclaration };
+  } catch (e) {
+    throw new Error("Erreur de parsing de l'analyse Argos. Le modèle n'a pas respecté le format attendu.");
+  }
 };

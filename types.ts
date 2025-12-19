@@ -11,12 +11,32 @@ export enum SocraticMode {
   CRITIC = 'CRITIC'
 }
 
+export enum CriterionStatus {
+  NON_TRAITE = 'non_traite',
+  EVOQUE = 'evoque',
+  ETAYE = 'etaye',
+  STRESS_TESTE = 'stress_teste'
+}
+
+export enum SocraticStrategy {
+  CLARIFICATION = 'clarification',
+  TEST_NECESSITE = 'test_necessite',
+  CONTRE_EXEMPLE = 'contre_exemple',
+  PREDICTION = 'prediction',
+  FALSIFIABILITE = 'falsifiabilite',
+  MECANISME_CAUSAL = 'mecanisme_causal',
+  CHANGEMENT_CADRE = 'changement_cadre',
+  COMPRESSION = 'compression',
+  CONCESSION_CONTROLEE = 'concession_controlee'
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'model';
   text: string;
   timestamp: number;
   responseTimeMs?: number;
+  strategy?: SocraticStrategy;
 }
 
 export interface SessionConfig {
@@ -25,29 +45,47 @@ export interface SessionConfig {
   mode: SocraticMode;
 }
 
-export interface ScoreDetail {
-  score: number;
-  feedback: string;
+export interface CriterionTrace {
+  status: CriterionStatus;
+  evidenceQuotes: string[];
+  expertObservation: string;
+  nextMove: string;
+}
+
+export interface ArgumentMap {
+  claim: string;
+  definitions: string[];
+  assumptions: string[];
+  evidence: string[];
+  objections: string[];
+  rebuttals: string[];
+  falsifier: string;
 }
 
 export interface AnalysisData {
-  summary: string;
-  diagnostic: string;
-  // Scores basés sur les critères du domaine
-  criteriaScores: {
-    premises: ScoreDetail;       // Mise en question des prémisses
-    evidence: ScoreDetail;       // Qualité des preuves
-    bias: ScoreDetail;           // Identification des biais
-    decentering: ScoreDetail;    // Décentrement
-    logic: ScoreDetail;          // Cohérence logique
-    integrity: ScoreDetail;      // Honnêteté intellectuelle
+  summary: {
+    built: string;
+    unstable: string[];
+    nextStep: string;
   };
-  globalScore: number;
-  keyStrengths: string[];
-  weaknesses: string[];
-  pivotalMoments: { quote: string; analysis: string; impact: 'positive' | 'negative' | 'neutral' }[];
+  diagnostic: string;
+  criteria: {
+    premises: CriterionTrace;
+    evidence: CriterionTrace;
+    bias: CriterionTrace;
+    decentering: CriterionTrace;
+    logic: CriterionTrace;
+    integrity: CriterionTrace;
+  };
+  argumentMap: ArgumentMap;
+  deltas: string[];
+  pivotalMoments: { 
+    quote: string; 
+    analysis: string; 
+    impact: 'positive' | 'negative' | 'neutral';
+    whyItMatters: string;
+  }[];
   aiUsageAnalysis: string;
-  finalRecommendation: string;
   transcript: Message[];
   aiDeclaration: string;
 }

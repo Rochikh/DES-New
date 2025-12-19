@@ -37,14 +37,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
           Veuillez entrer le code de la session fourni par votre enseignant·e pour accéder au Dialogue Évaluatif Socratique.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
-              type="text"
-              name="argos-session-access-key-temporary"
-              autoComplete="off"
-              autoCapitalize="off"
-              spellCheck="false"
+              type="password"
               value={code}
               onChange={(e) => {
                 setCode(e.target.value);
