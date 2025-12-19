@@ -1,7 +1,6 @@
 
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData, SocraticStrategy } from "../types";
-import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
 const getAI = () => {
   const apiKey = process.env.API_KEY;
@@ -83,6 +82,31 @@ CONSIGNES STRICTES :
 FORMAT JSON REQUIS.
   `.trim();
 
+  const traceSchema = {
+    type: Type.OBJECT,
+    properties: {
+      status: { 
+        type: Type.STRING, 
+        description: "Statut qualitatif de progression",
+        enum: ["non_traite", "evoque", "etaye", "stress_teste"] 
+      },
+      evidenceQuotes: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING },
+        description: "Citations exactes du transcript prouvant ce statut"
+      },
+      expertObservation: { 
+        type: Type.STRING,
+        description: "Observation factuelle et lecture cognitive"
+      },
+      nextMove: { 
+        type: Type.STRING,
+        description: "L'action unique à mener au prochain tour"
+      }
+    },
+    required: ["status", "evidenceQuotes", "expertObservation", "nextMove"]
+  };
+
   const response = await ai.models.generateContent({
     model: ANALYSIS_MODEL,
     contents: prompt,
@@ -105,13 +129,14 @@ FORMAT JSON REQUIS.
           criteria: {
             type: Type.OBJECT,
             properties: {
-              premises: { $ref: "#/definitions/trace" },
-              evidence: { $ref: "#/definitions/trace" },
-              bias: { $ref: "#/definitions/trace" },
-              decentering: { $ref: "#/definitions/trace" },
-              logic: { $ref: "#/definitions/trace" },
-              integrity: { $ref: "#/definitions/trace" }
-            }
+              premises: traceSchema,
+              evidence: traceSchema,
+              bias: traceSchema,
+              decentering: traceSchema,
+              logic: traceSchema,
+              integrity: traceSchema
+            },
+            required: ["premises", "evidence", "bias", "decentering", "logic", "integrity"]
           },
           argumentMap: {
             type: Type.OBJECT,
@@ -123,7 +148,8 @@ FORMAT JSON REQUIS.
               objections: { type: Type.ARRAY, items: { type: Type.STRING } },
               rebuttals: { type: Type.ARRAY, items: { type: Type.STRING } },
               falsifier: { type: Type.STRING }
-            }
+            },
+            required: ["claim", "definitions", "assumptions", "evidence", "objections", "rebuttals", "falsifier"]
           },
           deltas: { type: Type.ARRAY, items: { type: Type.STRING } },
           pivotalMoments: {
@@ -135,23 +161,13 @@ FORMAT JSON REQUIS.
                 analysis: { type: Type.STRING },
                 impact: { type: Type.STRING, enum: ["positive", "negative", "neutral"] },
                 whyItMatters: { type: Type.STRING }
-              }
+              },
+              required: ["quote", "analysis", "impact", "whyItMatters"]
             }
           },
           aiUsageAnalysis: { type: Type.STRING }
         },
-        definitions: {
-          trace: {
-            type: Type.OBJECT,
-            properties: {
-              status: { type: Type.STRING, enum: ["non_traite", "evoque", "etaye", "stress_teste"] },
-              evidenceQuotes: { type: Type.ARRAY, items: { type: Type.STRING } },
-              expertObservation: { type: Type.STRING },
-              nextMove: { type: Type.STRING }
-            },
-            required: ["status", "evidenceQuotes", "expertObservation", "nextMove"]
-          }
-        }
+        required: ["summary", "diagnostic", "criteria", "argumentMap", "deltas", "pivotalMoments", "aiUsageAnalysis"]
       } as any
     }
   });
