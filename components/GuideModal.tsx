@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainCircuit, X, Save, Download, Printer, RotateCcw, Target, ShieldCheck, Box } from 'lucide-react';
+import { BrainCircuit, X, Save, Download, Printer, RotateCcw, Target, ShieldCheck, Box, Info } from 'lucide-react';
 
 interface GuideModalProps {
   onClose: () => void;
@@ -15,7 +15,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
             <div className="p-2 bg-indigo-600 rounded-xl text-white">
               <BrainCircuit size={20} />
             </div>
-            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Argos : Manuel de Continuité</h2>
+            <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Argos : Manuel de Session</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <X size={24} className="text-slate-400" />
@@ -29,55 +29,55 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
               <Save size={16} /> Sauvegarde & Reprise
             </h3>
             <p className="text-[13px] text-indigo-800 leading-relaxed font-medium">
-              Argos ne stocke rien sur les serveurs pour garantir votre confidentialité. Pour ne pas perdre votre travail :
+              Argos est un système "local" : il ne stocke aucune donnée sur un serveur. Pour ne pas perdre votre travail :
             </p>
-            <ul className="mt-3 space-y-2 text-[12px] text-indigo-900/80">
-              <li className="flex gap-2"><strong>1.</strong> Cliquez sur l'icône <Save size={14} className="inline"/> dans l'en-tête pour télécharger votre progression en <strong>.JSON</strong>.</li>
-              <li className="flex gap-2"><strong>2.</strong> Au prochain démarrage, utilisez le bouton <strong>"Reprendre un travail"</strong> sur l'écran d'accueil pour réimporter ce fichier.</li>
+            <ul className="mt-3 space-y-3 text-[12px] text-indigo-900/80">
+              <li className="flex gap-2">
+                <span className="font-black">1. Sauvegarder :</span> Cliquez sur l'icône <Save size={14} className="inline mx-1"/> en haut du chat pour télécharger un fichier <strong>.JSON</strong>.
+              </li>
+              <li className="flex gap-2">
+                <span className="font-black">2. Reprendre :</span> Sur l'écran d'accueil, utilisez le bouton <strong>"Reprendre un travail"</strong> et sélectionnez votre fichier JSON pour retrouver votre dialogue exactement là où vous l'avez laissé.
+              </li>
             </ul>
           </section>
 
           <section className="space-y-4">
             <h3 className="font-black text-slate-900 mb-3 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
-              <Printer size={16} /> Archivage & PDF
+              <Printer size={16} /> Rapport Final & PDF
             </h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2">Rapport PDF</h4>
+                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2 flex items-center gap-2"><Printer size={12}/> Impression PDF</h4>
                 <p className="text-[11px] leading-relaxed text-slate-500">
-                  En fin de session, cliquez sur <strong>"Imprimer / PDF"</strong>. Une mise en page spécifique s'active pour transformer votre audit en document académique propre.
+                  Le bouton <strong>"Imprimer / PDF"</strong> génère un rapport formaté A4. Il masque l'interface de l'application pour ne garder que l'audit analytique, idéal pour un rendu académique.
                 </p>
               </div>
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2">Audit numérique</h4>
+                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2 flex items-center gap-2"><Download size={12}/> Export JSON Final</h4>
                 <p className="text-[11px] leading-relaxed text-slate-500">
-                  Le bouton <strong>"Exporter .JSON"</strong> du rapport final contient l'intégralité du dialogue ET de l'analyse cognitive pour vos archives personnelles.
+                  L'audit final peut aussi être exporté en JSON. Ce fichier contient le transcript complet ET l'analyse détaillée générée par l'IA.
                 </p>
               </div>
             </div>
           </section>
 
-          <section>
-            <h3 className="font-black text-slate-900 mb-4 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
-              <Target size={16} /> Objectif de la Trace
+          <section className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl">
+            <h3 className="font-black text-indigo-400 mb-4 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
+              <Info size={16} /> Intelligence Artificielle
             </h3>
-            <div className="space-y-3">
-              <div className="bg-white border-l-4 border-indigo-600 p-4 text-[12px] shadow-sm rounded-r-xl border-y border-r border-slate-100">
-                <span className="font-black text-indigo-600 uppercase block mb-1">Qualité, pas Quantité</span>
-                Argos n'attribue pas de points. Il identifie des <strong>statuts de progression</strong> (évoqué, étayé, stress-testé) pour valider la solidité de votre argumentation.
-              </div>
-              <div className="bg-white border-l-4 border-emerald-500 p-4 text-[12px] shadow-sm rounded-r-xl border-y border-r border-slate-100">
-                <span className="font-black text-emerald-600 uppercase block mb-1">Preuve par Citation</span>
-                Chaque observation d'Argos dans le rapport final est liée à un extrait précis de vos écrits. Si Argos ne trouve pas de preuve, il ne validera pas le critère.
-              </div>
+            <p className="text-[12px] leading-relaxed opacity-80">
+              Vous utilisez actuellement <strong>Gemini 3 Flash</strong> pour le dialogue interactif (pour sa rapidité) et <strong>Gemini 3 Pro</strong> pour l'audit final (pour sa profondeur d'analyse). 
+            </p>
+            <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 text-[10px] italic">
+              Le système est configuré pour minimiser les coûts tout en maximisant la qualité réflexive.
             </div>
           </section>
 
-          <div className="pt-6 border-t border-slate-100">
+          <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-              <ShieldCheck size={14} /> Confidentialité Totale
+              <ShieldCheck size={14} /> Souveraineté des Données
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Vos données restent dans votre navigateur. Les fichiers JSON sont les seuls moyens de conserver votre travail hors-ligne.</p>
+            <p className="text-[10px] text-slate-400">Aucun historique n'est conservé après fermeture de l'onglet.</p>
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
             onClick={onClose}
             className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl active:scale-95"
           >
-            Démarrer / Reprendre
+            Compris, je continue
           </button>
         </div>
       </div>

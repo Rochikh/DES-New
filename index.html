@@ -35,11 +35,10 @@
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-      /* --- CONFIGURATION IMPRESSION PDF OPTIMISÉE --- */
       @media print {
         @page {
           size: A4;
-          margin: 10mm;
+          margin: 15mm;
         }
 
         html, body, #root, main {
@@ -54,7 +53,6 @@
           display: none !important;
         }
 
-        /* Forcer les couleurs et fonds */
         * {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -63,30 +61,29 @@
         .print-break-avoid {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
-          margin-bottom: 1rem;
-        }
-
-        .recharts-responsive-container {
-          width: 100% !important;
-          height: 300px !important;
+          margin-bottom: 2rem;
         }
         
-        /* Ajustement typographique pour le papier */
         .prose {
           font-size: 11pt !important;
           max-width: 100% !important;
           color: #1a1a1a !important;
         }
         
-        /* Supprimer les ombres qui bavent à l'impression */
-        .shadow-2xl, .shadow-xl, .shadow-sm {
-          shadow: none !important;
+        header, section, .card {
           border: 1px solid #e2e8f0 !important;
+          box-shadow: none !important;
+          border-radius: 8px !important;
+          page-break-inside: avoid;
         }
 
-        header {
-          border-radius: 0 !important;
-          margin-bottom: 2rem !important;
+        /* Forcer le texte noir sur blanc pour l'impression */
+        .bg-slate-900 {
+          background-color: #f1f5f9 !important;
+          color: #0f172a !important;
+        }
+        .text-white {
+          color: #0f172a !important;
         }
       }
     </style>

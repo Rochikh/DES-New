@@ -39,13 +39,13 @@ export const ReportView: React.FC<{
       },
       transcript: transcript,
       aiDeclaration: aiDeclaration,
-      analysis: analysis // On inclut l'analyse si disponible
+      analysis: analysis
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Audit_Argos_${config.studentName}_${new Date().toLocaleDateString()}.json`;
+    link.download = `Audit_Argos_${config.studentName}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -64,13 +64,14 @@ export const ReportView: React.FC<{
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
-      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Compilation de la trace...</h2>
+      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Compilation de l'audit...</h2>
+      <p className="text-slate-400 text-xs font-bold mt-2 uppercase">Génération par Gemini 3 Pro</p>
     </div>
   );
 
   if (error || !analysis) return (
     <div className="flex flex-col items-center justify-center h-screen p-8 text-center space-y-6">
-      <h2 className="text-2xl font-black text-slate-900 uppercase">Échec de l'Audit</h2>
+      <h2 className="text-2xl font-black text-slate-900 uppercase">Erreur d'Audit</h2>
       <p className="text-slate-600 max-w-md">{error}</p>
       <button onClick={runAnalysis} className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase"><RotateCcw size={18} /> Réessayer</button>
     </div>
@@ -81,14 +82,14 @@ export const ReportView: React.FC<{
       <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 print:space-y-8">
         
         {/* HEADER */}
-        <header className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row justify-between items-start gap-8 print:rounded-none print:shadow-none print:border-b-2 print:border-slate-900 print:p-6">
+        <header className="bg-slate-900 text-white p-10 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row justify-between items-start gap-8 print:bg-slate-50 print:text-slate-900 print:rounded-xl print:shadow-none print:border-2 print:border-slate-200 print:p-8">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 text-indigo-400">
+            <div className="flex items-center gap-4 text-indigo-400 print:text-indigo-600">
               <Sparkles size={24} />
-              <p className="text-[10px] font-black uppercase tracking-[0.6em]">Trace d'Apprentissage Argos</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.6em]">Audit Cognitif Argos</p>
             </div>
             <h1 className="text-5xl font-black tracking-tighter uppercase leading-none print:text-3xl">{config.studentName}</h1>
-            <p className="text-slate-400 text-lg font-bold uppercase print:text-sm">{config.topic}</p>
+            <p className="text-slate-400 text-lg font-bold uppercase print:text-slate-600">{config.topic}</p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col gap-3 no-print">
             <button 
@@ -112,65 +113,47 @@ export const ReportView: React.FC<{
           </div>
         </header>
 
-        {/* RÉSUMÉ EN 3 VOLETS */}
+        {/* RÉSUMÉ */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-1 print:gap-4">
-          <div className="bg-indigo-50 p-8 rounded-[2rem] border border-indigo-100 print:rounded-xl print:p-4">
-            <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-4">Acquis / Construit</h3>
+          <div className="bg-indigo-50 p-8 rounded-[2rem] border border-indigo-100 print:rounded-xl print:p-6">
+            <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-4">Acquis du dialogue</h3>
             <p className="text-sm text-indigo-800 leading-relaxed font-medium">{analysis.summary.built}</p>
           </div>
-          <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 print:rounded-xl print:p-4">
-            <h3 className="text-[10px] font-black text-rose-900 uppercase tracking-widest mb-4">Fragilités identifiées</h3>
+          <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 print:rounded-xl print:p-6">
+            <h3 className="text-[10px] font-black text-rose-900 uppercase tracking-widest mb-4">Points d'instabilité</h3>
             <ul className="space-y-2">
               {analysis.summary.unstable.map((u, i) => <li key={i} className="text-sm text-rose-800 flex gap-2"><span>•</span> {u}</li>)}
             </ul>
           </div>
-          <div className="bg-slate-900 p-8 rounded-[2rem] text-white print:bg-slate-100 print:text-slate-900 print:rounded-xl print:p-4 print:border">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 print:text-slate-500">Action suivante</h3>
+          <div className="bg-slate-900 p-8 rounded-[2rem] text-white print:bg-slate-50 print:text-slate-900 print:border-2 print:border-slate-200 print:rounded-xl print:p-6">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 print:text-slate-500">Prochaine étape</h3>
             <p className="text-sm leading-relaxed font-bold">{analysis.summary.nextStep}</p>
           </div>
         </section>
 
         {/* CARTE D'ARGUMENTATION */}
-        <section className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 print:bg-white print:p-6 print:rounded-xl print:border-2">
+        <section className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 print:bg-white print:p-8 print:rounded-xl print:border-2 print:break-inside-avoid">
           <div className="flex items-center gap-3 mb-8">
             <Box className="text-slate-900" size={24} />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Carte du raisonnement</h3>
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Structure du raisonnement</h3>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 print:grid-cols-1">
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:shadow-none print:border-slate-300">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Thèse centrale (Claim)</span>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:border-slate-300">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Thèse (Claim)</span>
                 <p className="text-sm font-bold text-slate-900">{analysis.argumentMap.claim}</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:shadow-none print:border-slate-300">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Définitions posées</span>
-                <ul className="text-xs space-y-2 text-slate-600">
-                  {analysis.argumentMap.definitions.map((d, i) => <li key={i}>• {d}</li>)}
-                </ul>
               </div>
             </div>
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:shadow-none print:border-slate-300">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Hypothèses (Assumptions)</span>
-                <ul className="text-xs space-y-2 text-slate-600">
-                  {analysis.argumentMap.assumptions.map((a, i) => <li key={i}>• {a}</li>)}
-                </ul>
-              </div>
-              <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 print:bg-white print:border-emerald-300">
-                <span className="text-[9px] font-black text-emerald-900 uppercase tracking-widest block mb-2">Preuves mobilisées</span>
+              <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 print:border-emerald-300">
+                <span className="text-[9px] font-black text-emerald-900 uppercase tracking-widest block mb-2">Preuves</span>
                 <ul className="text-xs space-y-2 text-emerald-800">
                   {analysis.argumentMap.evidence.map((e, i) => <li key={i}>• {e}</li>)}
                 </ul>
               </div>
             </div>
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 print:bg-white print:border-rose-300">
-                <span className="text-[9px] font-black text-rose-900 uppercase tracking-widest block mb-2">Objections traitées</span>
-                <ul className="text-xs space-y-2 text-rose-800">
-                  {analysis.argumentMap.objections.map((o, i) => <li key={i}>• {o}</li>)}
-                </ul>
-              </div>
-              <div className="bg-indigo-900 p-6 rounded-2xl text-white print:bg-slate-50 print:text-slate-900 print:border-slate-300">
+              <div className="bg-indigo-900 p-6 rounded-2xl text-white print:bg-slate-100 print:text-slate-900 print:border-slate-300">
                 <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest block mb-2 print:text-slate-500">Condition de réfutation</span>
                 <p className="text-xs italic leading-relaxed">{analysis.argumentMap.falsifier}</p>
               </div>
@@ -178,15 +161,15 @@ export const ReportView: React.FC<{
           </div>
         </section>
 
-        {/* TRACES PAR CRITÈRE */}
+        {/* CRITÈRES */}
         <section className="space-y-6">
           <div className="flex items-center gap-3 mb-8 px-4">
             <Target className="text-slate-900" size={24} />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Dimensions de la pensée critique</h3>
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Analyse par Dimension</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-1">
             {Object.entries(analysis.criteria).map(([key, trace]: [string, any]) => (
-              <div key={key} className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col justify-between print:rounded-xl print:p-6 print:border-2 print:break-avoid">
+              <div key={key} className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col justify-between print:rounded-xl print:p-6 print:border-2 print:break-inside-avoid">
                 <div>
                   <div className="flex justify-between items-start mb-6">
                     <h4 className="text-sm font-black text-slate-900 uppercase tracking-tighter w-2/3">
@@ -216,29 +199,9 @@ export const ReportView: React.FC<{
           </div>
         </section>
 
-        {/* MOMENTS PIVOTS */}
-        <section className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 print:bg-white print:p-6 print:border-none">
-          <div className="flex items-center gap-3 mb-10">
-            <Quote className="text-slate-900" size={24} />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Moments pivots</h3>
-          </div>
-          <div className="space-y-8 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200 print:before:bg-slate-300">
-            {analysis.pivotalMoments.map((m, i) => (
-              <div key={i} className="relative pl-10 print:break-avoid">
-                <div className={`absolute left-0 top-1 w-6 h-6 rounded-full border-4 border-slate-50 flex items-center justify-center ${m.impact === 'positive' ? 'bg-emerald-500' : m.impact === 'negative' ? 'bg-rose-500' : 'bg-slate-400'}`}></div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 print:shadow-none print:border-slate-200">
-                  <p className="text-xs italic text-slate-500 mb-3">"{m.quote}"</p>
-                  <p className="text-sm font-bold text-slate-900 mb-2">{m.analysis}</p>
-                  <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest">{m.whyItMatters}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* FOOTER PDF */}
         <footer className="pt-20 border-t border-slate-100 text-center opacity-30 print:opacity-100 print:pt-10">
-           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] print:text-slate-600">Audit Argos Cognitive System - Document Certifié</p>
+           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] print:text-slate-600">Document Certifié par le Système Argos Socratique</p>
         </footer>
       </div>
     </div>

@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Download } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Chat } from "@google/genai";
 import { Message, SessionConfig, SocraticStrategy } from '../types';
@@ -45,7 +45,7 @@ export const ChatView: React.FC<{
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `DES_Progression_${config.studentName}_${new Date().toLocaleDateString()}.json`;
+    link.download = `Progression_${config.studentName}_${new Date().toLocaleDateString()}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -120,7 +120,7 @@ export const ChatView: React.FC<{
         </div>
       )}
 
-      <header className="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10">
+      <header className="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10 no-print">
         <div className="overflow-hidden flex items-center gap-4">
           <div className="hidden sm:block">
             <h2 className="text-sm font-black text-slate-900 uppercase truncate">{config.topic}</h2>
@@ -129,7 +129,7 @@ export const ChatView: React.FC<{
           <button 
             onClick={handleExportJSON}
             title="Sauvegarder pour reprendre plus tard"
-            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all flex items-center gap-2"
+            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all flex items-center gap-2 group"
           >
             <Save size={18} />
             <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">Sauvegarder</span>
@@ -150,7 +150,7 @@ export const ChatView: React.FC<{
                 : 'bg-white text-slate-800 border-slate-200 rounded-tl-none'
             }`}>
               <div className={`prose prose-sm max-w-none font-medium leading-relaxed ${
-                msg.role === 'user' ? 'prose-invert prose-p:text-white' : 'prose-slate'
+                msg.role === 'user' ? 'prose-invert prose-p:text-white prose-p:font-semibold' : 'prose-slate'
               }`}>
                 <ReactMarkdown>{msg.text}</ReactMarkdown>
               </div>
@@ -168,7 +168,7 @@ export const ChatView: React.FC<{
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t p-4 sm:p-6 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+      <div className="bg-white border-t p-4 sm:p-6 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] no-print">
         <div className="max-w-4xl mx-auto relative group">
           <textarea 
             value={inputText} 
