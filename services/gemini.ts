@@ -74,10 +74,11 @@ ${transcriptText}
 DÉCLARATION IA : "${aiDeclaration}"
 
 CONSIGNES STRICTES :
-1. AUCUNE NOTE, AUCUN CHIFFRE, AUCUN POURCENTAGE.
+1. AUCUNE NOTE, AUCUN CHIFFRE, AUCUN POURCENTAGE (Sauf dans le champ "score").
 2. Ton neutre, analytique, factuel. Pas d'émojis.
 3. Chaque observation doit être appuyée par des "evidenceQuotes" (citations courtes du transcript).
 4. Statuts autorisés : non_traite, evoque, etaye, stress_teste.
+5. Champ "score" : attribue un nombre parmi [0, 25, 50, 75, 100] selon la maturité de la dimension.
 
 FORMAT JSON REQUIS.
   `.trim();
@@ -89,6 +90,10 @@ FORMAT JSON REQUIS.
         type: Type.STRING, 
         description: "Statut qualitatif de progression",
         enum: ["non_traite", "evoque", "etaye", "stress_teste"] 
+      },
+      score: {
+        type: Type.INTEGER,
+        description: "Maturité du critère (0, 25, 50, 75, 100)"
       },
       evidenceQuotes: { 
         type: Type.ARRAY, 
@@ -104,7 +109,7 @@ FORMAT JSON REQUIS.
         description: "L'action unique à mener au prochain tour"
       }
     },
-    required: ["status", "evidenceQuotes", "expertObservation", "nextMove"]
+    required: ["status", "score", "evidenceQuotes", "expertObservation", "nextMove"]
   };
 
   const response = await ai.models.generateContent({

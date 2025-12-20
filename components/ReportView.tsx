@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { AnalysisData, SessionConfig, CriterionStatus } from '../types';
 import { generateAnalysis } from '../services/gemini';
 import { Message } from '../types';
-import { Printer, RefreshCw, Sparkles, Quote, Target, RotateCcw, Box, ArrowRight, Download } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { Printer, RefreshCw, Sparkles, Quote, Target, RotateCcw, Box, ArrowRight, Download, Radar as RadarIcon } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 export const ReportView: React.FC<{
   config: SessionConfig;
@@ -61,6 +61,24 @@ export const ReportView: React.FC<{
     }
   };
 
+  // Préparation des données pour le radar chart
+  const getChartData = () => {
+    if (!analysis) return [];
+    const labels: Record<string, string> = {
+      premises: 'Prémisses',
+      evidence: 'Preuves',
+      bias: 'Biais',
+      decentering: 'Décentrement',
+      logic: 'Logique',
+      integrity: 'Honnêteté'
+    };
+    return Object.entries(analysis.criteria).map(([key, trace]: [string, any]) => ({
+      subject: labels[key] || key,
+      A: trace.score || 0,
+      fullMark: 100,
+    }));
+  };
+
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
@@ -96,7 +114,7 @@ export const ReportView: React.FC<{
               onClick={() => window.print()} 
               className="flex items-center justify-center gap-3 bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg active:scale-95"
             >
-              <Printer size={16} /> Imprimer / PDF
+              <Download size={16} /> Enregistrer en PDF
             </button>
             <button 
               onClick={handleExportJSON} 
@@ -113,21 +131,53 @@ export const ReportView: React.FC<{
           </div>
         </header>
 
-        {/* RÉSUMÉ */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-1 print:gap-4">
-          <div className="bg-indigo-50 p-8 rounded-[2rem] border border-indigo-100 print:rounded-xl print:p-6">
-            <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-4">Acquis du dialogue</h3>
-            <p className="text-sm text-indigo-800 leading-relaxed font-medium">{analysis.summary.built}</p>
+        {/* RÉSUMÉ ET GRAPHIQUE */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 print:block print:space-y-8">
+          {/* Texte de résumé */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="bg-indigo-50 p-8 rounded-[2rem] border border-indigo-100 print:rounded-xl print:p-6">
+                <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-4">Acquis du dialogue</h3>
+                <p className="text-sm text-indigo-800 leading-relaxed font-medium">{analysis.summary.built}</p>
+              </div>
+              <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 print:rounded-xl print:p-6">
+                <h3 className="text-[10px] font-black text-rose-900 uppercase tracking-widest mb-4">Points d'instabilité</h3>
+                <ul className="space-y-2">
+                  {analysis.summary.unstable.map((u, i) => <li key={i} className="text-sm text-rose-800 flex gap-2"><span>•</span> {u}</li>)}
+                </ul>
+              </div>
+            </div>
+            <div className="bg-slate-900 p-8 rounded-[2rem] text-white print:bg-slate-50 print:text-slate-900 print:border-2 print:border-slate-200 print:rounded-xl print:p-6">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 print:text-slate-500">Prochaine étape</h3>
+              <p className="text-sm leading-relaxed font-bold">{analysis.summary.nextStep}</p>
+            </div>
           </div>
-          <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100 print:rounded-xl print:p-6">
-            <h3 className="text-[10px] font-black text-rose-900 uppercase tracking-widest mb-4">Points d'instabilité</h3>
-            <ul className="space-y-2">
-              {analysis.summary.unstable.map((u, i) => <li key={i} className="text-sm text-rose-800 flex gap-2"><span>•</span> {u}</li>)}
-            </ul>
-          </div>
-          <div className="bg-slate-900 p-8 rounded-[2rem] text-white print:bg-slate-50 print:text-slate-900 print:border-2 print:border-slate-200 print:rounded-xl print:p-6">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 print:text-slate-500">Prochaine étape</h3>
-            <p className="text-sm leading-relaxed font-bold">{analysis.summary.nextStep}</p>
+
+          {/* Graphique Radar */}
+          <div className="lg:col-span-5 bg-white border border-slate-200 rounded-[2.5rem] p-6 shadow-sm flex flex-col items-center justify-center print:border-2 print:rounded-xl print:mt-8 print:break-inside-avoid">
+             <div className="flex items-center gap-2 mb-4">
+                <RadarIcon className="text-indigo-600" size={16} />
+                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Profil Cognitif</h3>
+             </div>
+             <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getChartData()}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                    <Radar
+                      name="Apprenant"
+                      dataKey="A"
+                      stroke="#4f46e5"
+                      fill="#4f46e5"
+                      fillOpacity={0.5}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+             </div>
+             <div className="mt-2 text-[8px] text-slate-400 uppercase font-black text-center px-4 leading-tight tracking-wider">
+               Échelle de maturité : 0 (Non traité) à 100 (Stress-testé)
+             </div>
           </div>
         </section>
 
@@ -179,9 +229,12 @@ export const ReportView: React.FC<{
                        key === 'decentering' ? 'Décentrement' : 
                        key === 'logic' ? 'Rigueur logique' : 'Honnêteté intellectuelle'}
                     </h4>
-                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${getStatusColor(trace.status)}`}>
-                      {trace.status.replace('_', ' ')}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${getStatusColor(trace.status)}`}>
+                        {trace.status.replace('_', ' ')}
+                      </span>
+                      <span className="text-[10px] font-black text-slate-400">{trace.score}%</span>
+                    </div>
                   </div>
                   <div className="space-y-4 mb-6">
                     {trace.evidenceQuotes.map((q: string, i: number) => (

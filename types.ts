@@ -47,6 +47,7 @@ export interface SessionConfig {
 
 export interface CriterionTrace {
   status: CriterionStatus;
+  score: number; // 0, 25, 50, 75, 100
   evidenceQuotes: string[];
   expertObservation: string;
   nextMove: string;
