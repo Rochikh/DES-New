@@ -69,7 +69,8 @@ export const ChatView: React.FC<{
     setError(null);
 
     try {
-      const res = await sendMessage(chatInstance, text, strategy);
+      // Fixed: removed the third argument 'strategy' as sendMessage in services/gemini.ts only accepts two arguments.
+      const res = await sendMessage(chatInstance, text);
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'model',

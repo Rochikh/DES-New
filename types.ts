@@ -11,13 +11,6 @@ export enum SocraticMode {
   CRITIC = 'CRITIC'
 }
 
-export enum CriterionStatus {
-  NON_TRAITE = 'non_traite',
-  EVOQUE = 'evoque',
-  ETAYE = 'etaye',
-  STRESS_TESTE = 'stress_teste'
-}
-
 export enum SocraticStrategy {
   CLARIFICATION = 'clarification',
   TEST_NECESSITE = 'test_necessite',
@@ -35,7 +28,6 @@ export interface Message {
   role: 'user' | 'model';
   text: string;
   timestamp: number;
-  responseTimeMs?: number;
   strategy?: SocraticStrategy;
 }
 
@@ -45,48 +37,15 @@ export interface SessionConfig {
   mode: SocraticMode;
 }
 
-export interface CriterionTrace {
-  status: CriterionStatus;
-  score: number; // 0, 25, 50, 75, 100
-  evidenceQuotes: string[];
-  expertObservation: string;
-  nextMove: string;
-}
-
-export interface ArgumentMap {
-  claim: string;
-  definitions: string[];
-  assumptions: string[];
-  evidence: string[];
-  objections: string[];
-  rebuttals: string[];
-  falsifier: string;
-}
-
 export interface AnalysisData {
-  summary: {
-    built: string;
-    unstable: string[];
-    nextStep: string;
-  };
-  diagnostic: string;
-  criteria: {
-    premises: CriterionTrace;
-    evidence: CriterionTrace;
-    bias: CriterionTrace;
-    decentering: CriterionTrace;
-    logic: CriterionTrace;
-    integrity: CriterionTrace;
-  };
-  argumentMap: ArgumentMap;
-  deltas: string[];
-  pivotalMoments: { 
-    quote: string; 
-    analysis: string; 
-    impact: 'positive' | 'negative' | 'neutral';
-    whyItMatters: string;
-  }[];
-  aiUsageAnalysis: string;
+  summary: string;
+  reasoningScore: number;
+  clarityScore: number;
+  skepticismScore: number;
+  processScore: number;
+  reflectionScore: number;
+  keyStrengths: string[];
+  weaknesses: string[];
   transcript: Message[];
   aiDeclaration: string;
 }
