@@ -146,30 +146,16 @@ export const ReportView: React.FC<{
                   </RadarChart>
                 </ResponsiveContainer>
              </div>
-             <div className="mt-4 flex flex-wrap justify-center gap-4 border-t border-slate-50 pt-4 w-full">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-slate-200"></div>
-                  <span className="text-[8px] font-black uppercase text-slate-400">0-40 Amorcé</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-indigo-300"></div>
-                  <span className="text-[8px] font-black uppercase text-slate-400">41-70 Stabilisé</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-indigo-600"></div>
-                  <span className="text-[8px] font-black uppercase text-slate-400">71-100 Expert</span>
-                </div>
-             </div>
           </div>
         </section>
 
-        {/* TRANSCRIPT / PROMPTOGRAPHIE */}
+        {/* TRANSCRIPT / PROMPTOGRAPHIE (Visible à l'impression maintenant) */}
         <section className="pt-12 border-t border-slate-100 print:pt-8 print:border-slate-300">
           <div className="flex items-center gap-3 mb-8 print:mb-4">
             <Target className="text-slate-900" size={24} />
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Dialogue d'Origine (Promptographie)</h3>
           </div>
-          <div className="space-y-4 max-h-96 overflow-y-auto pr-4 scrollbar-hide opacity-60 hover:opacity-100 transition-opacity print:max-h-none print:overflow-visible print:opacity-100 print:pr-0">
+          <div className="space-y-4 print:space-y-6">
             {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
               <div key={i} className={`p-4 rounded-xl text-xs print:text-[10pt] print:break-inside-avoid ${m.role === 'user' ? 'bg-slate-100 border-l-4 border-slate-900' : 'bg-indigo-50 border-l-4 border-indigo-600'}`}>
                 <span className="font-black uppercase text-[9px] print:text-[8pt] block mb-1">{m.role === 'user' ? 'Étudiant·e' : 'Argos'}</span>

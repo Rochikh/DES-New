@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save } from 'lucide-react';
+import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Chat } from "@google/genai";
-import { Message, SessionConfig, SocraticStrategy } from '../types';
+import { Message, SessionConfig, SocraticStrategy, PROTOCOL_PHASES } from '../types';
 import { sendMessage } from '../services/gemini';
 import { GuideModal } from './GuideModal';
 
@@ -19,15 +19,13 @@ export const ChatView: React.FC<{
   const [showDeclarationModal, setShowDeclarationModal] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
-  const [lastStrategy, setLastStrategy] = useState<SocraticStrategy | undefined>();
+  const [currentPhase, setCurrentPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const STRATEGIES = Object.values(SocraticStrategy);
-
-  const getNextStrategy = () => {
-    const available = STRATEGIES.filter(s => s !== lastStrategy);
-    return available[Math.floor(Math.random() * available.length)];
+  const extractPhase = (text: string): number => {
+    const match = text.match(/Phase:\s*(\d)/i);
+    return match ? parseInt(match[1], 10) : currentPhase;
   };
 
   const handleExportJSON = () => {
@@ -54,12 +52,10 @@ export const ChatView: React.FC<{
     const text = initialPrompt || inputText;
     if (!text.trim() || !chatInstance || isLoading) return;
 
-    const strategy = messages.length >= 2 ? getNextStrategy() : undefined;
-    
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      text: initialPrompt ? "(Démarrage)" : text,
+      text: initialPrompt ? "(Démarrage de session)" : text,
       timestamp: Date.now(),
     };
 
@@ -69,17 +65,18 @@ export const ChatView: React.FC<{
     setError(null);
 
     try {
-      // Fixed: removed the third argument 'strategy' as sendMessage in services/gemini.ts only accepts two arguments.
       const res = await sendMessage(chatInstance, text);
+      const phase = extractPhase(res.text);
+      setCurrentPhase(phase);
+
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'model',
         text: res.text,
         timestamp: Date.now(),
-        strategy
+        phase
       };
       setMessages(prev => [...prev, aiMsg]);
-      setLastStrategy(strategy);
     } catch (e: any) {
       setError("Erreur de communication avec Argos.");
     } finally {
@@ -90,6 +87,9 @@ export const ChatView: React.FC<{
   useEffect(() => {
     if (messages.length === 0 && chatInstance) {
       handleSend(`Bonjour Argos, je suis ${config.studentName}. Lance la session sur : ${config.topic}.`);
+    } else if (messages.length > 0) {
+      const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
+      if (lastModelMsg?.phase !== undefined) setCurrentPhase(lastModelMsg.phase);
     }
   }, [chatInstance]);
 
@@ -121,11 +121,26 @@ export const ChatView: React.FC<{
         </div>
       )}
 
+      {/* PROGRESS TRACKER */}
+      <div className="bg-white border-b border-slate-100 px-6 py-2 flex items-center justify-between overflow-x-auto scrollbar-hide no-print">
+        <div className="flex items-center gap-2 min-w-max">
+          {PROTOCOL_PHASES.map((p, i) => (
+            <div key={p.id} className="flex items-center gap-2">
+               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-500 ${currentPhase === p.id ? 'bg-indigo-600 text-white shadow-md' : currentPhase > p.id ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-50 text-slate-300'}`}>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">{i}. {p.label}</span>
+                  {currentPhase > p.id && <Info size={10} />}
+               </div>
+               {i < PROTOCOL_PHASES.length - 1 && <ChevronRight size={12} className="text-slate-200" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10 no-print">
         <div className="overflow-hidden flex items-center gap-4">
           <div className="hidden sm:block">
             <h2 className="text-sm font-black text-slate-900 uppercase truncate">{config.topic}</h2>
-            <p className="text-[9px] text-slate-400 font-bold tracking-widest">{config.studentName.toUpperCase()}</p>
+            <p className="text-[9px] text-slate-400 font-bold tracking-widest">PHASE {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label.toUpperCase()}</p>
           </div>
           <button 
             onClick={handleExportJSON}

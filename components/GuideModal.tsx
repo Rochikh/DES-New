@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrainCircuit, X, Save, Download, Printer, RotateCcw, Target, ShieldCheck, Box, Info } from 'lucide-react';
+import { BrainCircuit, X, Save, Download, Printer, RotateCcw, Target, ShieldCheck, Box, Info, Map } from 'lucide-react';
 
 interface GuideModalProps {
   onClose: () => void;
@@ -26,50 +26,48 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
           
           <section className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 shadow-sm">
             <h3 className="font-black text-indigo-900 mb-3 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
+              <Map size={16} /> Le Protocole Phased V3
+            </h3>
+            <p className="text-[13px] text-indigo-800 leading-relaxed font-medium mb-4">
+              Argos ne pose pas de questions au hasard. Il suit un parcours structuré pour tester la solidité de ta pensée :
+            </p>
+            <div className="space-y-2">
+              {[
+                { n: "0", t: "Ciblage", d: "On définit l'objet et l'intention de la recherche." },
+                { n: "1", t: "Clarification", d: "On s'assure que chaque mot a le même sens pour nous deux." },
+                { n: "2", t: "Mécanisme", d: "On explore le 'Comment' : les liens de cause à effet." },
+                { n: "3", t: "Vérification", d: "On cherche les preuves et les moyens de tester l'idée." },
+                { n: "4", t: "Stress-test", d: "On cherche l'exception qui infirme la règle (Falsifiabilité)." }
+              ].map(phase => (
+                <div key={phase.n} className="flex gap-3 items-start p-2 bg-white/50 rounded-xl border border-indigo-100/50">
+                  <span className="w-5 h-5 flex items-center justify-center bg-indigo-600 text-white rounded-full text-[10px] font-black shrink-0">{phase.n}</span>
+                  <div>
+                    <h4 className="text-[11px] font-black uppercase text-indigo-900">{phase.t}</h4>
+                    <p className="text-[10px] text-indigo-700 leading-tight">{phase.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="bg-slate-50 p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <h3 className="font-black text-slate-900 mb-3 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
               <Save size={16} /> Sauvegarde & Reprise
             </h3>
-            <p className="text-[13px] text-indigo-800 leading-relaxed font-medium">
-              Argos est un système "local" : il ne stocke aucune donnée sur un serveur. Pour ne pas perdre votre travail :
+            <p className="text-[12px] leading-relaxed">
+              Clique sur l'icône <Save size={14} className="inline mx-1"/> en haut du chat pour télécharger un fichier <strong>.JSON</strong>. Tu pourras le recharger plus tard sur l'écran d'accueil pour reprendre là où tu en étais.
             </p>
-            <ul className="mt-3 space-y-3 text-[12px] text-indigo-900/80">
-              <li className="flex gap-2">
-                <span className="font-black">1. Sauvegarder :</span> Cliquez sur l'icône <Save size={14} className="inline mx-1"/> en haut du chat pour télécharger un fichier <strong>.JSON</strong>.
-              </li>
-              <li className="flex gap-2">
-                <span className="font-black">2. Reprendre :</span> Sur l'écran d'accueil, utilisez le bouton <strong>"Reprendre un travail"</strong> et sélectionnez votre fichier JSON pour retrouver votre dialogue exactement là où vous l'avez laissé.
-              </li>
-            </ul>
           </section>
 
           <section className="space-y-4">
             <h3 className="font-black text-slate-900 mb-3 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
               <Printer size={16} /> Rapport Final & PDF
             </h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2 flex items-center gap-2"><Printer size={12}/> Impression PDF</h4>
-                <p className="text-[11px] leading-relaxed text-slate-500">
-                  Le bouton <strong>"Imprimer / PDF"</strong> génère un rapport formaté A4. Il masque l'interface de l'application pour ne garder que l'audit analytique, idéal pour un rendu académique.
-                </p>
-              </div>
-              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
-                <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2 flex items-center gap-2"><Download size={12}/> Export JSON Final</h4>
-                <p className="text-[11px] leading-relaxed text-slate-500">
-                  L'audit final peut aussi être exporté en JSON. Ce fichier contient le transcript complet ET l'analyse détaillée générée par l'IA.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl">
-            <h3 className="font-black text-indigo-400 mb-4 flex items-center gap-3 text-xs uppercase tracking-[0.15em]">
-              <Info size={16} /> Intelligence Artificielle
-            </h3>
-            <p className="text-[12px] leading-relaxed opacity-80">
-              Vous utilisez actuellement <strong>Gemini 3 Flash</strong> pour le dialogue interactif (pour sa rapidité) et <strong>Gemini 3 Pro</strong> pour l'audit final (pour sa profondeur d'analyse). 
-            </p>
-            <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10 text-[10px] italic">
-              Le système est configuré pour minimiser les coûts tout en maximisant la qualité réflexive.
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200">
+              <h4 className="font-bold text-slate-900 text-[11px] uppercase mb-2 flex items-center gap-2"><Printer size={12}/> Impression PDF</h4>
+              <p className="text-[11px] leading-relaxed text-slate-500">
+                Génère un rapport formaté A4 incluant l'analyse détaillée et le transcript complet (promptographie) de votre échange.
+              </p>
             </div>
           </section>
 

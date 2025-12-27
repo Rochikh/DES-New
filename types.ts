@@ -29,6 +29,7 @@ export interface Message {
   text: string;
   timestamp: number;
   strategy?: SocraticStrategy;
+  phase?: number;
 }
 
 export interface SessionConfig {
@@ -49,3 +50,11 @@ export interface AnalysisData {
   transcript: Message[];
   aiDeclaration: string;
 }
+
+export const PROTOCOL_PHASES = [
+  { id: 0, label: "Ciblage", desc: "Identification de l'intention et de l'objet de recherche." },
+  { id: 1, label: "Clarification", desc: "Définition rigoureuse des termes et des concepts utilisés." },
+  { id: 2, label: "Mécanisme", desc: "Exploration du 'Comment' : les relations de cause à effet." },
+  { id: 3, label: "Vérification", desc: "Recherche de preuves, de protocoles et de critères de vérité." },
+  { id: 4, label: "Stress-test", desc: "Confrontation à des contre-exemples et limites du modèle." }
+];
