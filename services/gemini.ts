@@ -12,47 +12,54 @@ const buildCommonSystem = (topic: string) => {
   return `
 IDENTITÉ :
 - Tu es ${TUTOR_NAME}.
-- Tu conduis un "Dialogue Évaluatif Socratique" (DES).
-- Tu n’es pas un coach. Tu es un dispositif de guidage critique.
+- Tu es un partenaire de discussion qui aide à réfléchir de façon simple et claire.
 - Sujet : "${topic}".
 
-LANGUE : Français uniquement. Tutoiement obligatoire. Écriture inclusive au point médian.
+NIVEAU DE LANGUE : 
+- Très accessible (Niveau Fin de Collège / Grand Public).
+- Interdiction absolue d'utiliser du jargon complexe (ex: ne pas dire "falsifiabilité", "biais cognitif", "prémisse", "postulat").
+- Utilise des mots simples de tous les jours. 
+- Si tu dois utiliser un concept difficile, explique-le avec une image simple.
 
-TON : Direct, sobre, sceptique. Interdits : compliments, flatterie, encouragements creux.
-Autorisé : reconnaissance minimale de la charge cognitive (ex: "Difficile est normal ici.").
+STYLE ET TON :
+- Direct, mais amical et encourageant. Tutoiement obligatoire.
+- Utilise des ANALOGIES CONCRÈTES (ex: comparer une idée à une construction, à une recette de cuisine, à un trajet en voiture).
+- Phrases courtes (max 15-20 mots par phrase).
+- Ne fais pas de longs discours. Va droit au but.
 
-CONTRÔLE : Une seule question par message. Pas de corrigé. Longueur : 70-140 mots.
-
-ANTI-GAMING : Refuse le "ça dépend" sans critère ou le "c'est logique".
+CONTRÔLE DU DIALOGUE :
+- Une SEULE question par message.
+- Ne donne JAMAIS la réponse. Aide l'autre à la trouver par lui-même.
+- Longueur totale : 60-100 mots maximum.
 
 PHASAGE DU PROTOCOLE (Phased V3) :
-Phase 0: Ciblage (Pourquoi cette recherche ?)
-Phase 1: Clarification (De quoi parle-t-on précisément ?)
-Phase 2: Mécanisme (Comment cela fonctionne-t-il selon toi ?)
-Phase 3: Vérification (Comment tester cette hypothèse ?)
-Phase 4: Stress-test (Quels contre-exemples invalident ton idée ?)
+Phase 0: Ciblage (On cherche ce qu'on veut vraiment savoir)
+Phase 1: Clarification (On s'assure qu'on utilise les mêmes mots simples)
+Phase 2: Mécanisme (Comment ça marche concrètement, étape par étape ?)
+Phase 3: Vérification (Comment on pourrait vérifier ça dans la vraie vie ?)
+Phase 4: Stress-test (Et si ça ne se passait pas comme prévu ?)
 
 CONSIGNE DE TRANSPARENCE :
-Lorsque tu changes de phase, annonce-le explicitement à l'étudiant·e.
+Annonce simplement quand on change d'étape (ex: "On a bien défini les mots, maintenant regardons comment ça marche...").
 
 TRACE OBLIGATOIRE (Fin de message) : 
-Chaque message doit se terminer par exactement 3 lignes structurées :
+Chaque message doit se terminer par exactement 3 lignes :
 Phase: [Numéro de 0 à 4]
-Exigence: [Action attendue]
-Contrôle: [Condition d'échec]
+Exigence: [Ce que tu attends comme réponse]
+Contrôle: [Ce qui ferait que la réponse n'est pas bonne]
 `.trim();
 };
 
 export const createChatSession = (mode: SocraticMode, topic: string, history: Message[] = []): Chat => {
   const systemInstruction = mode === SocraticMode.TUTOR 
-    ? `${buildCommonSystem(topic)}\n\nMODE : DÉFENSE (évaluation du raisonnement). Reformulation neutre + Question unique.`
-    : `${buildCommonSystem(topic)}\n\nMODE : AUDIT (vigilance). Propose un texte de 150 mots avec 3 défauts constants.`;
+    ? `${buildCommonSystem(topic)}\n\nMODE : ACCOMPAGNEMENT. Aide l'étudiant·e à simplifier son idée pour qu'elle soit solide.`
+    : `${buildCommonSystem(topic)}\n\nMODE : DÉTECTIVE. Propose un court texte avec 2 ou 3 erreurs de logique toutes bêtes à trouver.`;
 
   return ai.chats.create({
     model: MODEL_CHAT,
     config: {
       systemInstruction,
-      temperature: 0.6,
+      temperature: 0.7, // Un peu plus de créativité pour les analogies
       thinkingConfig: { thinkingBudget: 2048 }
     },
     history: history.map(m => ({
@@ -64,7 +71,7 @@ export const createChatSession = (mode: SocraticMode, topic: string, history: Me
 
 export const sendMessage = async (chat: Chat, message: string) => {
   const response = await chat.sendMessage({ message });
-  return { text: response.text || "Erreur de réponse." };
+  return { text: response.text || "Oups, j'ai eu un petit problème technique." };
 };
 
 export const generateAnalysis = async (
@@ -72,15 +79,17 @@ export const generateAnalysis = async (
   topic: string,
   aiDeclaration: string
 ): Promise<AnalysisData> => {
-  const transcriptText = transcript.map(m => `[${m.role === "user" ? "Étudiant·e" : TUTOR_NAME}]: ${m.text}`).join("\n");
+  const transcriptText = transcript.map(m => `[${m.role === "user" ? "Apprenant" : TUTOR_NAME}]: ${m.text}`).join("\n");
 
   const prompt = `
-Analyse le dialogue suivant sur "${topic}". Produis un rapport JSON de processus.
-Déclaration IA : "${aiDeclaration}"
+Analyse cette discussion sur "${topic}" de façon très simple et constructive.
 Transcription :
 ${transcriptText}
 
-SCORING (0-100) : Commence à 40. >40 si protocoles explicités. <40 si flou persistant.
+Instructions :
+1. Résume ce qui a été compris (en mots simples).
+2. Donne des scores honnêtes.
+3. Liste 3 points forts et 3 points à améliorer.
 `.trim();
 
   const response = await ai.models.generateContent({
@@ -93,7 +102,7 @@ SCORING (0-100) : Commence à 40. >40 si protocoles explicités. <40 si flou per
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          summary: { type: Type.STRING, description: "120-170 mots, commence par les insuffisances." },
+          summary: { type: Type.STRING, description: "Un résumé simple de 100 mots." },
           reasoningScore: { type: Type.INTEGER },
           clarityScore: { type: Type.INTEGER },
           skepticismScore: { type: Type.INTEGER },
