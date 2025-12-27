@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AnalysisData, SessionConfig } from '../types';
 import { generateAnalysis } from '../services/gemini';
 import { Message } from '../types';
-import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
+import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 export const ReportView: React.FC<{
@@ -36,23 +36,23 @@ export const ReportView: React.FC<{
     return [
       { subject: 'Raisonnement', A: analysis.reasoningScore, fullMark: 100 },
       { subject: 'Clarté', A: analysis.clarityScore, fullMark: 100 },
-      { subject: 'Scepticisme', A: analysis.skepticismScore, fullMark: 100 },
-      { subject: 'Processus', A: analysis.processScore, fullMark: 100 },
-      { subject: 'Réflexion', A: analysis.reflectionScore, fullMark: 100 },
+      { subject: 'Doute Constructif', A: analysis.skepticismScore, fullMark: 100 },
+      { subject: 'Méthode', A: analysis.processScore, fullMark: 100 },
+      { subject: 'Prise de recul', A: analysis.reflectionScore, fullMark: 100 },
     ];
   };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
-      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Analyse du Processus Argos...</h2>
-      <p className="text-slate-400 text-xs font-bold mt-2 uppercase">Génération par Gemini 3 Pro (Thinking)</p>
+      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Génération de ta trace d'apprentissage...</h2>
+      <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase">Argos calibre tes résultats</p>
     </div>
   );
 
   if (error || !analysis) return (
     <div className="flex flex-col items-center justify-center h-screen p-8 text-center space-y-6">
-      <h2 className="text-2xl font-black text-slate-900 uppercase">Erreur d'Audit</h2>
+      <h2 className="text-2xl font-black text-slate-900 uppercase">Erreur de bilan</h2>
       <button onClick={runAnalysis} className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase"><RotateCcw size={18} /> Réessayer</button>
     </div>
   );
@@ -93,7 +93,7 @@ export const ReportView: React.FC<{
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 print:p-6 print:rounded-xl print:border-slate-300">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <FileText size={14} /> Synthèse du Processus
+                <FileText size={14} /> Bilan de ta réflexion
               </h3>
               <p className="text-sm text-slate-800 leading-relaxed font-medium italic">
                 {analysis.summary}
@@ -103,7 +103,7 @@ export const ReportView: React.FC<{
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 print:border-emerald-300">
                 <h4 className="text-[9px] font-black text-emerald-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <CheckCircle2 size={14} /> Forces Clés
+                  <CheckCircle2 size={14} /> Tes Points Forts
                 </h4>
                 <ul className="space-y-2">
                   {analysis.keyStrengths.map((s, i) => (
@@ -111,13 +111,13 @@ export const ReportView: React.FC<{
                   ))}
                 </ul>
               </div>
-              <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 print:border-rose-300">
-                <h4 className="text-[9px] font-black text-rose-900 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <AlertTriangle size={14} /> Vigilances / Faiblesses
+              <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 print:border-amber-300">
+                <h4 className="text-[9px] font-black text-amber-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Lightbulb size={14} /> Pistes de progression
                 </h4>
                 <ul className="space-y-2">
                   {analysis.weaknesses.map((w, i) => (
-                    <li key={i} className="text-[11px] text-rose-800 font-bold">• {w}</li>
+                    <li key={i} className="text-[11px] text-amber-800 font-bold">• {w}</li>
                   ))}
                 </ul>
               </div>
@@ -128,7 +128,7 @@ export const ReportView: React.FC<{
           <div className="lg:col-span-5 bg-white border-2 border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col items-center justify-center print:border-slate-300 print:rounded-xl print:mt-8">
              <div className="flex items-center gap-2 mb-4">
                 <RadarIcon className="text-indigo-600" size={16} />
-                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Dimensions Cognitives</h3>
+                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Dimensions de ta pensée</h3>
              </div>
              <div className="w-full h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -149,11 +149,11 @@ export const ReportView: React.FC<{
           </div>
         </section>
 
-        {/* TRANSCRIPT / PROMPTOGRAPHIE (Visible à l'impression maintenant) */}
+        {/* TRANSCRIPT / PROMPTOGRAPHIE */}
         <section className="pt-12 border-t border-slate-100 print:pt-8 print:border-slate-300">
           <div className="flex items-center gap-3 mb-8 print:mb-4">
             <Target className="text-slate-900" size={24} />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Dialogue d'Origine (Promptographie)</h3>
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Historique de la discussion</h3>
           </div>
           <div className="space-y-4 print:space-y-6">
             {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
