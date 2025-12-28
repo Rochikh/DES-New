@@ -10,9 +10,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
 
-  // --- RESTAURATION DU CODE ORIGINAL ---
   const VALID_CODE = "DES2025"; 
-  // -------------------------------------
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +35,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
           Veuillez entrer le code de la session fourni par votre enseignant·e pour accéder au Dialogue Évaluatif Socratique.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           <div>
             <input
-              type="password"
+              type="text"
+              style={{ WebkitTextSecurity: 'disc' } as any}
               value={code}
               onChange={(e) => {
                 setCode(e.target.value);
                 setError(false);
               }}
+              autoComplete="off"
               className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all text-center text-lg tracking-widest ${
                 error 
                   ? 'border-rose-300 bg-rose-50 text-rose-900 focus:border-rose-500 placeholder-rose-300' 
