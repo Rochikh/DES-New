@@ -22,6 +22,7 @@ export const ChatView: React.FC<{
   const [currentPhase, setCurrentPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const extractPhase = (text: string): number => {
     const match = text.match(/Phase:\s*(\d)/i);
@@ -83,6 +84,14 @@ export const ChatView: React.FC<{
       setIsLoading(false);
     }
   };
+
+  // Ajustement automatique de la hauteur du textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [inputText]);
 
   useEffect(() => {
     if (messages.length === 0 && chatInstance) {
@@ -187,17 +196,18 @@ export const ChatView: React.FC<{
       <div className="bg-white border-t p-4 sm:p-6 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] no-print">
         <div className="max-w-4xl mx-auto relative group">
           <textarea 
+            ref={textareaRef}
             value={inputText} 
             onChange={(e) => setInputText(e.target.value)} 
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
             placeholder="Réponds ici avec précision..." 
-            className="w-full bg-slate-50 rounded-2xl pl-6 pr-16 py-5 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base font-medium resize-none shadow-inner" 
+            className="w-full bg-slate-50 rounded-2xl pl-6 pr-16 py-5 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base font-medium resize-none shadow-inner overflow-y-auto" 
             rows={1}
           />
           <button 
             onClick={() => handleSend()} 
             disabled={!inputText.trim() || isLoading} 
             className="absolute right-3 bottom-3 p-3 bg-slate-900 text-white rounded-xl disabled:opacity-10 hover:bg-indigo-600 transition-all shadow-lg active:scale-90"
+            title="Envoyer le message"
           >
             <Send size={20} />
           </button>
