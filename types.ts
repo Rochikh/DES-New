@@ -45,6 +45,7 @@ export interface AnalysisData {
   skepticismScore: number;
   processScore: number;
   reflectionScore: number;
+  integrityScore: number; // Nouveau score : Intégrité pédagogique
   keyStrengths: string[];
   weaknesses: string[];
   transcript: Message[];
