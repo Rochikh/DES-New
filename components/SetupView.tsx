@@ -52,13 +52,17 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
 
   return (
     <div className="h-full overflow-y-auto flex flex-col items-center justify-center bg-slate-50 p-4 relative">
-      <button onClick={() => setShowGuide(true)} className="absolute top-4 right-4 z-50 flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors">
-        <HelpCircle size={24} />
+      <button 
+        onClick={() => setShowGuide(true)} 
+        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white text-slate-400 border border-slate-200 rounded-xl hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all"
+      >
+        <span className="text-[10px] font-black uppercase tracking-widest">Aide & Guide</span>
+        <HelpCircle size={20} />
       </button>
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-100/30 w-full max-w-2xl border border-slate-100 my-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100/30 w-full max-w-2xl border border-slate-100 my-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col items-center mb-10">
           <div className="p-4 bg-indigo-600 rounded-3xl text-white shadow-xl shadow-indigo-200 mb-4">
             <BrainCircuit size={44} />
