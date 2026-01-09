@@ -24,6 +24,16 @@ export const ChatView: React.FC<{
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Filtre le texte pour l'affichage : retire le bloc technique de fin (Phase/Exigence/Contrôle)
+  const cleanDisplayBotText = (text: string): string => {
+    // On cherche l'occurrence de "Phase:" et on coupe tout ce qui suit
+    const technicalBlockIndex = text.search(/\n*Phase:\s*\d/i);
+    if (technicalBlockIndex !== -1) {
+      return text.substring(0, technicalBlockIndex).trim();
+    }
+    return text;
+  };
+
   const extractPhase = (text: string): number => {
     const match = text.match(/Phase:\s*(\d)/i);
     return match ? parseInt(match[1], 10) : currentPhase;
@@ -73,7 +83,7 @@ export const ChatView: React.FC<{
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'model',
-        text: res.text,
+        text: res.text, // On garde le texte complet (avec balises) dans l'historique
         timestamp: Date.now(),
         phase
       };
@@ -177,7 +187,9 @@ export const ChatView: React.FC<{
               <div className={`prose prose-sm max-w-none font-medium leading-relaxed ${
                 msg.role === 'user' ? 'prose-invert prose-p:text-white prose-p:font-semibold' : 'prose-slate'
               }`}>
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                <ReactMarkdown>
+                  {msg.role === 'model' ? cleanDisplayBotText(msg.text) : msg.text}
+                </ReactMarkdown>
               </div>
             </div>
           </div>
