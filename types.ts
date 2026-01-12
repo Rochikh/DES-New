@@ -30,8 +30,8 @@ export interface Message {
   timestamp: number;
   strategy?: SocraticStrategy;
   phase?: number;
-  responseTimeSeconds?: number; // Temps de réflexion/frappe
-  isSuspiciousPace?: boolean;   // Flag si vitesse inhumaine
+  responseTimeSeconds?: number;
+  isSuspiciousPace?: boolean;
 }
 
 export interface SessionConfig {
@@ -48,6 +48,7 @@ export interface AnalysisData {
   processScore: number;
   reflectionScore: number;
   integrityScore: number; 
+  suspiciousMessageCount: number; // Nouveau: synchronisé avec l'IA
   keyStrengths: string[];
   weaknesses: string[];
   transcript: Message[];

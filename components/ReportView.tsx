@@ -46,8 +46,8 @@ export const ReportView: React.FC<{
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
       <RefreshCw className="animate-spin text-indigo-600 mb-6" size={48} />
-      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Génération de ta trace d'apprentissage...</h2>
-      <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase">Argos calibre tes résultats</p>
+      <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Analyse de ta réflexion par Argos...</h2>
+      <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Calcul de la trace d'apprentissage</p>
     </div>
   );
 
@@ -58,14 +58,10 @@ export const ReportView: React.FC<{
     </div>
   );
 
-  const avgResponseTime = Math.round(
-    transcript
-      .filter(m => m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0)
-      .reduce((acc, curr) => acc + (curr.responseTimeSeconds || 0), 0) / 
-    transcript.filter(m => m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0).length
-  ) || 0;
-
-  const suspiciousCount = transcript.filter(m => m.isSuspiciousPace).length;
+  const userMessages = transcript.filter(m => m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0);
+  const avgResponseTime = userMessages.length > 0
+    ? Math.round(userMessages.reduce((acc, curr) => acc + (curr.responseTimeSeconds || 0), 0) / userMessages.length)
+    : 0;
 
   return (
     <div className="min-h-screen bg-white p-4 sm:p-12 print:p-0">
@@ -129,7 +125,10 @@ export const ReportView: React.FC<{
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-bold text-slate-500 uppercase">Réponses à vitesse suspecte</span>
-                    <span className={`text-xs font-black ${suspiciousCount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{suspiciousCount} détectée(s)</span>
+                    {/* On utilise ici la donnée certifiée par l'IA lors de l'analyse globale */}
+                    <span className={`text-xs font-black ${analysis.suspiciousMessageCount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      {analysis.suspiciousMessageCount} détectée(s)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -146,7 +145,6 @@ export const ReportView: React.FC<{
 
         {/* SECTION GRAPHIQUE ET RÉSUMÉ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 print:block print:space-y-8">
-          {/* Synthèse */}
           <div className="lg:col-span-7 space-y-6">
             <div className="p-8 bg-white rounded-[2rem] border-2 border-slate-50 print:p-6 print:rounded-xl">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -181,7 +179,6 @@ export const ReportView: React.FC<{
             </div>
           </div>
 
-          {/* Graphique Radar */}
           <div className="lg:col-span-5 bg-white border-2 border-slate-100 rounded-[2.5rem] p-6 shadow-sm flex flex-col items-center justify-center print:border-slate-300 print:rounded-xl print:mt-8">
              <div className="flex items-center gap-2 mb-4">
                 <RadarIcon className="text-indigo-600" size={16} />
@@ -206,7 +203,7 @@ export const ReportView: React.FC<{
           </div>
         </section>
 
-        {/* TRANSCRIPT / PROMPTOGRAPHIE */}
+        {/* TRANSCRIPT */}
         <section className="pt-12 border-t border-slate-100 print:pt-8 print:border-slate-300">
           <div className="flex items-center gap-3 mb-8 print:mb-4">
             <Target className="text-slate-900" size={24} />
@@ -216,8 +213,8 @@ export const ReportView: React.FC<{
             {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
               <div key={i} className={`p-4 rounded-xl text-xs print:text-[10pt] print:break-inside-avoid relative ${m.role === 'user' ? 'bg-slate-100 border-l-4 border-slate-900' : 'bg-indigo-50 border-l-4 border-indigo-600'}`}>
                 {m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0 && (
-                  <div className={`absolute top-2 right-4 flex items-center gap-1 text-[7px] font-black uppercase tracking-widest ${m.isSuspiciousPace ? 'text-rose-600' : 'text-slate-400'}`}>
-                    <Timer size={8} /> {m.responseTimeSeconds}s de réflexion {m.isSuspiciousPace && "• Vitesse suspecte"}
+                  <div className={`absolute top-2 right-4 flex items-center gap-1 text-[7px] font-black uppercase tracking-widest text-slate-400`}>
+                    <Timer size={8} /> {m.responseTimeSeconds}s de réflexion
                   </div>
                 )}
                 <span className="font-black uppercase text-[9px] print:text-[8pt] block mb-1">{m.role === 'user' ? 'Étudiant·e' : 'Argos'}</span>
@@ -229,7 +226,6 @@ export const ReportView: React.FC<{
           </div>
         </section>
 
-        {/* FOOTER PDF */}
         <footer className="pt-20 border-t border-slate-100 text-center opacity-30 print:opacity-100 print:pt-10">
            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] print:text-slate-600">Document Certifié par le Système Argos Socratique • Protocole Phased V3</p>
         </footer>

@@ -74,7 +74,7 @@ export const generateAnalysis = async (
   aiDeclaration: string
 ): Promise<AnalysisData> => {
   const transcriptWithTiming = transcript.map(m => {
-    const timing = m.role === 'user' ? ` [Temps de réponse: ${m.responseTimeSeconds}s${m.isSuspiciousPace ? ' - ATTENTION: Vitesse suspecte' : ''}]` : '';
+    const timing = m.role === 'user' ? ` [Temps de réponse: ${m.responseTimeSeconds}s]` : '';
     return `[${m.role === "user" ? "Apprenant" : TUTOR_NAME}]: ${m.text}${timing}`;
   }).join("\n");
 
@@ -84,22 +84,22 @@ Analyse cette discussion sur "${topic}".
 DÉCLARATION D'USAGE IA DE L'APPRENANT :
 "${aiDeclaration}"
 
-CRITÈRES D'ANALYSE :
-1. ANALYSE DE L'INTÉGRITÉ : Compare la déclaration, le style des réponses ET le temps de réponse.
-   - Si un message long a été envoyé en moins de 5 secondes, c'est une preuve forte de copier-coller.
-   - Compare cette réalité technique avec la déclaration de l'élève.
-2. ÉVALUATION COGNITIVE (Score 0-100) :
-   - reasoningScore: Rigueur des liens logiques.
-   - clarityScore: Précision conceptuelle.
-   - skepticismScore: Résistance aux biais.
-   - processScore: Qualité du cheminement.
-   - integrityScore: Éthique (Honnêteté vs usage caché d'outils).
+TA MISSION :
+Évalue l'intégrité et la qualité cognitive.
+Sois particulièrement vigilant sur les "Fractures d'Intégrité" (Copier-coller non déclarés).
 
-Transcription avec métriques :
+LOGIQUE DE DÉTECTION :
+- Un texte long (ex: > 300 mots) produit en moins de 180 secondes est statistiquement impossible sans assistance (vitesse > 100 mots/min).
+- Un changement brutal de style (syntaxe parfaite vs erreurs précédentes) est un signal fort.
+- Compare ces faits avec la déclaration de l'apprenant.
+
+Transcription avec métriques de temps :
 ${transcriptWithTiming}
 
-Instructions de sortie :
-- summary: Rédige un bilan pédagogique de 150 mots max. Aborde la question du "rythme de réflexion" (si trop rapide, mentionne que la pensée semble externalisée).
+Instructions de sortie (JSON) :
+- summary: Bilan pédagogique (150 mots max).
+- suspiciousMessageCount: Le nombre EXACT de réponses utilisateur que tu considères comme des copier-coller après avoir analysé le ratio temps/longueur/style.
+- integrityScore: De 0 (fraude manifeste) à 100 (parfaite honnêteté).
 `.trim();
 
   const response = await ai.models.generateContent({
@@ -119,10 +119,11 @@ Instructions de sortie :
           processScore: { type: Type.INTEGER },
           reflectionScore: { type: Type.INTEGER },
           integrityScore: { type: Type.INTEGER },
+          suspiciousMessageCount: { type: Type.INTEGER },
           keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
           weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } }
         },
-        required: ["summary", "reasoningScore", "clarityScore", "skepticismScore", "processScore", "reflectionScore", "integrityScore", "keyStrengths", "weaknesses"]
+        required: ["summary", "reasoningScore", "clarityScore", "skepticismScore", "processScore", "reflectionScore", "integrityScore", "suspiciousMessageCount", "keyStrengths", "weaknesses"]
       } as any
     }
   });

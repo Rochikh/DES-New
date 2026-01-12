@@ -21,8 +21,6 @@ export const ChatView: React.FC<{
   const [declarationText, setDeclarationText] = useState('');
   const [currentPhase, setCurrentPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  
-  // lastModelTime est mis à jour chaque fois qu'Argos finit de parler
   const [lastModelTime, setLastModelTime] = useState<number>(Date.now());
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,13 +63,15 @@ export const ChatView: React.FC<{
     const text = initialPrompt || inputText;
     if (!text.trim() || !chatInstance || isLoading) return;
 
-    // Mesure du temps écoulé depuis le dernier message du bot
     const now = Date.now();
     const responseTimeMs = now - lastModelTime;
-    const responseTimeSeconds = Math.round(responseTimeMs / 1000);
+    const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
     
-    // Heuristique : copier-coller suspect si texte long en très peu de temps
-    const isSuspicious = !initialPrompt && text.length > 200 && responseTimeSeconds < 5;
+    // Nouvelle heuristique : calcul des Caractères Par Minute (CPM)
+    // Moyenne humaine : 200 CPM. Limite suspecte : > 600 CPM (si texte > 100 chars)
+    const charCount = text.length;
+    const cpm = (charCount / responseTimeSeconds) * 60;
+    const isSuspicious = !initialPrompt && charCount > 100 && cpm > 600;
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -100,8 +100,6 @@ export const ChatView: React.FC<{
         phase
       };
       setMessages(prev => [...prev, aiMsg]);
-      
-      // On redémarre le chrono invisible dès qu'Argos a répondu
       setLastModelTime(Date.now());
     } catch (e: any) {
       setError("Erreur de communication avec Argos.");
@@ -199,7 +197,6 @@ export const ChatView: React.FC<{
                 ? 'bg-slate-900 text-white border-slate-800 rounded-tr-none' 
                 : 'bg-white text-slate-800 border-slate-200 rounded-tl-none'
             }`}>
-              {/* L'information de temps n'apparaît qu'APRES l'envoi, sur le message validé */}
               {msg.role === 'user' && msg.responseTimeSeconds !== undefined && msg.responseTimeSeconds > 0 && (
                 <div className={`absolute -top-6 right-2 flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest ${msg.isSuspiciousPace ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`}>
                   <Timer size={10} />
