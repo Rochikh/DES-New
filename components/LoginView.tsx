@@ -93,7 +93,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
              L'accès à ce système est restreint. Pour obtenir votre code, veuillez justifier votre usage pédagogique ou professionnel par email.
            </p>
            <a href="mailto:contact@rochane.fr" className="mt-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition-colors">
-             <Mail size={14} /> contact@rochane.fr
+             <Mail size={14} /> me contacter
            </a>
         </div>
         
