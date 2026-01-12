@@ -53,7 +53,7 @@ export const createChatSession = (mode: SocraticMode, topic: string, history: Me
     model: MODEL_CHAT,
     config: {
       systemInstruction,
-      temperature: 0.8, // Augmenté pour plus de créativité dans les biais
+      temperature: 0.8,
       thinkingConfig: { thinkingBudget: 2048 }
     },
     history: history.map(m => ({
@@ -78,27 +78,32 @@ export const generateAnalysis = async (
   const prompt = `
 Analyse cette discussion sur "${topic}".
 
-CRITÈRES DE SCORING (0-100) :
-- reasoningScore: Capacité à lier les idées.
-- clarityScore: Précision du vocabulaire.
-- skepticismScore: En mode CRITIQUE, a-t-il trouvé les failles ? En mode TUTEUR, a-t-il remis en question ses propres idées ?
-- processScore: Persévérance.
-- reflectionScore: Qualité du bilan final.
-- integrityScore: Baisse drastiquement si l'apprenant a été insultant pour obtenir des réponses.
+DÉCLARATION D'USAGE IA DE L'APPRENANT :
+"${aiDeclaration}"
+
+CRITÈRES D'ANALYSE :
+1. ANALYSE DE L'INTÉGRITÉ : Compare la déclaration ci-dessus avec le style des réponses dans le transcript. 
+   - Si l'élève a utilisé une IA externe (copier-coller visible) sans le déclarer, mentionne-le.
+   - Si l'élève a été honnête sur ses difficultés, valorise ce point.
+2. ÉVALUATION COGNITIVE (Score 0-100) :
+   - reasoningScore: Rigueur des liens logiques.
+   - clarityScore: Précision conceptuelle.
+   - skepticismScore: Résistance aux biais (en mode critique) ou auto-critique (en mode tuteur).
+   - processScore: Qualité du cheminement.
+   - integrityScore: Éthique et honnêteté de la démarche.
 
 Transcription :
 ${transcriptText}
 
-Instructions :
-1. summary: Bilan de 120 mots sur la performance cognitive de l'élève.
-2. keyStrengths/weaknesses: Points concrets.
+Instructions de sortie :
+- summary: Rédige un bilan pédagogique de 150 mots max. Intègre impérativement une phrase sur la sincérité de la déclaration d'usage IA par rapport au travail fourni.
 `.trim();
 
   const response = await ai.models.generateContent({
     model: MODEL_ANALYSIS,
     contents: prompt,
     config: {
-      temperature: 0.2,
+      temperature: 0.1,
       thinkingConfig: { thinkingBudget: 4096 },
       responseMimeType: "application/json",
       responseSchema: {

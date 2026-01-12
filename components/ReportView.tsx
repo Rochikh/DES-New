@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { AnalysisData, SessionConfig } from '../types';
 import { generateAnalysis } from '../services/gemini';
 import { Message } from '../types';
-import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck } from 'lucide-react';
+// Add missing Info icon to imports
+import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck, FileSignature, AlertTriangle, Info } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 export const ReportView: React.FC<{
@@ -88,16 +89,48 @@ export const ReportView: React.FC<{
           </div>
         </header>
 
+        {/* SECTION DÉCLARATION IA (INTÉGRITÉ) */}
+        <section className="bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden print:rounded-xl print:border-slate-200">
+          <div className="absolute top-0 right-0 p-8 text-slate-100 print:hidden">
+            <FileSignature size={120} />
+          </div>
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                <ShieldCheck className="text-indigo-600" size={20} /> engagement et intégrité
+              </h3>
+              <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${analysis.integrityScore >= 70 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                Score d'Intégrité : {analysis.integrityScore}/100
+                {analysis.integrityScore < 50 && <AlertTriangle size={14} />}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner">
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Déclaration d'usage de l'IA par l'élève :</p>
+               <p className="text-sm font-medium text-slate-800 italic leading-relaxed">
+                 "{aiDeclaration || "Aucun usage déclaré."}"
+               </p>
+            </div>
+            
+            <div className="flex items-start gap-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+              {/* Added missing Info icon import to resolve "Cannot find name 'Info'" */}
+              <Info className="text-indigo-600 shrink-0" size={18} />
+              <p className="text-[11px] text-indigo-900 font-bold leading-relaxed">
+                Ce score mesure la cohérence entre ton travail réel dans le chat et ce que tu déclares ci-dessus. L'honnêteté sur les outils utilisés est une compétence clé de la pensée critique.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* SECTION GRAPHIQUE ET RÉSUMÉ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 print:block print:space-y-8">
           {/* Synthèse */}
           <div className="lg:col-span-7 space-y-6">
-            <div className={`p-8 rounded-[2rem] border print:p-6 print:rounded-xl ${analysis.integrityScore < 50 ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+            <div className="p-8 bg-white rounded-[2rem] border-2 border-slate-50 print:p-6 print:rounded-xl">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <FileText size={14} /> Bilan de ta réflexion
-                {analysis.integrityScore < 50 && <ShieldCheck size={14} className="text-rose-500" />}
+                <FileText size={14} /> Bilan de ta réflexion par Argos
               </h3>
-              <p className="text-sm text-slate-800 leading-relaxed font-medium italic">
+              <p className="text-sm text-slate-800 leading-relaxed font-medium">
                 {analysis.summary}
               </p>
             </div>
