@@ -31,7 +31,7 @@ export interface Message {
   strategy?: SocraticStrategy;
   phase?: number;
   responseTimeSeconds?: number;
-  hasRhythmAnomaly?: boolean; // Changé: terminologie plus neutre
+  hasRhythmAnomaly?: boolean;
 }
 
 export interface SessionConfig {
@@ -48,7 +48,7 @@ export interface AnalysisData {
   processScore: number;
   reflectionScore: number;
   integrityScore: number; 
-  rhythmBreakCount: number; // Changé: terminologie plus neutre
+  rhythmBreakCount: number;
   keyStrengths: string[];
   weaknesses: string[];
   transcript: Message[];
@@ -58,7 +58,7 @@ export interface AnalysisData {
 export const PROTOCOL_PHASES = [
   { id: 0, label: "Ciblage", desc: "Identification de l'intention et de l'objet de recherche." },
   { id: 1, label: "Clarification", desc: "Définition rigoureuse des termes et des concepts utilisés." },
-  { id: 2, label: "Mécanisme", desc: "Exploration du 'Comment' : les relations de cause à effet." },
+  { id: 2, label: "Mécanisme", desc: "Exploration du 'comment' : les relations de cause à effet." },
   { id: 3, label: "Vérification", desc: "Recherche de preuves, de protocoles et de critères de vérité." },
   { id: 4, label: "Stress-test", desc: "Confrontation à des contre-exemples et limites du modèle." }
 ];

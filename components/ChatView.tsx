@@ -67,7 +67,6 @@ export const ChatView: React.FC<{
     const responseTimeMs = now - lastModelTime;
     const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
     
-    // Heuristique de flux : CPM > 600 est le signe d'une saisie non-naturelle
     const charCount = text.length;
     const cpm = (charCount / responseTimeSeconds) * 60;
     const isAnomaly = !initialPrompt && charCount > 100 && cpm > 600;
@@ -117,7 +116,7 @@ export const ChatView: React.FC<{
 
   useEffect(() => {
     if (messages.length === 0 && chatInstance) {
-      handleSend(`Bonjour Argos, je suis ${config.studentName}. Lance la session sur : ${config.topic}.`);
+      handleSend(`Bonjour Argos, je suis ${config.studentName}. Lancez la session sur : ${config.topic}.`);
     } else if (messages.length > 0) {
       const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
       if (lastModelMsg?.phase !== undefined) setCurrentPhase(lastModelMsg.phase);
@@ -135,13 +134,13 @@ export const ChatView: React.FC<{
       {showDeclarationModal && (
         <div className="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 animate-in fade-in zoom-in duration-300">
-            <h2 className="text-xl font-black flex items-center gap-3 mb-6 uppercase text-slate-900">
-              <FileSignature className="text-indigo-600" /> Journal d'Usage IA
+            <h2 className="text-xl font-black flex items-center gap-3 mb-6 text-slate-900">
+              <FileSignature className="text-indigo-600" /> Journal d'usage de l'IA
             </h2>
             <textarea 
               value={declarationText} 
               onChange={(e) => setDeclarationText(e.target.value)} 
-              placeholder="Comment as-tu utilisé l'IA pour tes recherches ?" 
+              placeholder="Comment avez-vous utilisé l'IA pour vos recherches ?" 
               className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl mb-6 outline-none text-sm" 
             />
             <div className="flex justify-end gap-3">
@@ -152,7 +151,7 @@ export const ChatView: React.FC<{
         </div>
       )}
 
-      {/* PROGRESS TRACKER */}
+      {/* Progress tracker */}
       <div className="bg-white border-b border-slate-100 px-6 py-2 flex items-center justify-between overflow-x-auto scrollbar-hide no-print">
         <div className="flex items-center gap-2 min-w-max">
           {PROTOCOL_PHASES.map((p, i) => (
@@ -170,8 +169,8 @@ export const ChatView: React.FC<{
       <header className="bg-white border-b px-6 py-4 flex justify-between items-center shrink-0 shadow-sm z-10 no-print">
         <div className="overflow-hidden flex items-center gap-4">
           <div className="hidden sm:block">
-            <h2 className="text-sm font-black text-slate-900 uppercase truncate">{config.topic}</h2>
-            <p className="text-[9px] text-slate-400 font-bold tracking-widest">PHASE {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label.toUpperCase()}</p>
+            <h2 className="text-sm font-black text-slate-900 truncate">{config.topic}</h2>
+            <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Phase {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label}</p>
           </div>
           <button 
             onClick={handleExportJSON}
@@ -183,8 +182,8 @@ export const ChatView: React.FC<{
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowGuide(true)} className="p-2 text-slate-300 hover:text-slate-600 transition-colors"><HelpCircle size={20} /></button>
-          <button onClick={() => setShowDeclarationModal(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"><StopCircle size={14} /> Terminer</button>
+          <button onClick={() => setShowGuide(true)} className="p-2 text-slate-300 hover:text-slate-600 transition-colors" title="Le projet Argos"><HelpCircle size={20} /></button>
+          <button onClick={() => setShowDeclarationModal(true)} className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl text-[10px] font-black tracking-widest uppercase hover:bg-rose-700 transition-colors shadow-lg shadow-rose-100"><StopCircle size={14} /> Terminer la session</button>
         </div>
       </header>
 
@@ -216,7 +215,7 @@ export const ChatView: React.FC<{
           <div className="flex justify-start">
             <div className="bg-indigo-600 text-white px-5 py-3 rounded-2xl rounded-tl-none flex items-center gap-3 animate-pulse shadow-lg shadow-indigo-200">
               <RefreshCw className="animate-spin" size={14} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Argos analyse ton propos...</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Argos analyse votre propos...</span>
             </div>
           </div>
         )}
@@ -229,7 +228,7 @@ export const ChatView: React.FC<{
             ref={textareaRef}
             value={inputText} 
             onChange={(e) => setInputText(e.target.value)} 
-            placeholder="Réponds ici avec précision..." 
+            placeholder="Répondez ici avec précision..." 
             className="w-full bg-slate-50 rounded-2xl pl-6 pr-16 py-5 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base font-medium resize-none shadow-inner overflow-y-auto" 
             rows={1}
           />

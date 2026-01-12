@@ -29,12 +29,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Help Button - Prominent */}
+      {/* Discovery Button */}
       <button 
         onClick={() => setShowGuide(true)} 
         className="absolute top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-md text-white rounded-2xl border border-white/20 hover:bg-white/20 transition-all shadow-2xl group animate-in slide-in-from-right duration-500"
       >
-        <span className="text-[10px] font-black uppercase tracking-widest">Besoin d'aide ?</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Le projet Argos</span>
         <HelpCircle size={20} className="text-indigo-400 group-hover:scale-110 transition-transform" />
       </button>
 
@@ -45,8 +45,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
           <div className="p-5 bg-slate-900 rounded-[2rem] text-white shadow-2xl shadow-indigo-200 mb-6">
             <BrainCircuit size={40} />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tighter uppercase mb-1">Argos Socratique</h1>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">Accès Session</p>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tighter mb-1">Argos socratique</h1>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em]">Accès à la session</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
@@ -93,7 +93,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
              L'accès à ce système est restreint. Pour obtenir votre code, veuillez justifier votre usage pédagogique ou professionnel par email.
            </p>
            <a href="mailto:contact@rochane.fr" className="mt-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition-colors">
-             <Mail size={14} /> me contacter
+             <Mail size={14} /> Me contacter
            </a>
         </div>
         

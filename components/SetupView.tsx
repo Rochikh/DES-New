@@ -36,7 +36,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           if (!json.transcript) throw new Error("Format invalide");
 
           const resumedConfig: SessionConfig = {
-            studentName: json.metadata?.student || "Apprenant",
+            studentName: json.metadata?.student || "Apprenant·e",
             topic: json.metadata?.topic || "Sujet importé",
             mode: json.metadata?.mode || SocraticMode.TUTOR
           };
@@ -56,7 +56,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
         onClick={() => setShowGuide(true)} 
         className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white text-slate-400 border border-slate-200 rounded-xl hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all"
       >
-        <span className="text-[10px] font-black uppercase tracking-widest">Aide & Guide</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Le projet Argos</span>
         <HelpCircle size={20} />
       </button>
 
@@ -67,14 +67,14 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           <div className="p-4 bg-indigo-600 rounded-3xl text-white shadow-xl shadow-indigo-200 mb-4">
             <BrainCircuit size={44} />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Argos Socratique</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Ton partenaire de réflexion critique</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Argos socratique</h1>
+          <p className="text-slate-500 text-sm font-medium mt-1">Votre partenaire de réflexion critique</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Ton Prénom</label>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prénom</label>
               <div className="relative">
                 <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
                 <input 
@@ -82,14 +82,14 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                   required 
                   autoComplete="off"
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                  placeholder="Ex: Jean" 
+                  placeholder="Ex: Camille" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sujet à explorer</label>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sujet d'exploration</label>
               <input 
                 type="text" 
                 required 
@@ -103,7 +103,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           </div>
 
           <div className="space-y-4">
-            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Choisir l'expérience de dialogue</label>
+            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Expérience de dialogue</label>
             
             <div className="grid grid-cols-1 gap-4">
               <button 
@@ -115,9 +115,9 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                   <MessageCircleQuestion size={28} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.TUTOR ? 'text-indigo-900' : 'text-slate-500'}`}>Mode Tuteur (Accompagnement)</div>
+                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.TUTOR ? 'text-indigo-900' : 'text-slate-500'}`}>Mode tuteur (Accompagnement)</div>
                   <p className={`text-[12px] leading-relaxed font-medium ${mode === SocraticMode.TUTOR ? 'text-indigo-700' : 'text-slate-400'}`}>
-                    Je t'aide à construire et à fortifier ton propre raisonnement. Je pose des questions pour tester la solidité de tes arguments sans jamais te donner la solution.
+                    Je vous aide à construire et à fortifier votre propre raisonnement en posant des questions ciblées sans jamais donner la solution.
                   </p>
                 </div>
                 {mode === SocraticMode.TUTOR && <div className="absolute top-6 right-6 text-indigo-600"><ChevronRight size={20} /></div>}
@@ -132,9 +132,9 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                   <ShieldAlert size={28} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.CRITIC ? 'text-rose-900' : 'text-slate-500'}`}>Mode Critique (Audit Logique)</div>
+                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.CRITIC ? 'text-rose-900' : 'text-slate-500'}`}>Mode critique (Audit logique)</div>
                   <p className={`text-[12px] leading-relaxed font-medium ${mode === SocraticMode.CRITIC ? 'text-rose-700' : 'text-slate-400'}`}>
-                    Je te propose un texte qui semble correct mais qui cache des failles logiques ou des biais. À toi de mener l'enquête pour les débusquer et les corriger.
+                    Je soumets un texte piégé. À vous de mener l'enquête pour débusquer les failles logiques et les biais cognitifs cachés.
                   </p>
                 </div>
                 {mode === SocraticMode.CRITIC && <div className="absolute top-6 right-6 text-rose-600"><ChevronRight size={20} /></div>}
