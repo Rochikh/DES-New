@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Lock, ArrowRight, HelpCircle, BrainCircuit } from 'lucide-react';
+import { Lock, ArrowRight, HelpCircle, BrainCircuit, Mail } from 'lucide-react';
 import { GuideModal } from './GuideModal';
 
 interface LoginViewProps {
@@ -87,11 +87,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </form>
+
+        <div className="mt-8 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+           <p className="text-[9px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider text-center">
+             L'accès à ce système est restreint. Pour obtenir votre code, veuillez justifier votre besoin pédagogique par email.
+           </p>
+           <a href="mailto:contact@rochane.fr" className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition-colors">
+             <Mail size={14} /> me contacter
+           </a>
+        </div>
         
-        <div className="mt-10 text-center border-t border-slate-50 pt-8">
-           <p className="text-[9px] text-slate-400 leading-relaxed font-medium">
-             Dispositif de traçabilité des compétences critiques.<br/>
-             Aucune donnée personnelle n'est stockée sur nos serveurs.
+        <div className="mt-8 text-center border-t border-slate-50 pt-6">
+           <p className="text-[8px] text-slate-400 leading-relaxed font-medium uppercase tracking-widest">
+             Rochane Kherbouche • Licence CC BY SA<br/>
+             Dispositif de traçabilité des compétences critiques.
            </p>
         </div>
       </div>

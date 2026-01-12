@@ -7,7 +7,7 @@ import { ReportView } from './components/ReportView';
 import { LoginView } from './components/LoginView';
 import { Chat } from "@google/genai";
 import { createChatSession } from './services/gemini';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Mail } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>(AppMode.LOGIN);
@@ -110,8 +110,13 @@ const App: React.FC = () => {
       </main>
       
       {appMode !== AppMode.LOGIN && (
-        <footer className="shrink-0 py-1 text-center text-[10px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print">
-          Rochane Kherbouche en CC BY SA
+        <footer className="shrink-0 py-1.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-4">
+          <span>Rochane Kherbouche en CC BY SA</span>
+          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+          <a href="mailto:contact@rochane.fr" className="flex items-center gap-1 hover:text-indigo-600 transition-colors font-bold uppercase tracking-widest">
+            <Mail size={10} />
+            me contacter
+          </a>
         </footer>
       )}
     </div>
