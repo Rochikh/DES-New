@@ -67,11 +67,10 @@ export const ChatView: React.FC<{
     const responseTimeMs = now - lastModelTime;
     const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
     
-    // Nouvelle heuristique : calcul des Caractères Par Minute (CPM)
-    // Moyenne humaine : 200 CPM. Limite suspecte : > 600 CPM (si texte > 100 chars)
+    // Heuristique de flux : CPM > 600 est le signe d'une saisie non-naturelle
     const charCount = text.length;
     const cpm = (charCount / responseTimeSeconds) * 60;
-    const isSuspicious = !initialPrompt && charCount > 100 && cpm > 600;
+    const isAnomaly = !initialPrompt && charCount > 100 && cpm > 600;
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -79,7 +78,7 @@ export const ChatView: React.FC<{
       text: initialPrompt ? "(Démarrage de session)" : text,
       timestamp: now,
       responseTimeSeconds: initialPrompt ? 0 : responseTimeSeconds,
-      isSuspiciousPace: isSuspicious
+      hasRhythmAnomaly: isAnomaly
     };
 
     if (!initialPrompt) setMessages(prev => [...prev, userMsg]);
@@ -198,9 +197,9 @@ export const ChatView: React.FC<{
                 : 'bg-white text-slate-800 border-slate-200 rounded-tl-none'
             }`}>
               {msg.role === 'user' && msg.responseTimeSeconds !== undefined && msg.responseTimeSeconds > 0 && (
-                <div className={`absolute -top-6 right-2 flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest ${msg.isSuspiciousPace ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`}>
+                <div className={`absolute -top-6 right-2 flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest ${msg.hasRhythmAnomaly ? 'text-amber-500' : 'text-slate-400'}`}>
                   <Timer size={10} />
-                  Réflexion : {msg.responseTimeSeconds}s {msg.isSuspiciousPace && "• Vitesse anormale"}
+                  Flux : {msg.responseTimeSeconds}s {msg.hasRhythmAnomaly && "• Rupture de rythme"}
                 </div>
               )}
               <div className={`prose prose-sm max-w-none font-medium leading-relaxed ${

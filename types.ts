@@ -31,7 +31,7 @@ export interface Message {
   strategy?: SocraticStrategy;
   phase?: number;
   responseTimeSeconds?: number;
-  isSuspiciousPace?: boolean;
+  hasRhythmAnomaly?: boolean; // Changé: terminologie plus neutre
 }
 
 export interface SessionConfig {
@@ -48,7 +48,7 @@ export interface AnalysisData {
   processScore: number;
   reflectionScore: number;
   integrityScore: number; 
-  suspiciousMessageCount: number; // Nouveau: synchronisé avec l'IA
+  rhythmBreakCount: number; // Changé: terminologie plus neutre
   keyStrengths: string[];
   weaknesses: string[];
   transcript: Message[];

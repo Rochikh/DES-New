@@ -74,7 +74,7 @@ export const generateAnalysis = async (
   aiDeclaration: string
 ): Promise<AnalysisData> => {
   const transcriptWithTiming = transcript.map(m => {
-    const timing = m.role === 'user' ? ` [Temps de réponse: ${m.responseTimeSeconds}s]` : '';
+    const timing = m.role === 'user' ? ` [Temps de saisie: ${m.responseTimeSeconds}s]` : '';
     return `[${m.role === "user" ? "Apprenant" : TUTOR_NAME}]: ${m.text}${timing}`;
   }).join("\n");
 
@@ -85,21 +85,21 @@ DÉCLARATION D'USAGE IA DE L'APPRENANT :
 "${aiDeclaration}"
 
 TA MISSION :
-Évalue l'intégrité et la qualité cognitive.
-Sois particulièrement vigilant sur les "Fractures d'Intégrité" (Copier-coller non déclarés).
+Évalue la qualité du processus intellectuel. 
+Ne cherche pas à "punir la triche", mais à identifier les moments où la pensée semble EXTERNALISÉE (déléguée à un outil) plutôt qu'AUTHENTIQUE.
 
-LOGIQUE DE DÉTECTION :
-- Un texte long (ex: > 300 mots) produit en moins de 180 secondes est statistiquement impossible sans assistance (vitesse > 100 mots/min).
-- Un changement brutal de style (syntaxe parfaite vs erreurs précédentes) est un signal fort.
-- Compare ces faits avec la déclaration de l'apprenant.
+LOGIQUE D'ANALYSE DU RYTHME :
+- Un texte extrêmement structuré, long, et produit rapidement (même avec des fautes de frappe "préméditées") suggère une "Rupture de flux de pensée".
+- Si l'apprenant a déclaré "pas d'usage d'IA" mais que ses réponses montrent une complexité structurelle incompatible avec le temps de saisie, identifie cela comme une "Externalisation non déclarée".
+- Ton but est d'évaluer si l'apprenant est l'AUTEUR du raisonnement ou simplement le TRANSPORTEUR d'un texte externe.
 
-Transcription avec métriques de temps :
+Transcription :
 ${transcriptWithTiming}
 
 Instructions de sortie (JSON) :
-- summary: Bilan pédagogique (150 mots max).
-- suspiciousMessageCount: Le nombre EXACT de réponses utilisateur que tu considères comme des copier-coller après avoir analysé le ratio temps/longueur/style.
-- integrityScore: De 0 (fraude manifeste) à 100 (parfaite honnêteté).
+- summary: Bilan de la progression cognitive (150 mots max).
+- rhythmBreakCount: Le nombre de réponses utilisateur présentant une rupture de rythme (externalisation probable).
+- integrityScore: Reflet de la cohérence entre la déclaration et le travail observé (0 à 100).
 `.trim();
 
   const response = await ai.models.generateContent({
@@ -119,14 +119,15 @@ Instructions de sortie (JSON) :
           processScore: { type: Type.INTEGER },
           reflectionScore: { type: Type.INTEGER },
           integrityScore: { type: Type.INTEGER },
-          suspiciousMessageCount: { type: Type.INTEGER },
+          rhythmBreakCount: { type: Type.INTEGER },
           keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
           weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } }
         },
-        required: ["summary", "reasoningScore", "clarityScore", "skepticismScore", "processScore", "reflectionScore", "integrityScore", "suspiciousMessageCount", "keyStrengths", "weaknesses"]
+        required: ["summary", "reasoningScore", "clarityScore", "skepticismScore", "processScore", "reflectionScore", "integrityScore", "rhythmBreakCount", "keyStrengths", "weaknesses"]
       } as any
     }
   });
 
-  return { ...JSON.parse(response.text || "{}"), transcript, aiDeclaration };
+  const parsed = JSON.parse(response.text || "{}");
+  return { ...parsed, transcript, aiDeclaration };
 };

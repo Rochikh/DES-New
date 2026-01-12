@@ -93,41 +93,40 @@ export const ReportView: React.FC<{
           </div>
         </header>
 
-        {/* SECTION DÉCLARATION IA (INTÉGRITÉ) */}
+        {/* SECTION DÉCLARATION IA (PROCESSUS AUTHENTIQUE) */}
         <section className="bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden print:rounded-xl print:border-slate-200">
           <div className="absolute top-0 right-0 p-8 text-slate-100 print:hidden">
-            <FileSignature size={120} />
+            <ShieldCheck size={120} />
           </div>
           <div className="relative z-10 space-y-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                <ShieldCheck className="text-indigo-600" size={20} /> engagement et intégrité
+                <Target className="text-indigo-600" size={20} /> authenticité du processus
               </h3>
-              <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${analysis.integrityScore >= 70 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                Score d'Intégrité : {analysis.integrityScore}/100
-                {analysis.integrityScore < 50 && <AlertTriangle size={14} />}
+              <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${analysis.integrityScore >= 70 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                Indice de Cohérence : {analysis.integrityScore}/100
+                {analysis.integrityScore < 70 && <AlertTriangle size={14} />}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Déclaration d'usage de l'IA par l'élève :</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Usage déclaré des outils d'assistance :</p>
                 <p className="text-sm font-medium text-slate-800 italic leading-relaxed">
                   "{aiDeclaration || "Aucun usage déclaré."}"
                 </p>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner flex flex-col justify-center">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Métriques de comportement :</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Dynamique de réflexion :</p>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Réflexion moyenne</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Temps moyen de saisie</span>
                     <span className="text-xs font-black text-slate-900">{avgResponseTime} secondes</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Réponses à vitesse suspecte</span>
-                    {/* On utilise ici la donnée certifiée par l'IA lors de l'analyse globale */}
-                    <span className={`text-xs font-black ${analysis.suspiciousMessageCount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                      {analysis.suspiciousMessageCount} détectée(s)
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Ruptures de rythme (externalisation)</span>
+                    <span className={`text-xs font-black ${analysis.rhythmBreakCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {analysis.rhythmBreakCount} épisode(s) identifié(s)
                     </span>
                   </div>
                 </div>
@@ -137,7 +136,7 @@ export const ReportView: React.FC<{
             <div className="flex items-start gap-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
               <Info className="text-indigo-600 shrink-0" size={18} />
               <p className="text-[11px] text-indigo-900 font-bold leading-relaxed">
-                Ce score mesure la cohérence entre ton travail réel dans le chat (incluant ton rythme de frappe) et ce que tu déclares ci-dessus. L'honnêteté sur les outils utilisés est une compétence clé de la pensée critique.
+                Cet indice reflète la "fluidité cognitive". Une rupture de rythme signifie qu'une réponse a été produite à une vitesse incompatible avec une saisie naturelle, suggérant une externalisation de la pensée. La pensée critique nécessite un temps de maturation organique.
               </p>
             </div>
           </div>
@@ -206,15 +205,15 @@ export const ReportView: React.FC<{
         {/* TRANSCRIPT */}
         <section className="pt-12 border-t border-slate-100 print:pt-8 print:border-slate-300">
           <div className="flex items-center gap-3 mb-8 print:mb-4">
-            <Target className="text-slate-900" size={24} />
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Historique de la discussion</h3>
+            <FileSignature className="text-slate-900" size={24} />
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Parcours de réflexion</h3>
           </div>
           <div className="space-y-4 print:space-y-6">
             {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
               <div key={i} className={`p-4 rounded-xl text-xs print:text-[10pt] print:break-inside-avoid relative ${m.role === 'user' ? 'bg-slate-100 border-l-4 border-slate-900' : 'bg-indigo-50 border-l-4 border-indigo-600'}`}>
                 {m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0 && (
                   <div className={`absolute top-2 right-4 flex items-center gap-1 text-[7px] font-black uppercase tracking-widest text-slate-400`}>
-                    <Timer size={8} /> {m.responseTimeSeconds}s de réflexion
+                    <Timer size={8} /> Saisie : {m.responseTimeSeconds}s
                   </div>
                 )}
                 <span className="font-black uppercase text-[9px] print:text-[8pt] block mb-1">{m.role === 'user' ? 'Étudiant·e' : 'Argos'}</span>
@@ -227,7 +226,7 @@ export const ReportView: React.FC<{
         </section>
 
         <footer className="pt-20 border-t border-slate-100 text-center opacity-30 print:opacity-100 print:pt-10">
-           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] print:text-slate-600">Document Certifié par le Système Argos Socratique • Protocole Phased V3</p>
+           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] print:text-slate-600">Document Certifié par le Système Argos Socratique • Traçabilité Cognitive V3</p>
         </footer>
       </div>
     </div>
