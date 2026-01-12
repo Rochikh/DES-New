@@ -30,6 +30,8 @@ export interface Message {
   timestamp: number;
   strategy?: SocraticStrategy;
   phase?: number;
+  responseTimeSeconds?: number; // Temps de réflexion/frappe
+  isSuspiciousPace?: boolean;   // Flag si vitesse inhumaine
 }
 
 export interface SessionConfig {
@@ -45,7 +47,7 @@ export interface AnalysisData {
   skepticismScore: number;
   processScore: number;
   reflectionScore: number;
-  integrityScore: number; // Nouveau score : Intégrité pédagogique
+  integrityScore: number; 
   keyStrengths: string[];
   weaknesses: string[];
   transcript: Message[];

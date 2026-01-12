@@ -88,18 +88,18 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
           </button>
         </form>
 
-        <div className="mt-8 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+        <div className="mt-8 bg-slate-50 rounded-2xl p-5 border border-slate-100">
            <p className="text-[9px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider text-center">
-             L'accès à ce système est restreint. Pour obtenir votre code, veuillez justifier votre besoin pédagogique par email.
+             L'accès à ce système est restreint. Pour obtenir votre code, veuillez justifier votre usage pédagogique ou professionnel par email.
            </p>
-           <a href="mailto:contact@rochane.fr" className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition-colors">
-             <Mail size={14} /> me contacter
+           <a href="mailto:contact@rochane.fr" className="mt-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 transition-colors">
+             <Mail size={14} /> contact@rochane.fr
            </a>
         </div>
         
         <div className="mt-8 text-center border-t border-slate-50 pt-6">
            <p className="text-[8px] text-slate-400 leading-relaxed font-medium uppercase tracking-widest">
-             Rochane Kherbouche • Licence CC BY SA<br/>
+             © Rochane Kherbouche • Licence CC BY SA<br/>
              Dispositif de traçabilité des compétences critiques.
            </p>
         </div>

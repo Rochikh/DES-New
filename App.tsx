@@ -110,11 +110,11 @@ const App: React.FC = () => {
       </main>
       
       {appMode !== AppMode.LOGIN && (
-        <footer className="shrink-0 py-1.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-4">
-          <span>Rochane Kherbouche en CC BY SA</span>
-          <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-          <a href="mailto:contact@rochane.fr" className="flex items-center gap-1 hover:text-indigo-600 transition-colors font-bold uppercase tracking-widest">
-            <Mail size={10} />
+        <footer className="shrink-0 py-2.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-6">
+          <span className="font-bold uppercase tracking-widest">© Rochane Kherbouche • Licence CC BY SA</span>
+          <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+          <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-indigo-600 transition-colors font-black uppercase tracking-[0.2em] group">
+            <Mail size={12} className="group-hover:scale-110 transition-transform" />
             me contacter
           </a>
         </footer>

@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { AnalysisData, SessionConfig } from '../types';
 import { generateAnalysis } from '../services/gemini';
 import { Message } from '../types';
-// Add missing Info icon to imports
-import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck, FileSignature, AlertTriangle, Info } from 'lucide-react';
+import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck, FileSignature, AlertTriangle, Info, Timer } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 export const ReportView: React.FC<{
@@ -59,6 +58,15 @@ export const ReportView: React.FC<{
     </div>
   );
 
+  const avgResponseTime = Math.round(
+    transcript
+      .filter(m => m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0)
+      .reduce((acc, curr) => acc + (curr.responseTimeSeconds || 0), 0) / 
+    transcript.filter(m => m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0).length
+  ) || 0;
+
+  const suspiciousCount = transcript.filter(m => m.isSuspiciousPace).length;
+
   return (
     <div className="min-h-screen bg-white p-4 sm:p-12 print:p-0">
       <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 print:space-y-8">
@@ -105,18 +113,32 @@ export const ReportView: React.FC<{
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner">
-               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Déclaration d'usage de l'IA par l'élève :</p>
-               <p className="text-sm font-medium text-slate-800 italic leading-relaxed">
-                 "{aiDeclaration || "Aucun usage déclaré."}"
-               </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Déclaration d'usage de l'IA par l'élève :</p>
+                <p className="text-sm font-medium text-slate-800 italic leading-relaxed">
+                  "{aiDeclaration || "Aucun usage déclaré."}"
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-inner flex flex-col justify-center">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Métriques de comportement :</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Réflexion moyenne</span>
+                    <span className="text-xs font-black text-slate-900">{avgResponseTime} secondes</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Réponses à vitesse suspecte</span>
+                    <span className={`text-xs font-black ${suspiciousCount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{suspiciousCount} détectée(s)</span>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div className="flex items-start gap-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-              {/* Added missing Info icon import to resolve "Cannot find name 'Info'" */}
               <Info className="text-indigo-600 shrink-0" size={18} />
               <p className="text-[11px] text-indigo-900 font-bold leading-relaxed">
-                Ce score mesure la cohérence entre ton travail réel dans le chat et ce que tu déclares ci-dessus. L'honnêteté sur les outils utilisés est une compétence clé de la pensée critique.
+                Ce score mesure la cohérence entre ton travail réel dans le chat (incluant ton rythme de frappe) et ce que tu déclares ci-dessus. L'honnêteté sur les outils utilisés est une compétence clé de la pensée critique.
               </p>
             </div>
           </div>
@@ -130,7 +152,7 @@ export const ReportView: React.FC<{
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <FileText size={14} /> Bilan de ta réflexion par Argos
               </h3>
-              <p className="text-sm text-slate-800 leading-relaxed font-medium">
+              <p className="text-sm text-slate-800 leading-relaxed font-medium whitespace-pre-line">
                 {analysis.summary}
               </p>
             </div>
@@ -192,7 +214,12 @@ export const ReportView: React.FC<{
           </div>
           <div className="space-y-4 print:space-y-6">
             {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
-              <div key={i} className={`p-4 rounded-xl text-xs print:text-[10pt] print:break-inside-avoid ${m.role === 'user' ? 'bg-slate-100 border-l-4 border-slate-900' : 'bg-indigo-50 border-l-4 border-indigo-600'}`}>
+              <div key={i} className={`p-4 rounded-xl text-xs print:text-[10pt] print:break-inside-avoid relative ${m.role === 'user' ? 'bg-slate-100 border-l-4 border-slate-900' : 'bg-indigo-50 border-l-4 border-indigo-600'}`}>
+                {m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0 && (
+                  <div className={`absolute top-2 right-4 flex items-center gap-1 text-[7px] font-black uppercase tracking-widest ${m.isSuspiciousPace ? 'text-rose-600' : 'text-slate-400'}`}>
+                    <Timer size={8} /> {m.responseTimeSeconds}s de réflexion {m.isSuspiciousPace && "• Vitesse suspecte"}
+                  </div>
+                )}
                 <span className="font-black uppercase text-[9px] print:text-[8pt] block mb-1">{m.role === 'user' ? 'Étudiant·e' : 'Argos'}</span>
                 <div className="prose prose-sm max-w-none text-slate-800">
                    {m.text}

@@ -73,7 +73,10 @@ export const generateAnalysis = async (
   topic: string,
   aiDeclaration: string
 ): Promise<AnalysisData> => {
-  const transcriptText = transcript.map(m => `[${m.role === "user" ? "Apprenant" : TUTOR_NAME}]: ${m.text}`).join("\n");
+  const transcriptWithTiming = transcript.map(m => {
+    const timing = m.role === 'user' ? ` [Temps de réponse: ${m.responseTimeSeconds}s${m.isSuspiciousPace ? ' - ATTENTION: Vitesse suspecte' : ''}]` : '';
+    return `[${m.role === "user" ? "Apprenant" : TUTOR_NAME}]: ${m.text}${timing}`;
+  }).join("\n");
 
   const prompt = `
 Analyse cette discussion sur "${topic}".
@@ -82,21 +85,21 @@ DÉCLARATION D'USAGE IA DE L'APPRENANT :
 "${aiDeclaration}"
 
 CRITÈRES D'ANALYSE :
-1. ANALYSE DE L'INTÉGRITÉ : Compare la déclaration ci-dessus avec le style des réponses dans le transcript. 
-   - Si l'élève a utilisé une IA externe (copier-coller visible) sans le déclarer, mentionne-le.
-   - Si l'élève a été honnête sur ses difficultés, valorise ce point.
+1. ANALYSE DE L'INTÉGRITÉ : Compare la déclaration, le style des réponses ET le temps de réponse.
+   - Si un message long a été envoyé en moins de 5 secondes, c'est une preuve forte de copier-coller.
+   - Compare cette réalité technique avec la déclaration de l'élève.
 2. ÉVALUATION COGNITIVE (Score 0-100) :
    - reasoningScore: Rigueur des liens logiques.
    - clarityScore: Précision conceptuelle.
-   - skepticismScore: Résistance aux biais (en mode critique) ou auto-critique (en mode tuteur).
+   - skepticismScore: Résistance aux biais.
    - processScore: Qualité du cheminement.
-   - integrityScore: Éthique et honnêteté de la démarche.
+   - integrityScore: Éthique (Honnêteté vs usage caché d'outils).
 
-Transcription :
-${transcriptText}
+Transcription avec métriques :
+${transcriptWithTiming}
 
 Instructions de sortie :
-- summary: Rédige un bilan pédagogique de 150 mots max. Intègre impérativement une phrase sur la sincérité de la déclaration d'usage IA par rapport au travail fourni.
+- summary: Rédige un bilan pédagogique de 150 mots max. Aborde la question du "rythme de réflexion" (si trop rapide, mentionne que la pensée semble externalisée).
 `.trim();
 
   const response = await ai.models.generateContent({

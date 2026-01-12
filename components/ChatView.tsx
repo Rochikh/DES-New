@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight } from 'lucide-react';
+import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight, Timer } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Chat } from "@google/genai";
 import { Message, SessionConfig, SocraticStrategy, PROTOCOL_PHASES } from '../types';
@@ -21,12 +21,14 @@ export const ChatView: React.FC<{
   const [declarationText, setDeclarationText] = useState('');
   const [currentPhase, setCurrentPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  
+  // lastModelTime est mis à jour chaque fois qu'Argos finit de parler
+  const [lastModelTime, setLastModelTime] = useState<number>(Date.now());
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Filtre le texte pour l'affichage : retire le bloc technique de fin (Phase/Exigence/Contrôle)
   const cleanDisplayBotText = (text: string): string => {
-    // On cherche l'occurrence de "Phase:" et on coupe tout ce qui suit
     const technicalBlockIndex = text.search(/\n*Phase:\s*\d/i);
     if (technicalBlockIndex !== -1) {
       return text.substring(0, technicalBlockIndex).trim();
@@ -63,11 +65,21 @@ export const ChatView: React.FC<{
     const text = initialPrompt || inputText;
     if (!text.trim() || !chatInstance || isLoading) return;
 
+    // Mesure du temps écoulé depuis le dernier message du bot
+    const now = Date.now();
+    const responseTimeMs = now - lastModelTime;
+    const responseTimeSeconds = Math.round(responseTimeMs / 1000);
+    
+    // Heuristique : copier-coller suspect si texte long en très peu de temps
+    const isSuspicious = !initialPrompt && text.length > 200 && responseTimeSeconds < 5;
+
     const userMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
       text: initialPrompt ? "(Démarrage de session)" : text,
-      timestamp: Date.now(),
+      timestamp: now,
+      responseTimeSeconds: initialPrompt ? 0 : responseTimeSeconds,
+      isSuspiciousPace: isSuspicious
     };
 
     if (!initialPrompt) setMessages(prev => [...prev, userMsg]);
@@ -83,19 +95,22 @@ export const ChatView: React.FC<{
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'model',
-        text: res.text, // On garde le texte complet (avec balises) dans l'historique
+        text: res.text,
         timestamp: Date.now(),
         phase
       };
       setMessages(prev => [...prev, aiMsg]);
+      
+      // On redémarre le chrono invisible dès qu'Argos a répondu
+      setLastModelTime(Date.now());
     } catch (e: any) {
       setError("Erreur de communication avec Argos.");
+      setLastModelTime(Date.now());
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Ajustement automatique de la hauteur du textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -176,14 +191,21 @@ export const ChatView: React.FC<{
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-10 scrollbar-hide">
         {messages.filter(m => !m.text.includes("Bonjour Argos")).map((msg) => (
           <div key={msg.id} className={`flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[88%] sm:max-w-[75%] rounded-[1.8rem] px-6 py-5 shadow-md border transition-all ${
+            <div className={`group relative max-w-[88%] sm:max-w-[75%] rounded-[1.8rem] px-6 py-5 shadow-md border transition-all ${
               msg.role === 'user' 
                 ? 'bg-slate-900 text-white border-slate-800 rounded-tr-none' 
                 : 'bg-white text-slate-800 border-slate-200 rounded-tl-none'
             }`}>
+              {/* L'information de temps n'apparaît qu'APRES l'envoi, sur le message validé */}
+              {msg.role === 'user' && msg.responseTimeSeconds !== undefined && msg.responseTimeSeconds > 0 && (
+                <div className={`absolute -top-6 right-2 flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest ${msg.isSuspiciousPace ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`}>
+                  <Timer size={10} />
+                  Réflexion : {msg.responseTimeSeconds}s {msg.isSuspiciousPace && "• Vitesse anormale"}
+                </div>
+              )}
               <div className={`prose prose-sm max-w-none font-medium leading-relaxed ${
                 msg.role === 'user' ? 'prose-invert prose-p:text-white prose-p:font-semibold' : 'prose-slate'
               }`}>
