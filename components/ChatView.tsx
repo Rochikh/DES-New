@@ -26,11 +26,32 @@ export const ChatView: React.FC<{
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * Supprime tout ce qui se trouve après le séparateur technique --- 
+   * ou les mots-clés "Phase:", "Exigence:", etc.
+   */
   const cleanDisplayBotText = (text: string): string => {
-    const technicalBlockIndex = text.search(/\n*Phase:\s*\d/i);
-    if (technicalBlockIndex !== -1) {
-      return text.substring(0, technicalBlockIndex).trim();
+    // 1. Priorité au séparateur officiel ---
+    const separatorIndex = text.indexOf('---');
+    if (separatorIndex !== -1) {
+      return text.substring(0, separatorIndex).trim();
     }
+    
+    // 2. Sécurité : Recherche de mots-clés techniques au cas où le séparateur est oublié
+    const keywords = ["Phase:", "Exigence:", "Contrôle:"];
+    let firstKeywordIndex = -1;
+    
+    for (const kw of keywords) {
+      const idx = text.indexOf(kw);
+      if (idx !== -1 && (firstKeywordIndex === -1 || idx < firstKeywordIndex)) {
+        firstKeywordIndex = idx;
+      }
+    }
+    
+    if (firstKeywordIndex !== -1) {
+      return text.substring(0, firstKeywordIndex).trim();
+    }
+    
     return text;
   };
 
