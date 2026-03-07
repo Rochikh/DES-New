@@ -82,7 +82,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                   required 
                   autoComplete="off"
                   className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                  placeholder="Ex: Camille" 
+                  placeholder="Ex: Alex" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
                 />
@@ -90,15 +90,15 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
             </div>
             <div className="space-y-1.5">
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sujet d'exploration</label>
-              <input 
-                type="text" 
-                required 
-                autoComplete="off"
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                placeholder="Ex: La justice sociale" 
-                value={topic} 
-                onChange={(e) => setTopic(e.target.value)} 
-              />
+                <input 
+                  type="text" 
+                  required 
+                  autoComplete="off"
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
+                  placeholder="Ex: L'impact de l'IA sur l'emploi" 
+                  value={topic} 
+                  onChange={(e) => setTopic(e.target.value)} 
+                />
             </div>
           </div>
 

@@ -245,22 +245,37 @@ export const ChatView: React.FC<{
 
       <div className="bg-white border-t p-4 sm:p-6 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] no-print">
         <div className="max-w-4xl mx-auto relative group">
-          <textarea 
-            ref={textareaRef}
-            value={inputText} 
-            onChange={(e) => setInputText(e.target.value)} 
-            placeholder="Répondez ici avec précision..." 
-            className="w-full bg-slate-50 rounded-2xl pl-6 pr-16 py-5 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base font-medium resize-none shadow-inner overflow-y-auto" 
-            rows={1}
-          />
-          <button 
-            onClick={() => handleSend()} 
-            disabled={!inputText.trim() || isLoading} 
-            className="absolute right-3 bottom-3 p-3 bg-slate-900 text-white rounded-xl disabled:opacity-10 hover:bg-indigo-600 transition-all shadow-lg active:scale-90"
-            title="Envoyer le message"
-          >
-            <Send size={20} />
-          </button>
+          <div className="flex justify-between items-center mb-3 px-2">
+            <button 
+              onClick={() => handleSend("Je suis un peu bloqué sur ce point, peux-tu m'aider à avancer ou m'expliquer ce concept ?")}
+              disabled={isLoading}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors group/help"
+            >
+              <HelpCircle size={14} className="group-hover/help:scale-110 transition-transform" />
+              Besoin d'un indice ou d'une explication ?
+            </button>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">
+              {inputText.length} caractères
+            </span>
+          </div>
+          <div className="relative">
+            <textarea 
+              ref={textareaRef}
+              value={inputText} 
+              onChange={(e) => setInputText(e.target.value)} 
+              placeholder="Répondez ici avec précision..." 
+              className="w-full bg-slate-50 rounded-2xl pl-6 pr-16 py-5 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-base font-medium resize-none shadow-inner overflow-y-auto" 
+              rows={1}
+            />
+            <button 
+              onClick={() => handleSend()} 
+              disabled={!inputText.trim() || isLoading} 
+              className="absolute right-3 bottom-3 p-3 bg-slate-900 text-white rounded-xl disabled:opacity-10 hover:bg-indigo-600 transition-all shadow-lg active:scale-90"
+              title="Envoyer le message"
+            >
+              <Send size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
