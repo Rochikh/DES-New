@@ -2,7 +2,7 @@
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const MODEL_CHAT = "gemini-3-flash-preview";
 const MODEL_ANALYSIS = "gemini-3-pro-preview";

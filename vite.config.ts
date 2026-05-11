@@ -8,13 +8,13 @@ export default defineConfig(({ mode }) => {
 
   // Sur Vercel, la clé est souvent dans process.env directement.
   // On prend la clé du système (Vercel) OU celle du fichier .env (Local)
-  const apiKey = process.env.API_KEY || env.API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || env.GEMINI_API_KEY || process.env.API_KEY || env.API_KEY;
 
   return {
     plugins: [react()],
     define: {
       // Injection sécurisée de la clé dans le code client
-      'process.env.API_KEY': JSON.stringify(apiKey)
+      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey)
     },
     build: {
       outDir: 'dist',
