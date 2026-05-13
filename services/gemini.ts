@@ -1,8 +1,8 @@
 
 import { Message, SocraticMode, AnalysisData } from "../types";
 
-const MODEL_CHAT = "deepseek/deepseek-chat";
-const MODEL_ANALYSIS = "deepseek/deepseek-chat";
+const MODEL_CHAT = "deepseek/deepseek-v4-flash";
+const MODEL_ANALYSIS = "deepseek/deepseek-v4-flash";
 const TUTOR_NAME = "ARGOS";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
