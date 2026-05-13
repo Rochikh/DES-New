@@ -5,14 +5,13 @@ import { SetupView } from './components/SetupView';
 import { ChatView } from './components/ChatView';
 import { ReportView } from './components/ReportView';
 import { LoginView } from './components/LoginView';
-import { Chat } from "@google/genai";
 import { createChatSession } from './services/gemini';
 import { AlertCircle, Mail } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>(AppMode.LOGIN);
   const [config, setConfig] = useState<SessionConfig | null>(null);
-  const [chatInstance, setChatInstance] = useState<Chat | null>(null);
+  const [chatInstance, setChatInstance] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiDeclaration, setAiDeclaration] = useState<string>('');
   const [error, setError] = useState<string | null>(null);

@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Injection sécurisée de la clé dans le code client
+      'process.env.API_KEY': JSON.stringify(apiKey),
       'process.env.GEMINI_API_KEY': JSON.stringify(apiKey)
     },
     build: {

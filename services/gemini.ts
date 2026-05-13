@@ -1,12 +1,10 @@
 
-import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { Message, SocraticMode, AnalysisData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-const MODEL_CHAT = "gemini-3-flash-preview";
-const MODEL_ANALYSIS = "gemini-3-pro-preview";
+const MODEL_CHAT = "deepseek/deepseek-chat";
+const MODEL_ANALYSIS = "deepseek/deepseek-chat";
 const TUTOR_NAME = "ARGOS";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const CORE_RULES = `
 Identité et mission :
@@ -42,26 +40,65 @@ Mode : Critique (Audit Logique)
 - Posture : Un avocat du diable élégant et stimulant, qui s'amuse des sophismes sans être méprisant.
 `.trim();
 
-export const createChatSession = (mode: SocraticMode, topic: string, history: Message[] = []): Chat => {
+export class OpenRouterChatSession {
+  private systemInstruction: string;
+  private history: {role: string, content: string}[];
+
+  constructor(systemInstruction: string, history: Message[]) {
+    this.systemInstruction = systemInstruction;
+    this.history = history.map(m => ({
+      role: m.role === 'model' ? 'assistant' : 'user',
+      content: m.text
+    }));
+  }
+
+  async sendMessage({ message }: { message: string }) {
+    this.history.push({ role: 'user', content: message });
+
+    const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("Clé API manquante ou non configurée");
+
+    const response = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': window.location?.origin || 'https://rochanekherbouche.com',
+        'X-Title': 'Argos Socratique (OpenRouter)',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL_CHAT,
+        temperature: 0.8,
+        messages: [
+          { role: 'system', content: this.systemInstruction },
+          ...this.history
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`OpenRouter Error: ${response.status} ${err}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || "";
+    
+    this.history.push({ role: 'assistant', content: text });
+
+    return { text };
+  }
+}
+
+export const createChatSession = (mode: SocraticMode, topic: string, history: Message[] = []): any => {
   const systemInstruction = mode === SocraticMode.TUTOR 
     ? `${TUTOR_INSTRUCTIONS}\n\nSujet d'exploration : "${topic}".`
     : `${CRITIC_INSTRUCTIONS}\n\nSujet d'exploration : "${topic}".`;
 
-  return ai.chats.create({
-    model: MODEL_CHAT,
-    config: {
-      systemInstruction,
-      temperature: 0.8,
-      thinkingConfig: { thinkingBudget: 1024 }
-    },
-    history: history.map(m => ({
-      role: m.role,
-      parts: [{ text: m.text }]
-    }))
-  });
+  return new OpenRouterChatSession(systemInstruction, history);
 };
 
-export const sendMessage = async (chat: Chat, message: string) => {
+export const sendMessage = async (chat: any, message: string) => {
   const response = await chat.sendMessage({ message });
   return { text: response.text || "Erreur de transmission." };
 };
@@ -88,36 +125,63 @@ ${transcriptWithTiming}
 
 Instructions de sortie (JSON) :
 - summary: Bilan de la progression cognitive (150 mots max).
+- reasoningScore: (0 à 100)
+- clarityScore: (0 à 100)
+- skepticismScore: (0 à 100)
+- processScore: (0 à 100)
+- reflectionScore: (0 à 100)
 - rhythmBreakCount: Le nombre de réponses utilisateur présentant une rupture de rythme (saisie trop rapide).
 - integrityScore: Reflet de la cohérence globale (0 à 100).
+- keyStrengths: ["...", "..."]
+- weaknesses: ["...", "..."]
 `.trim();
 
-  const response = await ai.models.generateContent({
-    model: MODEL_ANALYSIS,
-    contents: prompt,
-    config: {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Clé API manquante");
+
+  const response = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': window.location?.origin || 'https://rochanekherbouche.com',
+      'X-Title': 'Argos Socratique (OpenRouter)',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: MODEL_ANALYSIS,
       temperature: 0.1,
-      thinkingConfig: { thinkingBudget: 4096 },
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          summary: { type: Type.STRING },
-          reasoningScore: { type: Type.INTEGER },
-          clarityScore: { type: Type.INTEGER },
-          skepticismScore: { type: Type.INTEGER },
-          processScore: { type: Type.INTEGER },
-          reflectionScore: { type: Type.INTEGER },
-          integrityScore: { type: Type.INTEGER },
-          rhythmBreakCount: { type: Type.INTEGER },
-          keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-          weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } }
-        },
-        required: ["summary", "reasoningScore", "clarityScore", "skepticismScore", "processScore", "reflectionScore", "integrityScore", "rhythmBreakCount", "keyStrengths", "weaknesses"]
-      } as any
-    }
+      response_format: { type: "json_object" },
+      messages: [
+        { role: 'user', content: prompt }
+      ]
+    })
   });
 
-  const parsed = JSON.parse(response.text || "{}");
-  return { ...parsed, transcript, aiDeclaration };
+  if (!response.ok) {
+    throw new Error(`OpenRouter Analysis Error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const textContent = data.choices?.[0]?.message?.content || "{}";
+  
+  try {
+    const parsed = JSON.parse(textContent);
+    return { ...parsed, transcript, aiDeclaration };
+  } catch (err) {
+    console.error("Erreur de parsing JSON", textContent);
+    return {
+      summary: "Erreur d'analyse.",
+      reasoningScore: 0,
+      clarityScore: 0,
+      skepticismScore: 0,
+      processScore: 0,
+      reflectionScore: 0,
+      integrityScore: 0,
+      rhythmBreakCount: 0,
+      keyStrengths: [],
+      weaknesses: [],
+      transcript,
+      aiDeclaration
+    };
+  }
 };

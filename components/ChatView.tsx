@@ -2,13 +2,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight, Timer } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Chat } from "@google/genai";
 import { Message, SessionConfig, SocraticStrategy, PROTOCOL_PHASES } from '../types';
 import { sendMessage } from '../services/gemini';
 import { GuideModal } from './GuideModal';
 
 export const ChatView: React.FC<{
-  chatInstance: Chat | null;
+  chatInstance: any | null;
   config: SessionConfig;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
