@@ -4,21 +4,16 @@ import { AppMode, SessionConfig, Message } from './types';
 import { SetupView } from './components/SetupView';
 import { ChatView } from './components/ChatView';
 import { ReportView } from './components/ReportView';
-import { LoginView } from './components/LoginView';
 import { createChatSession } from './services/gemini';
 import { AlertCircle, Mail } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [appMode, setAppMode] = useState<AppMode>(AppMode.LOGIN);
+  const [appMode, setAppMode] = useState<AppMode>(AppMode.SETUP);
   const [config, setConfig] = useState<SessionConfig | null>(null);
   const [chatInstance, setChatInstance] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiDeclaration, setAiDeclaration] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-
-  const handleLoginSuccess = () => {
-    setAppMode(AppMode.SETUP);
-  };
 
   const handleStartSession = (newConfig: SessionConfig) => {
     setError(null);
@@ -77,10 +72,6 @@ const App: React.FC = () => {
       )}
 
       <main className={`flex-1 w-full ${isReportMode ? 'block overflow-visible h-auto' : 'h-[calc(100vh-28px)] overflow-hidden flex flex-col'}`}>
-        {appMode === AppMode.LOGIN && (
-          <LoginView onSuccess={handleLoginSuccess} />
-        )}
-
         {appMode === AppMode.SETUP && (
           <SetupView 
             onStart={handleStartSession} 
@@ -108,16 +99,14 @@ const App: React.FC = () => {
         )}
       </main>
       
-      {appMode !== AppMode.LOGIN && (
-        <footer className="shrink-0 py-2.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-6">
-          <span className="font-bold uppercase tracking-widest">© Rochane Kherbouche • Licence CC BY SA</span>
-          <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-          <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-indigo-600 transition-colors font-black uppercase tracking-[0.2em] group">
-            <Mail size={12} className="group-hover:scale-110 transition-transform" />
-            me contacter
-          </a>
-        </footer>
-      )}
+      <footer className="shrink-0 py-2.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-6">
+        <span className="font-bold uppercase tracking-widest">© Rochane Kherbouche • Licence CC BY SA</span>
+        <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+        <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-indigo-600 transition-colors font-black uppercase tracking-[0.2em] group">
+          <Mail size={12} className="group-hover:scale-110 transition-transform" />
+          me contacter
+        </a>
+      </footer>
     </div>
   );
 };
