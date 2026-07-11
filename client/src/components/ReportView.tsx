@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AnalysisData, SessionConfig } from '../types';
-import { generateAnalysis } from '../services/gemini';
+import { generateAnalysis } from '../services/api';
 import { Message } from '../types';
 import { RefreshCw, Sparkles, Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck, FileSignature, AlertTriangle, Info, Timer } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';

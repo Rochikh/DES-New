@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight, Timer } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Message, SessionConfig, SocraticStrategy, PROTOCOL_PHASES } from '../types';
-import { sendMessage } from '../services/gemini';
+import { sendMessage } from '../services/api';
 import { GuideModal } from './GuideModal';
 
 export const ChatView: React.FC<{

@@ -1,8 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Styles globaux personnalisés */
-body {
-  @apply bg-slate-50 text-slate-900;
-}

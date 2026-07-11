@@ -4,7 +4,7 @@ import { AppMode, SessionConfig, Message } from './types';
 import { SetupView } from './components/SetupView';
 import { ChatView } from './components/ChatView';
 import { ReportView } from './components/ReportView';
-import { createChatSession } from './services/gemini';
+import { createChatSession } from './services/api';
 import { AlertCircle, Mail } from 'lucide-react';
 
 const App: React.FC = () => {

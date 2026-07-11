@@ -1,6 +1,5 @@
 
 export enum AppMode {
-  LOGIN = 'LOGIN',
   SETUP = 'SETUP',
   CHAT = 'CHAT',
   REPORT = 'REPORT'
