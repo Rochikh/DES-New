@@ -39,6 +39,15 @@ export interface SessionConfig {
   mode: SocraticMode;
 }
 
+export interface ScoreRationales {
+  reasoning: string;
+  clarity: string;
+  skepticism: string;
+  process: string;
+  reflection: string;
+  integrity: string;
+}
+
 export interface AnalysisData {
   summary: string;
   reasoningScore: number;
@@ -50,6 +59,8 @@ export interface AnalysisData {
   rhythmBreakCount: number;
   keyStrengths: string[];
   weaknesses: string[];
+  /** Justification d'une phrase par dimension (absent des anciennes sessions) */
+  scoreRationales?: ScoreRationales;
   transcript: Message[];
   aiDeclaration: string;
 }

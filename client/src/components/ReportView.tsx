@@ -199,6 +199,22 @@ export const ReportView: React.FC<{
                   </RadarChart>
                 </ResponsiveContainer>
              </div>
+             {analysis.scoreRationales && (
+               <div className="w-full mt-4 pt-4 border-t border-slate-100 space-y-2 print:break-inside-avoid">
+                 {([
+                   ['Raisonnement', analysis.scoreRationales.reasoning],
+                   ['Clarté', analysis.scoreRationales.clarity],
+                   ['Doute constructif', analysis.scoreRationales.skepticism],
+                   ['Méthode', analysis.scoreRationales.process],
+                   ['Prise de recul', analysis.scoreRationales.reflection],
+                   ['Intégrité', analysis.scoreRationales.integrity],
+                 ] as const).map(([label, rationale]) => (
+                   <p key={label} className="text-[11px] leading-relaxed text-slate-600">
+                     <span className="font-bold text-slate-900">{label}.</span> {rationale}
+                   </p>
+                 ))}
+               </div>
+             )}
           </div>
         </section>
 

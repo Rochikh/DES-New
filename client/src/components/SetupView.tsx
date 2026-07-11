@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { SocraticMode, SessionConfig, Message } from '../types';
 import { BrainCircuit, HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, ChevronRight } from 'lucide-react';
+import { parseSessionFile } from '../utils/session';
 import { GuideModal } from './GuideModal';
 
 interface SetupViewProps {
@@ -32,16 +33,8 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
-          const json = JSON.parse(event.target?.result as string);
-          if (!json.transcript) throw new Error("Format invalide");
-
-          const resumedConfig: SessionConfig = {
-            studentName: json.metadata?.student || "Apprenant·e",
-            topic: json.metadata?.topic || "Sujet importé",
-            mode: json.metadata?.mode || SocraticMode.TUTOR
-          };
-          
-          onResume(resumedConfig, json.transcript, json.aiDeclaration || "");
+          const session = parseSessionFile(event.target?.result as string);
+          onResume(session.config, session.messages, session.aiDeclaration);
         } catch (err) {
           setImportError("Fichier JSON corrompu ou invalide.");
         }
