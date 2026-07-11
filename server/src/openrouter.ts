@@ -32,7 +32,7 @@ export const createOpenRouterClient = (apiKey: string): CompletionClient => ({
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://argos.rochane.fr',
+        'HTTP-Referer': 'https://ia-des.rochane.fr',
         'X-Title': 'Argos Socratique',
         'Content-Type': 'application/json',
       },
