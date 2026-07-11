@@ -1,16 +1,15 @@
-
 import React, { useState } from 'react';
 import { AppMode, SessionConfig, Message } from './types';
 import { SetupView } from './components/SetupView';
 import { ChatView } from './components/ChatView';
 import { ReportView } from './components/ReportView';
-import { createChatSession } from './services/api';
+import { createChatSession, ChatSession } from './services/api';
 import { AlertCircle, Mail } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>(AppMode.SETUP);
   const [config, setConfig] = useState<SessionConfig | null>(null);
-  const [chatInstance, setChatInstance] = useState<any | null>(null);
+  const [chatInstance, setChatInstance] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiDeclaration, setAiDeclaration] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -60,50 +59,50 @@ const App: React.FC = () => {
   const isReportMode = appMode === AppMode.REPORT;
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-slate-50">
+    <div className="flex flex-col min-h-screen w-full bg-craie">
       {error && appMode === AppMode.SETUP && (
-        <div className="bg-rose-600 text-white px-6 py-3 flex items-center justify-between animate-in slide-in-from-top duration-300">
-          <div className="flex items-center gap-3 text-sm font-bold">
-            <AlertCircle size={18} />
+        <div className="bg-craie border-b-2 border-ambre text-nuit px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <AlertCircle size={18} className="text-ambre" />
             {error}
           </div>
-          <button onClick={() => setError(null)} className="text-[10px] uppercase font-black opacity-70 hover:opacity-100">Fermer</button>
+          <button onClick={() => setError(null)} className="text-[11px] uppercase tracking-wide font-semibold text-ardoise hover:text-nuit">Fermer</button>
         </div>
       )}
 
       <main className={`flex-1 w-full ${isReportMode ? 'block overflow-visible h-auto' : 'h-[calc(100vh-28px)] overflow-hidden flex flex-col'}`}>
         {appMode === AppMode.SETUP && (
-          <SetupView 
-            onStart={handleStartSession} 
-            onResume={handleResumeSession} 
+          <SetupView
+            onStart={handleStartSession}
+            onResume={handleResumeSession}
           />
         )}
-        
+
         {appMode === AppMode.CHAT && config && (
-          <ChatView 
+          <ChatView
             chatInstance={chatInstance}
-            config={config} 
+            config={config}
             messages={messages}
             setMessages={setMessages}
             onFinish={handleFinishSession}
           />
         )}
-        
+
         {appMode === AppMode.REPORT && config && (
-          <ReportView 
-            config={config} 
-            transcript={messages} 
+          <ReportView
+            config={config}
+            transcript={messages}
             aiDeclaration={aiDeclaration}
             onRestart={handleRestart}
           />
         )}
       </main>
-      
-      <footer className="shrink-0 py-2.5 text-center text-[9px] text-slate-400 bg-slate-50 border-t border-slate-100 no-print flex items-center justify-center gap-6">
-        <span className="font-bold uppercase tracking-widest">© Rochane Kherbouche • Licence CC BY SA</span>
-        <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
-        <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-indigo-600 transition-colors font-black uppercase tracking-[0.2em] group">
-          <Mail size={12} className="group-hover:scale-110 transition-transform" />
+
+      <footer className="shrink-0 py-2.5 text-center text-[10px] text-ardoise bg-craie border-t border-brume no-print flex items-center justify-center gap-6">
+        <span className="uppercase tracking-wide">© Rochane Kherbouche • Licence CC BY SA</span>
+        <span className="w-1 h-1 bg-brume rounded-full"></span>
+        <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-paon transition-colors uppercase tracking-wide">
+          <Mail size={12} />
           me contacter
         </a>
       </footer>

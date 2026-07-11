@@ -1,8 +1,8 @@
-
 import React, { useState, useRef } from 'react';
 import { SocraticMode, SessionConfig, Message } from '../types';
-import { BrainCircuit, HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, ChevronRight } from 'lucide-react';
+import { HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, Check } from 'lucide-react';
 import { parseSessionFile } from '../utils/session';
+import { ArgosEye } from './PhaseTracker';
 import { GuideModal } from './GuideModal';
 
 interface SetupViewProps {
@@ -44,116 +44,120 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto flex flex-col items-center justify-center bg-slate-50 p-4 relative">
-      <button 
-        onClick={() => setShowGuide(true)} 
-        className="absolute top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white text-slate-400 border border-slate-200 rounded-xl hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all"
+    <div className="h-full overflow-y-auto flex flex-col items-center bg-craie p-4 relative">
+      <button
+        onClick={() => setShowGuide(true)}
+        className="self-end sm:self-auto sm:absolute sm:top-6 sm:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white text-ardoise border border-brume rounded-md hover:text-paon hover:border-paon transition-colors shrink-0"
       >
-        <span className="text-[10px] font-black uppercase tracking-widest">Le projet Argos</span>
-        <HelpCircle size={20} />
+        <span className="text-[11px] font-semibold uppercase tracking-wide">Le projet Argos</span>
+        <HelpCircle size={18} />
       </button>
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
-      <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-2xl shadow-indigo-100/30 w-full max-w-2xl border border-slate-100 my-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="w-full max-w-2xl flex flex-col items-center mt-4 mb-6 sm:my-auto">
+      <div className="bg-white p-8 sm:p-12 rounded-lg border border-brume w-full">
         <div className="flex flex-col items-center mb-10">
-          <div className="p-4 bg-indigo-600 rounded-3xl text-white shadow-xl shadow-indigo-200 mb-4">
-            <BrainCircuit size={44} />
+          <div className="mb-4" aria-hidden="true">
+            <ArgosEye state="active" size={64} />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Argos socratique</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Votre partenaire de réflexion critique</p>
+          <h1 className="font-serif text-4xl font-semibold text-nuit">Argos socratique</h1>
+          <p className="text-ardoise text-sm mt-2">Ton partenaire de réflexion critique</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Prénom</label>
+              <label htmlFor="setup-name" className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Prénom</label>
               <div className="relative">
-                <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
-                <input 
-                  type="text" 
-                  required 
+                <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-brume" size={20} />
+                <input
+                  id="setup-name"
+                  type="text"
+                  required
                   autoComplete="off"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                  placeholder="Ex: Alex" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
+                  className="w-full pl-12 pr-4 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit"
+                  placeholder="Ex : Alex"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sujet d'exploration</label>
-                <input 
-                  type="text" 
-                  required 
+              <label htmlFor="setup-topic" className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Sujet d'exploration</label>
+                <input
+                  id="setup-topic"
+                  type="text"
+                  required
                   autoComplete="off"
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 font-medium" 
-                  placeholder="Ex: L'impact de l'IA sur l'emploi" 
-                  value={topic} 
-                  onChange={(e) => setTopic(e.target.value)} 
+                  className="w-full px-5 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit"
+                  placeholder="Ex : L'impact de l'IA sur l'emploi"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
                 />
             </div>
           </div>
 
           <div className="space-y-4">
-            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Expérience de dialogue</label>
-            
+            <span className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Expérience de dialogue</span>
+
             <div className="grid grid-cols-1 gap-4">
-              <button 
-                type="button" 
-                onClick={() => setMode(SocraticMode.TUTOR)} 
-                className={`group relative p-6 rounded-[2rem] border-2 text-left transition-all flex items-start gap-5 ${mode === SocraticMode.TUTOR ? 'border-indigo-600 bg-indigo-50/50 shadow-lg shadow-indigo-100 ring-2 ring-indigo-500/10' : 'border-slate-50 bg-slate-50/50 hover:border-indigo-200'}`}
+              <button
+                type="button"
+                onClick={() => setMode(SocraticMode.TUTOR)}
+                className={`group relative p-6 rounded-lg border text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.TUTOR ? 'border-paon bg-paon/5' : 'border-brume bg-white hover:border-paon'}`}
               >
-                <div className={`p-4 rounded-2xl shrink-0 transition-all ${mode === SocraticMode.TUTOR ? 'bg-indigo-600 text-white shadow-lg scale-110' : 'bg-white text-indigo-400 border border-slate-100'}`}>
-                  <MessageCircleQuestion size={28} />
+                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.TUTOR ? 'bg-paon text-white' : 'bg-craie text-paon border border-brume'}`}>
+                  <MessageCircleQuestion size={26} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.TUTOR ? 'text-indigo-900' : 'text-slate-500'}`}>Mode tuteur (Accompagnement)</div>
-                  <p className={`text-[12px] leading-relaxed font-medium ${mode === SocraticMode.TUTOR ? 'text-indigo-700' : 'text-slate-400'}`}>
-                    Je vous aide à construire et à fortifier votre propre raisonnement en posant des questions ciblées sans jamais donner la solution.
+                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.TUTOR ? 'text-paon-sombre' : 'text-nuit'}`}>Mode tuteur (accompagnement)</div>
+                  <p className="text-[13px] leading-relaxed text-ardoise">
+                    Je t'aide à construire et à fortifier ton propre raisonnement en posant des questions ciblées sans jamais donner la solution.
                   </p>
                 </div>
-                {mode === SocraticMode.TUTOR && <div className="absolute top-6 right-6 text-indigo-600"><ChevronRight size={20} /></div>}
+                {mode === SocraticMode.TUTOR && <Check size={18} className="absolute top-5 right-5 text-paon" />}
               </button>
 
-              <button 
-                type="button" 
-                onClick={() => setMode(SocraticMode.CRITIC)} 
-                className={`group relative p-6 rounded-[2rem] border-2 text-left transition-all flex items-start gap-5 ${mode === SocraticMode.CRITIC ? 'border-rose-500 bg-rose-50/50 shadow-lg shadow-rose-100 ring-2 ring-rose-500/10' : 'border-slate-50 bg-slate-50/50 hover:border-rose-200'}`}
+              <button
+                type="button"
+                onClick={() => setMode(SocraticMode.CRITIC)}
+                className={`group relative p-6 rounded-lg border text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.CRITIC ? 'border-ambre bg-ambre/5' : 'border-brume bg-white hover:border-ambre'}`}
               >
-                <div className={`p-4 rounded-2xl shrink-0 transition-all ${mode === SocraticMode.CRITIC ? 'bg-rose-500 text-white shadow-lg scale-110' : 'bg-white text-rose-400 border border-slate-100'}`}>
-                  <ShieldAlert size={28} />
+                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.CRITIC ? 'bg-ambre text-white' : 'bg-craie text-ambre border border-brume'}`}>
+                  <ShieldAlert size={26} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-black text-sm uppercase tracking-tight mb-1 ${mode === SocraticMode.CRITIC ? 'text-rose-900' : 'text-slate-500'}`}>Mode critique (Audit logique)</div>
-                  <p className={`text-[12px] leading-relaxed font-medium ${mode === SocraticMode.CRITIC ? 'text-rose-700' : 'text-slate-400'}`}>
-                    Je soumets un texte piégé. À vous de mener l'enquête pour débusquer les failles logiques et les biais cognitifs cachés.
+                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.CRITIC ? 'text-ambre' : 'text-nuit'}`}>Mode critique (audit logique)</div>
+                  <p className="text-[13px] leading-relaxed text-ardoise">
+                    Je soumets un texte piégé. À toi de mener l'enquête pour débusquer les failles logiques et les biais cognitifs cachés.
                   </p>
                 </div>
-                {mode === SocraticMode.CRITIC && <div className="absolute top-6 right-6 text-rose-600"><ChevronRight size={20} /></div>}
+                {mode === SocraticMode.CRITIC && <Check size={18} className="absolute top-5 right-5 text-ambre" />}
               </button>
             </div>
           </div>
 
           <div className="pt-4">
-            <button type="submit" className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-indigo-600 hover:shadow-2xl hover:shadow-indigo-200 transition-all active:scale-[0.98] shadow-xl">
+            <button type="submit" className="w-full bg-paon text-white py-4 rounded-md font-semibold text-sm hover:bg-paon-sombre transition-colors">
               Lancer la discussion
             </button>
           </div>
 
-          <div className="pt-4 border-t border-slate-100">
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-white border-2 border-dashed border-slate-200 text-slate-400 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+          <div className="pt-4 border-t border-brume">
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 py-3.5 px-6 bg-white border border-dashed border-brume text-ardoise rounded-md text-[11px] font-semibold uppercase tracking-wide hover:border-paon hover:text-paon transition-colors">
               <Upload size={16} /> Reprendre un travail (.JSON)
             </button>
             <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-            {importError && <div className="text-[10px] text-rose-500 font-black uppercase text-center mt-3 tracking-widest">{importError}</div>}
+            {importError && <div className="text-[11px] text-ambre font-semibold text-center mt-3">{importError}</div>}
           </div>
         </form>
       </div>
 
-      <div className="mt-2 flex items-center gap-2 text-slate-300 text-[10px] uppercase font-black tracking-[0.3em]">
+      <div className="mt-4 flex items-center gap-2 text-ardoise text-[10px] uppercase tracking-wide">
         <Info size={12} />
         <span>Données locales non stockées</span>
+      </div>
       </div>
     </div>
   );

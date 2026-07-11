@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Styles globaux personnalisés */
+/* Styles globaux */
 html,
 body {
   height: 100%;
@@ -11,13 +11,19 @@ body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 font-sans;
+  @apply bg-craie text-nuit font-sans;
 }
 
 #root {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Focus clavier visible partout */
+:focus-visible {
+  outline: 2px solid #12676b;
+  outline-offset: 2px;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -28,6 +34,56 @@ body {
   scrollbar-width: none;
 }
 
+/* Ouverture de l'œil au changement de phase (tracker Argos) */
+@media (prefers-reduced-motion: no-preference) {
+  .eye-opening {
+    animation: eye-open 350ms ease-out;
+    transform-origin: center;
+  }
+
+  @keyframes eye-open {
+    from {
+      transform: scaleY(0.12);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  .thinking-dot {
+    animation: thinking 1.2s ease-in-out infinite;
+  }
+  .thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes thinking {
+    0%,
+    60%,
+    100% {
+      opacity: 0.25;
+    }
+    30% {
+      opacity: 1;
+    }
+  }
+}
+
+/* Neutralisation globale des animations et transitions si demandé */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Impression du rapport : lisible en noir et blanc */
 @media print {
   @page {
     size: A4;
@@ -67,22 +123,24 @@ body {
   }
 
   header,
-  section,
-  .card {
-    border: 1px solid #e2e8f0 !important;
+  section {
+    border: 1px solid #ddd9cf !important;
     box-shadow: none !important;
     border-radius: 8px !important;
     page-break-inside: avoid;
   }
 
-  .bg-slate-900 {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
+  /* L'en-tête nuit repasse en blanc bordé, le texte redevient sombre */
+  .bg-nuit {
+    background-color: #ffffff !important;
+    color: #1b2a32 !important;
   }
+  [class*='text-craie'],
   .text-white {
-    color: #0f172a !important;
+    color: #1b2a32 !important;
   }
-  /* Assurer que Recharts s'affiche à l'impression */
+
+  /* Assurer que le radar s'affiche à l'impression */
   .recharts-responsive-container {
     width: 100% !important;
     height: 400px !important;
