@@ -1,0 +1,12 @@
+# Lancement local : docker compose up --build
+# (la clé ANTHROPIC_API_KEY doit être renseignée dans .env, voir .env.example)
+# En production, le service est déclaré dans le docker-compose global du
+# serveur avec les labels Traefik (voir README).
+services:
+  argos:
+    build: .
+    container_name: argos
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8090:3000"
