@@ -1,15 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
-import { createApp, type AnthropicLike } from '../src/app.js';
+import { createApp } from '../src/app.js';
+import type { CompletionClient } from '../src/openrouter.js';
 
-const FAKE_KEY = 'sk-ant-test-cle-factice-000';
-process.env.ANTHROPIC_API_KEY = FAKE_KEY;
+const FAKE_KEY = 'sk-or-test-cle-factice-000';
+process.env.OPENROUTER_API_KEY = FAKE_KEY;
 
 const makeMock = (text = 'Bonjour. Quel est ton objectif ?\n---\nPhase: 0') => {
   const create = vi.fn().mockResolvedValue({
-    content: [{ type: 'text', text }],
+    choices: [{ message: { content: text } }],
   });
-  const client: AnthropicLike = { messages: { create } };
+  const client: CompletionClient = { create };
   return { client, create };
 };
 
@@ -31,9 +32,10 @@ describe('POST /api/chat', () => {
     expect(res.body.text).toMatch(/---\s*\nPhase:\s*\d/);
     expect(create).toHaveBeenCalledOnce();
     const params = create.mock.calls[0][0];
-    expect(params.model).toBe('claude-haiku-4-5-20251001');
-    expect(params.system).toContain('Phase: [Numéro]');
-    expect(params.system).toContain("L'impact de l'IA sur l'emploi");
+    expect(params.model).toBe('deepseek/deepseek-v4-pro');
+    expect(params.messages[0].role).toBe('system');
+    expect(params.messages[0].content).toContain('Phase: [Numéro]');
+    expect(params.messages[0].content).toContain("L'impact de l'IA sur l'emploi");
   });
 
   it('transmet le mode Critique dans le prompt système', async () => {
@@ -42,10 +44,10 @@ describe('POST /api/chat', () => {
 
     await request(app).post('/api/chat').send({ ...validBody, mode: 'CRITIC' });
 
-    expect(create.mock.calls[0][0].system).toContain('Mode : Critique');
+    expect(create.mock.calls[0][0].messages[0].content).toContain('Mode : Critique');
   });
 
-  it('convertit l\'historique et garantit un premier tour utilisateur', async () => {
+  it('convertit l\'historique et garantit un tour utilisateur avant le premier tour assistant', async () => {
     const { client, create } = makeMock();
     const app = createApp(client);
 
@@ -59,8 +61,9 @@ describe('POST /api/chat', () => {
     });
 
     const messages = create.mock.calls[0][0].messages;
-    expect(messages[0].role).toBe('user');
-    expect(messages[1].role).toBe('assistant');
+    expect(messages[0].role).toBe('system');
+    expect(messages[1].role).toBe('user');
+    expect(messages[2].role).toBe('assistant');
     expect(messages.at(-1)).toEqual({ role: 'user', content: validBody.message });
   });
 
@@ -85,9 +88,9 @@ describe('POST /api/chat', () => {
     expect(res.status).toBe(400);
   });
 
-  it('renvoie 500 propre si le SDK échoue', async () => {
+  it('renvoie 500 propre si l\'appel au fournisseur échoue', async () => {
     const create = vi.fn().mockRejectedValue(new Error('boom'));
-    const app = createApp({ messages: { create } });
+    const app = createApp({ create });
     const res = await request(app).post('/api/chat').send(validBody);
     expect(res.status).toBe(500);
     expect(res.body.error).toBeTruthy();
@@ -105,7 +108,7 @@ describe('POST /api/chat', () => {
 
   it('ne laisse jamais fuiter la clé API dans une réponse', async () => {
     const create = vi.fn().mockRejectedValue(new Error(`auth failed for ${FAKE_KEY}`));
-    const app = createApp({ messages: { create } });
+    const app = createApp({ create });
     const res = await request(app).post('/api/chat').send(validBody);
     expect(JSON.stringify(res.body)).not.toContain(FAKE_KEY);
     expect(JSON.stringify(res.headers)).not.toContain(FAKE_KEY);

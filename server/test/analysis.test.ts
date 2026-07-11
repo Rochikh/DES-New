@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
-import { createApp, type AnthropicLike } from '../src/app.js';
+import { createApp } from '../src/app.js';
+import type { CompletionClient } from '../src/openrouter.js';
 
 const validAnalysis = {
   summary: 'Tu as défini le terme central dès le deuxième échange, ce qui a structuré la suite.',
@@ -25,9 +26,9 @@ const validAnalysis = {
 
 const makeMock = (payload: unknown = validAnalysis) => {
   const create = vi.fn().mockResolvedValue({
-    content: [{ type: 'text', text: JSON.stringify(payload) }],
+    choices: [{ message: { content: JSON.stringify(payload) } }],
   });
-  const client: AnthropicLike = { messages: { create } };
+  const client: CompletionClient = { create };
   return { client, create };
 };
 
@@ -64,8 +65,8 @@ describe('POST /api/analysis', () => {
       expect.arrayContaining(['reasoning', 'clarity', 'skepticism', 'process', 'reflection', 'integrity'])
     );
     const params = create.mock.calls[0][0];
-    expect(params.model).toBe('claude-sonnet-4-6');
-    expect(params.output_config?.format?.type).toBe('json_schema');
+    expect(params.model).toBe('deepseek/deepseek-v4-pro');
+    expect(params.response_format?.type).toBe('json_object');
   });
 
   it('borne les scores hors limites dans [0, 100]', async () => {
@@ -82,8 +83,8 @@ describe('POST /api/analysis', () => {
     const create = vi
       .fn()
       .mockRejectedValueOnce(new Error('transient'))
-      .mockResolvedValueOnce({ content: [{ type: 'text', text: JSON.stringify(validAnalysis) }] });
-    const app = createApp({ messages: { create } });
+      .mockResolvedValueOnce({ choices: [{ message: { content: JSON.stringify(validAnalysis) } }] });
+    const app = createApp({ create });
 
     const res = await request(app).post('/api/analysis').send(validBody);
 
@@ -92,8 +93,8 @@ describe('POST /api/analysis', () => {
   });
 
   it('renvoie 502 si le JSON est invalide deux fois', async () => {
-    const create = vi.fn().mockResolvedValue({ content: [{ type: 'text', text: 'pas du JSON' }] });
-    const app = createApp({ messages: { create } });
+    const create = vi.fn().mockResolvedValue({ choices: [{ message: { content: 'pas du JSON' } }] });
+    const app = createApp({ create });
 
     const res = await request(app).post('/api/analysis').send(validBody);
 

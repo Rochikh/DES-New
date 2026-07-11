@@ -13,20 +13,9 @@ import {
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 } from './config.js';
+import type { CompletionClient, CompletionMessage, CompletionResponse } from './openrouter.js';
 import { buildChatSystemPrompt, type ChatMode } from './prompts/core.js';
-import { buildAnalysisPrompt, ANALYSIS_SCHEMA, type TranscriptEntry } from './prompts/analysis.js';
-
-/**
- * Sous-ensemble du client Anthropic utilisé par les routes, injectable pour
- * les tests d'intégration (le SDK réel s'y conforme structurellement).
- */
-export interface AnthropicLike {
-  messages: {
-    create: (params: any) => Promise<{
-      content: Array<{ type: string; text?: string }>;
-    }>;
-  };
-}
+import { buildAnalysisPrompt, type TranscriptEntry } from './prompts/analysis.js';
 
 interface CreateAppOptions {
   /** Répertoire du build client à servir en statique (optionnel en test) */
@@ -41,16 +30,13 @@ const isHistoryEntry = (m: unknown): m is { role: 'user' | 'model'; text: string
   ((m as { role: unknown }).role === 'user' || (m as { role: unknown }).role === 'model') &&
   typeof (m as { text: unknown }).text === 'string';
 
-const extractText = (content: Array<{ type: string; text?: string }>): string =>
-  content
-    .filter((b) => b.type === 'text' && typeof b.text === 'string')
-    .map((b) => b.text)
-    .join('');
+const extractText = (response: CompletionResponse): string =>
+  response.choices?.[0]?.message?.content ?? '';
 
 const clampScore = (n: unknown): number =>
   Math.max(0, Math.min(100, Math.round(typeof n === 'number' && Number.isFinite(n) ? n : 0)));
 
-export const createApp = (anthropic: AnthropicLike, options: CreateAppOptions = {}): Express => {
+export const createApp = (client: CompletionClient, options: CreateAppOptions = {}): Express => {
   const app = express();
 
   // Derrière Traefik : nécessaire pour que le rate limit voie l'IP réelle
@@ -94,26 +80,29 @@ export const createApp = (anthropic: AnthropicLike, options: CreateAppOptions = 
       return;
     }
 
-    const messages = history.map((m) => ({
-      role: m.role === 'model' ? ('assistant' as const) : ('user' as const),
-      content: m.text,
-    }));
-    messages.push({ role: 'user', content: message });
-    // L'API exige que le premier message soit un tour utilisateur ; une
-    // session importée peut commencer par la première réplique d'Argos.
-    if (messages[0].role === 'assistant') {
-      messages.unshift({ role: 'user', content: '(Reprise de session)' });
+    const messages: CompletionMessage[] = [
+      { role: 'system', content: buildChatSystemPrompt(mode as ChatMode, topic) },
+      ...history.map((m) => ({
+        role: m.role === 'model' ? ('assistant' as const) : ('user' as const),
+        content: m.text,
+      })),
+      { role: 'user', content: message },
+    ];
+    // Robustesse inter-fournisseurs : certains backends exigent un tour
+    // utilisateur avant le premier tour assistant ; une session importée
+    // peut commencer par la première réplique d'Argos.
+    if (messages[1]?.role === 'assistant') {
+      messages.splice(1, 0, { role: 'user', content: '(Reprise de session)' });
     }
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await client.create({
         model: MODEL_CHAT,
-        max_tokens: 1024,
         temperature: 0.8,
-        system: buildChatSystemPrompt(mode as ChatMode, topic),
+        max_tokens: 1024,
         messages,
       });
-      res.json({ text: extractText(response.content) });
+      res.json({ text: extractText(response) });
     } catch (err) {
       console.error('Erreur /api/chat:', err);
       res.status(500).json({ error: 'Argos est momentanément indisponible.' });
@@ -144,13 +133,14 @@ export const createApp = (anthropic: AnthropicLike, options: CreateAppOptions = 
     const prompt = buildAnalysisPrompt(topic, aiDeclaration, transcript as TranscriptEntry[]);
 
     const runAnalysis = async () => {
-      const response = await anthropic.messages.create({
+      const response = await client.create({
         model: MODEL_ANALYSIS,
+        temperature: 0.1,
         max_tokens: 4096,
-        output_config: { format: { type: 'json_schema', schema: ANALYSIS_SCHEMA } },
+        response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: prompt }],
       });
-      return JSON.parse(extractText(response.content));
+      return JSON.parse(extractText(response));
     };
 
     try {

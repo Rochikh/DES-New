@@ -1,6 +1,8 @@
-// Modèles Anthropic. Constantes en tête de fichier, faciles à changer.
-export const MODEL_CHAT = 'claude-haiku-4-5-20251001';
-export const MODEL_ANALYSIS = 'claude-sonnet-4-6';
+// Modèles servis via OpenRouter (API compatible OpenAI).
+// Constantes en tête de fichier, faciles à changer.
+export const MODEL_CHAT = 'deepseek/deepseek-v4-pro';
+export const MODEL_ANALYSIS = 'deepseek/deepseek-v4-pro';
+export const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export const PORT = Number(process.env.PORT) || 3000;
 

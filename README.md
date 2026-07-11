@@ -7,8 +7,8 @@ Deux modes : **Tuteur** (accompagnement du raisonnement) et **Critique** (audit 
 ## Architecture
 
 - `client/` : React 19 + TypeScript + Vite + Tailwind 3. Aucune clé côté client.
-- `server/` : Node 22 + Express + SDK Anthropic. Deux routes (`POST /api/chat`, `POST /api/analysis`), prompts système et clé API exclusivement côté serveur, rate limit 30 req/min/IP. Le serveur sert aussi le build client en statique.
-- Modèles : `claude-haiku-4-5` pour le dialogue, `claude-sonnet-4-6` pour le bilan (constantes dans `server/src/config.ts`).
+- `server/` : Node 22 + Express, appels à OpenRouter (API compatible OpenAI). Deux routes (`POST /api/chat`, `POST /api/analysis`), prompts système et clé API exclusivement côté serveur, rate limit 30 req/min/IP. Le serveur sert aussi le build client en statique.
+- Modèle : `deepseek/deepseek-v4-pro` pour le dialogue et le bilan (constantes dans `server/src/config.ts`).
 
 ## Lancement local
 
@@ -16,7 +16,7 @@ Prérequis : Node.js ≥ 22, ou Docker.
 
 ```bash
 # 1. Clé API serveur
-cp .env.example .env      # puis renseigner ANTHROPIC_API_KEY
+cp .env.example .env      # puis renseigner OPENROUTER_API_KEY
 
 # 2a. Avec Docker
 docker compose up --build # http://localhost:8090

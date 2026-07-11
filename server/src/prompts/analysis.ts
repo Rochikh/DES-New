@@ -59,55 +59,22 @@ Règles du champ scoreRationales : pour chaque dimension, une seule phrase qui j
 
 keyStrengths et weaknesses : 2 à 3 éléments chacun, formulés en une phrase courte, ancrés dans la session.
 
+Format de sortie : réponds uniquement avec un objet JSON valide, sans texte autour, contenant exactement ces champs :
+{
+  "summary": string,
+  "reasoningScore": entier 0-100,
+  "clarityScore": entier 0-100,
+  "skepticismScore": entier 0-100,
+  "processScore": entier 0-100,
+  "reflectionScore": entier 0-100,
+  "integrityScore": entier 0-100,
+  "rhythmBreakCount": entier,
+  "keyStrengths": [string],
+  "weaknesses": [string],
+  "scoreRationales": { "reasoning": string, "clarity": string, "skepticism": string, "process": string, "reflection": string, "integrity": string }
+}
+
 Transcription :
 ${transcriptText}
 `.trim();
 };
-
-/**
- * Schéma de sortie structurée (structured outputs).
- * Les bornes 0-100 ne sont pas exprimables dans le sous-ensemble JSON Schema
- * supporté : elles sont demandées dans le prompt et bornées côté serveur.
- */
-export const ANALYSIS_SCHEMA = {
-  type: 'object',
-  additionalProperties: false,
-  required: [
-    'summary',
-    'reasoningScore',
-    'clarityScore',
-    'skepticismScore',
-    'processScore',
-    'reflectionScore',
-    'integrityScore',
-    'rhythmBreakCount',
-    'keyStrengths',
-    'weaknesses',
-    'scoreRationales',
-  ],
-  properties: {
-    summary: { type: 'string' },
-    reasoningScore: { type: 'integer' },
-    clarityScore: { type: 'integer' },
-    skepticismScore: { type: 'integer' },
-    processScore: { type: 'integer' },
-    reflectionScore: { type: 'integer' },
-    integrityScore: { type: 'integer' },
-    rhythmBreakCount: { type: 'integer' },
-    keyStrengths: { type: 'array', items: { type: 'string' } },
-    weaknesses: { type: 'array', items: { type: 'string' } },
-    scoreRationales: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['reasoning', 'clarity', 'skepticism', 'process', 'reflection', 'integrity'],
-      properties: {
-        reasoning: { type: 'string' },
-        clarity: { type: 'string' },
-        skepticism: { type: 'string' },
-        process: { type: 'string' },
-        reflection: { type: 'string' },
-        integrity: { type: 'string' },
-      },
-    },
-  },
-} as const;
