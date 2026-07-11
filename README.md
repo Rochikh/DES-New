@@ -1,20 +1,42 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Argos — Dialogue Évaluatif Socratique
 
-# Run and deploy your AI Studio app
+Agent conversationnel socratique d'évaluation de la pensée critique. Argos accompagne l'apprenant·e dans un protocole en cinq phases (ciblage, clarification, mécanisme, vérification, stress-test), sans jamais donner les réponses, puis produit une trace d'apprentissage : bilan rédigé, radar à six dimensions avec justification de chaque score, transcription complète, indicateurs d'authenticité (rythme de saisie, déclaration d'usage d'IA).
 
-This contains everything you need to run your app locally.
+Deux modes : **Tuteur** (accompagnement du raisonnement) et **Critique** (audit logique, Argos glisse des sophismes à débusquer). Les sessions s'exportent et se réimportent en JSON, le rapport s'enregistre en PDF par impression.
 
-View your app in AI Studio: https://ai.studio/apps/b3eb4790-a99e-4d7f-9aad-78af55cb0b15
+## Architecture
 
-## Run Locally
+- `client/` : React 19 + TypeScript + Vite + Tailwind 3. Aucune clé côté client.
+- `server/` : Node 22 + Express + SDK Anthropic. Deux routes (`POST /api/chat`, `POST /api/analysis`), prompts système et clé API exclusivement côté serveur, rate limit 30 req/min/IP. Le serveur sert aussi le build client en statique.
+- Modèles : `claude-haiku-4-5` pour le dialogue, `claude-sonnet-4-6` pour le bilan (constantes dans `server/src/config.ts`).
 
-**Prerequisites:**  Node.js
+## Lancement local
 
+Prérequis : Node.js ≥ 22, ou Docker.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+# 1. Clé API serveur
+cp .env.example .env      # puis renseigner ANTHROPIC_API_KEY
+
+# 2a. Avec Docker
+docker compose up --build # http://localhost:8090
+
+# 2b. Sans Docker (deux terminaux)
+cd server && npm install && npm run dev   # API sur :3000
+cd client && npm install && npm run dev   # front Vite sur :5173, proxy /api
+```
+
+## Tests
+
+```bash
+cd server && npm test   # intégration des routes (SDK mocké)
+cd client && npm test   # parsing du marqueur de phase, import JSON rétrocompatible
+```
+
+## Déploiement
+
+L'application tourne dans un conteneur unique (voir `Dockerfile`) derrière un reverse proxy qui termine le TLS. En production, le service est déclaré dans le docker-compose global du serveur avec les labels Traefik (entrypoint `websecure`, resolver ACME), port interne 3000.
+
+## Licence
+
+© Rochane Kherbouche • CC BY-SA — contact@rochane.fr
