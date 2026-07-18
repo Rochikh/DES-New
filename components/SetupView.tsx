@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { SocraticMode, SessionConfig, Message } from '../types';
-import { BrainCircuit, HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, ChevronRight } from 'lucide-react';
+import { BrainCircuit, HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, ChevronRight, BookOpen, FilePlus2 } from 'lucide-react';
 import { GuideModal } from './GuideModal';
 
 interface SetupViewProps {
@@ -9,19 +9,36 @@ interface SetupViewProps {
   onResume: (config: SessionConfig, messages: Message[], aiDeclaration: string) => void;
 }
 
+const MAX_CORPUS_CHARS = 150000;
+
 export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [mode, setMode] = useState<SocraticMode>(SocraticMode.TUTOR);
+  const [corpus, setCorpus] = useState('');
   const [showGuide, setShowGuide] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const corpusFileRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && topic.trim()) {
-      onStart({ studentName: name, topic, mode });
+      onStart({ studentName: name, topic, mode, corpus: corpus.trim() || undefined });
     }
+  };
+
+  const handleCorpusFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = (event.target?.result as string) || '';
+        setCorpus(prev => (prev ? `${prev}\n\n--- ${file.name} ---\n\n` : `--- ${file.name} ---\n\n`).concat(text).slice(0, MAX_CORPUS_CHARS));
+      };
+      reader.readAsText(file);
+    });
+    e.target.value = '';
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +55,8 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           const resumedConfig: SessionConfig = {
             studentName: json.metadata?.student || "Apprenant·e",
             topic: json.metadata?.topic || "Sujet importé",
-            mode: json.metadata?.mode || SocraticMode.TUTOR
+            mode: json.metadata?.mode || SocraticMode.TUTOR,
+            corpus: json.corpus || json.metadata?.corpus || undefined
           };
           
           onResume(resumedConfig, json.transcript, json.aiDeclaration || "");
@@ -140,6 +158,32 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                 {mode === SocraticMode.CRITIC && <div className="absolute top-6 right-6 text-rose-600"><ChevronRight size={20} /></div>}
               </button>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                <BookOpen size={14} className="text-indigo-500" /> Corpus de référence <span className="text-slate-300 normal-case tracking-normal font-bold">(optionnel, recommandé)</span>
+              </label>
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">{corpus.length.toLocaleString('fr-FR')} / {MAX_CORPUS_CHARS.toLocaleString('fr-FR')}</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium leading-relaxed ml-1">
+              Collez ici des extraits, chapitres ou notes de lecture de l'ouvrage étudié. Argos s'appuiera <strong>uniquement</strong> sur ce corpus pour attribuer des concepts et citations à l'ouvrage — sans corpus, il signalera que ses références sont de mémoire.
+            </p>
+            <textarea
+              value={corpus}
+              onChange={(e) => setCorpus(e.target.value.slice(0, MAX_CORPUS_CHARS))}
+              placeholder="Ex : extraits de Queer Phenomenology (S. Ahmed), notes de cours, passages clés…"
+              className="w-full h-28 px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all text-slate-800 text-sm font-medium resize-y"
+            />
+            <button
+              type="button"
+              onClick={() => corpusFileRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-indigo-300 hover:text-indigo-600 transition-all"
+            >
+              <FilePlus2 size={14} /> Ajouter des fichiers texte (.txt, .md)
+            </button>
+            <input type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" multiple ref={corpusFileRef} onChange={handleCorpusFiles} className="hidden" />
           </div>
 
           <div className="pt-4">

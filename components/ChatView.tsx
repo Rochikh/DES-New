@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight, Timer } from 'lucide-react';
+import { Send, StopCircle, RefreshCw, FileSignature, HelpCircle, Save, Info, ChevronRight, Timer, AlertTriangle, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Message, SessionConfig, SocraticStrategy, PROTOCOL_PHASES } from '../types';
-import { sendMessage } from '../services/gemini';
+import { Message, SessionConfig, PROTOCOL_PHASES } from '../types';
+import { sendMessage } from '../services/ai';
 import { GuideModal } from './GuideModal';
 
 export const ChatView: React.FC<{
@@ -20,6 +20,7 @@ export const ChatView: React.FC<{
   const [declarationText, setDeclarationText] = useState('');
   const [currentPhase, setCurrentPhase] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [lastFailedText, setLastFailedText] = useState<string | null>(null);
   const [lastModelTime, setLastModelTime] = useState<number>(Date.now());
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export const ChatView: React.FC<{
         mode: config.mode,
         date: new Date().toISOString()
       },
+      corpus: config.corpus || "",
       transcript: messages,
       aiDeclaration: declarationText || ""
     };
@@ -79,29 +81,7 @@ export const ChatView: React.FC<{
     URL.revokeObjectURL(url);
   };
 
-  const handleSend = async (initialPrompt?: string) => {
-    const text = initialPrompt || inputText;
-    if (!text.trim() || !chatInstance || isLoading) return;
-
-    const now = Date.now();
-    const responseTimeMs = now - lastModelTime;
-    const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
-    
-    const charCount = text.length;
-    const cpm = (charCount / responseTimeSeconds) * 60;
-    const isAnomaly = !initialPrompt && charCount > 100 && cpm > 600;
-
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text: initialPrompt ? "(Démarrage de session)" : text,
-      timestamp: now,
-      responseTimeSeconds: initialPrompt ? 0 : responseTimeSeconds,
-      hasRhythmAnomaly: isAnomaly
-    };
-
-    if (!initialPrompt) setMessages(prev => [...prev, userMsg]);
-    setInputText('');
+  const callArgos = async (text: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -118,13 +98,46 @@ export const ChatView: React.FC<{
         phase
       };
       setMessages(prev => [...prev, aiMsg]);
+      setLastFailedText(null);
       setLastModelTime(Date.now());
     } catch (e: any) {
-      setError("Erreur de communication avec Argos.");
+      setError(e?.message || "Erreur de communication avec Argos.");
+      setLastFailedText(text);
       setLastModelTime(Date.now());
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async (initialPrompt?: string) => {
+    const text = initialPrompt || inputText;
+    if (!text.trim() || !chatInstance || isLoading) return;
+
+    const now = Date.now();
+    const responseTimeMs = now - lastModelTime;
+    const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
+
+    const charCount = text.length;
+    const cpm = (charCount / responseTimeSeconds) * 60;
+    const isAnomaly = !initialPrompt && charCount > 100 && cpm > 600;
+
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      text: text,
+      timestamp: now,
+      responseTimeSeconds: initialPrompt ? 0 : responseTimeSeconds,
+      hasRhythmAnomaly: isAnomaly
+    };
+
+    if (!initialPrompt) setMessages(prev => [...prev, userMsg]);
+    setInputText('');
+    await callArgos(text);
+  };
+
+  const handleRetry = async () => {
+    if (!lastFailedText || isLoading) return;
+    await callArgos(lastFailedText);
   };
 
   useEffect(() => {
@@ -208,7 +221,7 @@ export const ChatView: React.FC<{
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-10 scrollbar-hide">
-        {messages.filter(m => !m.text.includes("Bonjour Argos")).map((msg) => (
+        {messages.filter(m => !m.text.startsWith("Bonjour Argos, je suis")).map((msg) => (
           <div key={msg.id} className={`flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`group relative max-w-[88%] sm:max-w-[75%] rounded-[1.8rem] px-6 py-5 shadow-md border transition-all ${
               msg.role === 'user' 
@@ -244,6 +257,23 @@ export const ChatView: React.FC<{
 
       <div className="bg-white border-t p-4 sm:p-6 shrink-0 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] no-print">
         <div className="max-w-4xl mx-auto relative group">
+          {error && (
+            <div className="mb-3 flex items-center justify-between gap-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-bottom-1 duration-200">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle size={16} className="shrink-0" />
+                <span className="text-[11px] font-bold truncate">{error}</span>
+              </div>
+              {lastFailedText && (
+                <button
+                  onClick={handleRetry}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 disabled:opacity-50 shrink-0"
+                >
+                  <RotateCcw size={12} /> Réessayer
+                </button>
+              )}
+            </div>
+          )}
           <div className="flex justify-between items-center mb-3 px-2">
             <button 
               onClick={() => handleSend("Je suis un peu bloqué sur ce point, peux-tu m'aider à avancer ou m'expliquer ce concept ?")}

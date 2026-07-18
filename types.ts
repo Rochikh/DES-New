@@ -38,6 +38,8 @@ export interface SessionConfig {
   studentName: string;
   topic: string;
   mode: SocraticMode;
+  /** Corpus de référence (extraits, notes de lecture) ancrant les apports du tuteur. */
+  corpus?: string;
 }
 
 export interface AnalysisData {
