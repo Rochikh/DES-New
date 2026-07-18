@@ -36,20 +36,29 @@ Points clés de l'intégration :
   échecs remontent dans l'interface avec un bouton « Réessayer » au lieu de
   polluer la transcription.
 
+## Où mettre la clé API
+
+La clé se met dans le fichier **`.env.local`** à la racine du projet — dans
+l'éditeur de code de Google AI Studio (où l'app est hébergée) comme sur un
+poste local :
+
+```
+KIMI_API_KEY=sk-...          # clé plateforme Moonshot/Kimi (API directe)
+# ou
+OPENROUTER_API_KEY=sk-or-... # via OpenRouter
+```
+
+Les noms `MOONSHOT_API_KEY`, `GEMINI_API_KEY` et `API_KEY` restent acceptés :
+c'est le **préfixe de la clé** (pas le nom de la variable) qui détermine le
+fournisseur utilisé. Après modification, relancer l'aperçu (AI Studio) ou le
+serveur de dev.
+
 ## Lancer en local
 
 Prérequis : Node.js 20+.
 
 1. Installer les dépendances : `npm install`
-2. Créer `.env.local` avec votre clé :
-
-   ```
-   KIMI_API_KEY=sk-...          # clé plateforme Moonshot/Kimi (API directe)
-   # ou
-   OPENROUTER_API_KEY=sk-or-... # via OpenRouter
-   ```
-
-   (Les noms `MOONSHOT_API_KEY`, `GEMINI_API_KEY` et `API_KEY` restent acceptés.)
+2. Créer `.env.local` (voir ci-dessus)
 3. Lancer : `npm run dev`
 
 Si l'appel direct à `api.moonshot.ai` est bloqué par le navigateur (CORS),
@@ -59,9 +68,10 @@ message d'erreur.
 ## Déploiement — avertissement sécurité
 
 La clé API est injectée dans le bundle client au moment du build
-(`vite.config.ts`) : toute personne accédant au site déployé peut l'extraire.
-Pour un déploiement public, utilisez une clé **plafonnée** (limite de crédit)
-ou placez un proxy serveur (fonction Vercel) devant l'API.
+(`vite.config.ts`) : toute personne ayant accès à l'app déployée (y compris
+via un lien de partage AI Studio) peut l'extraire. Utilisez une clé
+**plafonnée** (rechargement manuel, pas d'auto-recharge) ou placez un petit
+proxy serveur devant l'API avant toute diffusion large.
 
 ## Données
 

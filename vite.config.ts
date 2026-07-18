@@ -6,8 +6,8 @@ export default defineConfig(({ mode }) => {
   // Charge les variables du fichier .env local
   const env = loadEnv(mode, (process as any).cwd(), '');
 
-  // Sur Vercel, la clé est souvent dans process.env directement.
-  // On prend la clé du système (Vercel) OU celle du fichier .env (Local).
+  // La clé est lue depuis l'environnement de build (process.env) ou depuis
+  // le fichier .env.local du projet (éditeur AI Studio ou poste local).
   // KIMI_API_KEY / MOONSHOT_API_KEY : clé plateforme Moonshot (API directe).
   // OPENROUTER_API_KEY (sk-or-…) : passage par OpenRouter.
   // Le fournisseur est détecté à l'exécution d'après le préfixe de la clé.
