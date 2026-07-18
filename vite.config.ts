@@ -8,8 +8,12 @@ export default defineConfig(({ mode }) => {
 
   // Sur Vercel, la clé est souvent dans process.env directement.
   // On prend la clé du système (Vercel) OU celle du fichier .env (Local).
-  // OPENROUTER_API_KEY est le nom canonique ; les anciens noms restent acceptés.
-  const apiKey = process.env.OPENROUTER_API_KEY || env.OPENROUTER_API_KEY
+  // KIMI_API_KEY / MOONSHOT_API_KEY : clé plateforme Moonshot (API directe).
+  // OPENROUTER_API_KEY (sk-or-…) : passage par OpenRouter.
+  // Le fournisseur est détecté à l'exécution d'après le préfixe de la clé.
+  const apiKey = process.env.KIMI_API_KEY || env.KIMI_API_KEY
+    || process.env.MOONSHOT_API_KEY || env.MOONSHOT_API_KEY
+    || process.env.OPENROUTER_API_KEY || env.OPENROUTER_API_KEY
     || process.env.GEMINI_API_KEY || env.GEMINI_API_KEY
     || process.env.API_KEY || env.API_KEY || "";
 

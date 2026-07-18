@@ -2,14 +2,22 @@
 import { Message, SocraticMode, AnalysisData } from "../types";
 import { CRITICAL_THINKING_CRITERIA } from "../domainCriteria";
 
-// Claude Opus 4.8 via OpenRouter : modèle haut de gamme, choisi pour la
-// fiabilité des références et la qualité du dialogue socratique en français.
-// Attention : sur les modèles Opus 4.7+, les paramètres d'échantillonnage
-// (temperature, top_p, top_k) sont supprimés de l'API — ne pas en envoyer.
-const MODEL_CHAT = "anthropic/claude-opus-4.8";
-const MODEL_ANALYSIS = "anthropic/claude-opus-4.8";
-const TUTOR_NAME = "ARGOS";
+// Kimi K3 (Moonshot AI, sorti le 16/07/2026) : modèle frontier, 1M de
+// contexte, raisonnement toujours actif. L'accès dépend de la clé fournie :
+// - clé OpenRouter (préfixe "sk-or-") → openrouter.ai, slug "moonshotai/kimi-k3"
+// - toute autre clé → API Moonshot directe (api.moonshot.ai), modèle "kimi-k3"
+// Particularités de l'API kimi-k3 :
+// - temperature figée à 1.0 : ne JAMAIS envoyer de paramètres d'échantillonnage ;
+// - le raisonnement est facturé en tokens de sortie → max_tokens généreux,
+//   sinon le raisonnement consomme le budget avant la réponse visible ;
+// - le message assistant complet (reasoning_content inclus) doit être renvoyé
+//   tel quel dans l'historique des tours suivants.
+const MOONSHOT_URL = "https://api.moonshot.ai/v1/chat/completions";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL_MOONSHOT = "kimi-k3";
+const MODEL_OPENROUTER = "moonshotai/kimi-k3";
+const MAX_COMPLETION_TOKENS = 16384;
+const TUTOR_NAME = "ARGOS";
 
 const MAX_CORPUS_CHARS = 160_000;
 
@@ -80,64 +88,89 @@ Mode : Critique (Audit logique)
 - Posture : un avocat du diable élégant et joueur, jamais méprisant. Quand un sophisme est correctement identifié, nomme-le techniquement, valide sobrement, puis passe au suivant.
 `.trim();
 
-type SystemPart = { type: "text"; text: string; cache_control?: { type: "ephemeral" } };
-type SystemContent = string | SystemPart[];
-type ApiMessage = { role: "system" | "user" | "assistant"; content: SystemContent };
+/** Message générique de l'API chat completions ; les messages assistant de
+ *  Kimi K3 portent des champs supplémentaires (reasoning_content…) qu'il faut
+ *  conserver et renvoyer tels quels. */
+type ApiMessage = Record<string, unknown> & { role: string };
+type AssistantMessage = ApiMessage;
 
-const buildSystemContent = (mode: SocraticMode, topic: string, corpus?: string): SystemContent => {
+const buildSystemPrompt = (mode: SocraticMode, topic: string, corpus?: string): string => {
   const instructions = mode === SocraticMode.TUTOR ? TUTOR_INSTRUCTIONS : CRITIC_INSTRUCTIONS;
   const base = `${instructions}\n\nSujet d'exploration : "${topic}".`;
 
   const trimmedCorpus = corpus?.trim().slice(0, MAX_CORPUS_CHARS);
   if (!trimmedCorpus) {
-    // Sans corpus : contenu en chaîne simple (forme la plus standard).
     return `${base}\n\nAucun corpus n'a été fourni pour cette session : toute référence à un ouvrage précis vient de ta mémoire et peut être imprécise. Applique strictement la règle 1 (signale-le, aucun guillemet de citation) et suggère une seule fois, au début de la session, de fournir un corpus (extraits, notes de lecture) via l'écran de démarrage pour un travail plus rigoureux.`;
   }
 
-  return [
-    { type: "text", text: base },
-    {
-      type: "text",
-      text: `CORPUS DE RÉFÉRENCE fourni par l'apprenant·e. C'est ta SEULE source autorisée pour attribuer des idées ou des citations à l'ouvrage étudié ; appuie tes apports dessus et cite-le textuellement entre guillemets quand tu t'y réfères :\n<corpus>\n${trimmedCorpus}\n</corpus>`,
-      // Corpus volumineux renvoyé à chaque tour : le cache Anthropic (via
-      // OpenRouter) réduit fortement le coût des tours suivants.
-      cache_control: { type: "ephemeral" },
-    },
-  ];
+  return `${base}\n\nCORPUS DE RÉFÉRENCE fourni par l'apprenant·e. C'est ta SEULE source autorisée pour attribuer des idées ou des citations à l'ouvrage étudié ; appuie tes apports dessus et cite-le textuellement entre guillemets quand tu t'y réfères :\n<corpus>\n${trimmedCorpus}\n</corpus>`;
 };
 
 const getApiKey = (): string => {
   const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Clé API OpenRouter manquante ou non configurée");
+  if (!apiKey) throw new Error("Clé API manquante ou non configurée");
   return apiKey;
+};
+
+type Provider = {
+  url: string;
+  model: string;
+  isOpenRouter: boolean;
+  headers: Record<string, string>;
+};
+
+/** Choisit l'endpoint selon la clé : "sk-or-…" = OpenRouter, sinon Moonshot. */
+const resolveProvider = (): Provider => {
+  const apiKey = getApiKey();
+  if (apiKey.startsWith("sk-or-")) {
+    return {
+      url: OPENROUTER_URL,
+      model: MODEL_OPENROUTER,
+      isOpenRouter: true,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "HTTP-Referer": window.location?.origin || "https://rochanekherbouche.com",
+        "X-Title": "Argos Socratique",
+        "Content-Type": "application/json",
+      },
+    };
+  }
+  return {
+    url: MOONSHOT_URL,
+    model: MODEL_MOONSHOT,
+    isOpenRouter: false,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+  };
 };
 
 const NON_RETRYABLE_STATUS = [400, 401, 402, 403, 404, 413];
 const MAX_ATTEMPTS = 3;
 
 /**
- * Appel OpenRouter avec relance automatique (2 relances, backoff 1s puis 2s).
+ * Appel du modèle avec relance automatique (2 relances, backoff 1s puis 2s).
  * Relance sur erreur réseau, erreur 5xx/429 et réponse vide ; échoue
  * immédiatement sur les erreurs non récupérables (clé invalide, crédit, 400).
  * Lève une erreur au lieu de retourner un faux message : l'historique et les
  * exports ne doivent jamais contenir de tour d'assistant fabriqué.
  */
-const callOpenRouter = async (body: Record<string, unknown>): Promise<string> => {
-  const apiKey = getApiKey();
+const callModel = async (messages: ApiMessage[]): Promise<{ content: string; message: AssistantMessage }> => {
+  const provider = resolveProvider();
   let lastError = "";
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     if (attempt > 0) await new Promise((r) => setTimeout(r, 1000 * 2 ** (attempt - 1)));
     try {
-      const response = await fetch(OPENROUTER_URL, {
+      const response = await fetch(provider.url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer": window.location?.origin || "https://rochanekherbouche.com",
-          "X-Title": "Argos Socratique",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+        headers: provider.headers,
+        body: JSON.stringify({
+          model: provider.model,
+          max_tokens: MAX_COMPLETION_TOKENS,
+          messages,
+        }),
       });
 
       if (!response.ok) {
@@ -152,23 +185,28 @@ const callOpenRouter = async (body: Record<string, unknown>): Promise<string> =>
         lastError = data.error.message || JSON.stringify(data.error).slice(0, 300);
         continue;
       }
-      const text = data.choices?.[0]?.message?.content;
-      if (typeof text === "string" && text.trim()) return text;
+      const message = data.choices?.[0]?.message;
+      const content = message?.content;
+      if (typeof content === "string" && content.trim()) return { content, message };
       lastError = "Réponse vide du modèle";
     } catch (e: any) {
       lastError = e?.message || "Erreur réseau";
+      if (!provider.isOpenRouter && e instanceof TypeError) {
+        // Un TypeError sur fetch = requête bloquée avant réponse (réseau/CORS).
+        lastError += " — si le navigateur bloque l'appel direct à api.moonshot.ai (CORS), utilisez une clé OpenRouter (sk-or-…)";
+      }
     }
   }
 
   throw new Error(`L'appel au modèle a échoué (${lastError})`);
 };
 
-export class OpenRouterChatSession {
-  private systemContent: SystemContent;
+export class ChatSession {
+  private systemPrompt: string;
   private history: ApiMessage[];
 
-  constructor(systemContent: SystemContent, history: Message[]) {
-    this.systemContent = systemContent;
+  constructor(systemPrompt: string, history: Message[]) {
+    this.systemPrompt = systemPrompt;
     // Les anciens exports peuvent contenir le faux message "Erreur de
     // transmission." : on l'écarte du contexte envoyé au modèle.
     this.history = history
@@ -180,20 +218,18 @@ export class OpenRouterChatSession {
   }
 
   async sendMessage({ message }: { message: string }) {
-    const text = await callOpenRouter({
-      model: MODEL_CHAT,
-      max_tokens: 1024,
-      messages: [
-        { role: "system", content: this.systemContent },
-        ...this.history,
-        { role: "user", content: message },
-      ],
-    });
+    const { content, message: assistantMessage } = await callModel([
+      { role: "system", content: this.systemPrompt },
+      ...this.history,
+      { role: "user", content: message },
+    ]);
 
     // L'historique n'est mis à jour qu'en cas de succès : un échec suivi d'un
-    // « Réessayer » ne doit pas dupliquer le message utilisateur.
-    this.history.push({ role: "user", content: message }, { role: "assistant", content: text });
-    return { text };
+    // « Réessayer » ne doit pas dupliquer le message utilisateur. Le message
+    // assistant est conservé tel que renvoyé par l'API (reasoning_content
+    // compris), comme le demande la documentation de kimi-k3.
+    this.history.push({ role: "user", content: message }, assistantMessage);
+    return { text: content };
   }
 }
 
@@ -202,11 +238,11 @@ export const createChatSession = (
   topic: string,
   history: Message[] = [],
   corpus?: string
-): OpenRouterChatSession => {
-  return new OpenRouterChatSession(buildSystemContent(mode, topic, corpus), history);
+): ChatSession => {
+  return new ChatSession(buildSystemPrompt(mode, topic, corpus), history);
 };
 
-export const sendMessage = async (chat: OpenRouterChatSession, message: string) => {
+export const sendMessage = async (chat: ChatSession, message: string) => {
   return chat.sendMessage({ message });
 };
 
@@ -282,11 +318,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour ni bloc de code
 {"summary": string, "reasoningScore": number, "clarityScore": number, "skepticismScore": number, "processScore": number, "reflectionScore": number, "integrityScore": number, "keyStrengths": string[], "weaknesses": string[]}
 `.trim();
 
-  const raw = await callOpenRouter({
-    model: MODEL_ANALYSIS,
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
-  });
+  const { content: raw } = await callModel([{ role: "user", content: prompt }]);
 
   try {
     const parsed = extractJson(raw);
