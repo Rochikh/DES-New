@@ -1,4 +1,3 @@
-
 export enum AppMode {
   SETUP = 'SETUP',
   CHAT = 'CHAT',
@@ -37,6 +36,8 @@ export interface SessionConfig {
   studentName: string;
   topic: string;
   mode: SocraticMode;
+  /** Corpus de référence (extraits, notes) ancrant les apports du tuteur. */
+  corpus?: string;
 }
 
 export interface ScoreRationales {
@@ -55,7 +56,7 @@ export interface AnalysisData {
   skepticismScore: number;
   processScore: number;
   reflectionScore: number;
-  integrityScore: number; 
+  integrityScore: number;
   rhythmBreakCount: number;
   keyStrengths: string[];
   weaknesses: string[];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Target, ShieldCheck, Zap, Lock, BookOpen, Fingerprint, Info } from 'lucide-react';
+import { X, Target, ShieldCheck, Zap, Lock, BookOpen, FileText, Fingerprint, Info } from 'lucide-react';
 import { ArgosEye } from './PhaseTracker';
 
 interface GuideModalProps {
@@ -50,6 +50,15 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
             </div>
           </section>
 
+          <section className="space-y-4">
+            <h3 className="font-semibold text-paon flex items-center gap-2 text-xs uppercase tracking-wide">
+              <FileText size={18} /> Apporte tes propres textes
+            </h3>
+            <p className="text-sm leading-relaxed text-ardoise">
+              Sur l'écran d'accueil, tu peux coller des extraits ou des notes de lecture, ou charger un fichier texte (.txt, .md). Argos s'appuie alors uniquement sur ce corpus pour attribuer une idée à un ouvrage : ce qui vient de tes textes est cité entre guillemets, le reste est annoncé comme savoir général ou comme hypothèse à vérifier ensemble. Sans corpus, Argos raisonne avec toi sans rien citer.
+            </p>
+          </section>
+
           <section className="space-y-6">
             <h3 className="font-semibold text-nuit flex items-center gap-2 text-xs uppercase tracking-wide">
               <BookOpen size={18} /> Le protocole en 5 étapes
@@ -79,11 +88,18 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
               <h4 className="font-semibold text-xs uppercase tracking-wide">Protection des données et éthique</h4>
             </div>
             <p className="text-[12px] text-craie/80 leading-relaxed">
-              La confidentialité est inscrite dans le code (Privacy by Design). Aucune donnée n'est stockée : tes échanges transitent par le serveur d'Argos uniquement le temps de générer chaque réponse, puis vivent dans ton seul navigateur. Tu restes le·la seul·e propriétaire de ta trace d'apprentissage, exportable en format JSON.
+              La confidentialité est inscrite dans le code (Privacy by Design). Rien n'est stocké côté serveur : tes échanges transitent par le serveur d'Argos, qui interroge l'API du modèle (DeepSeek) uniquement le temps de générer chaque réponse, puis la conversation vit dans ton seul navigateur. Tu restes le·la seul·e propriétaire de ta trace d'apprentissage, exportable en format JSON. Conseil : utilise un pseudonyme et n'inscris aucune donnée personnelle ou sensible dans tes échanges.
             </p>
             <div className="flex items-center gap-2 pt-2 text-[10px] font-semibold text-craie/60 uppercase tracking-wide">
-              <Fingerprint size={14} /> Souveraineté numérique garantie
+              <Fingerprint size={14} /> Sans compte, sans base de données
             </div>
+          </section>
+
+          <section className="bg-craie p-6 rounded-lg border border-brume flex items-start gap-4">
+            <BookOpen size={20} className="text-paon shrink-0 mt-1" />
+            <p className="text-[13px] text-ardoise leading-relaxed">
+              Argos s'inscrit dans la réflexion du livre <a href="https://livre.rochane.fr" target="_blank" rel="noopener noreferrer" className="font-semibold text-paon hover:text-paon-sombre underline"><em>Évaluer en formation à l'ère de l'IA générative</em></a> de Rochane Kherbouche (Chronique Sociale, 2026, préface de Christelle Lison, Université de Sherbrooke).
+            </p>
           </section>
         </div>
 

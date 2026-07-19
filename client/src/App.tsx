@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const handleStartSession = (newConfig: SessionConfig) => {
     setError(null);
     try {
-      const chat = createChatSession(newConfig.mode, newConfig.topic, []);
+      const chat = createChatSession(newConfig.mode, newConfig.topic, [], newConfig.corpus);
       setConfig(newConfig);
       setMessages([]);
       setChatInstance(chat);
@@ -31,7 +31,7 @@ const App: React.FC = () => {
   const handleResumeSession = (restoredConfig: SessionConfig, restoredMessages: Message[], restoredDeclaration: string) => {
     setError(null);
     try {
-      const chat = createChatSession(restoredConfig.mode, restoredConfig.topic, restoredMessages);
+      const chat = createChatSession(restoredConfig.mode, restoredConfig.topic, restoredMessages, restoredConfig.corpus);
       setConfig(restoredConfig);
       setMessages(restoredMessages);
       setAiDeclaration(restoredDeclaration);

@@ -20,7 +20,7 @@ export const ReportView: React.FC<{
     setLoading(true);
     setError(null);
     try {
-      const result = await generateAnalysis(transcript, config.topic, aiDeclaration);
+      const result = await generateAnalysis(config.mode, transcript, config.topic, aiDeclaration);
       setAnalysis(result);
     } catch (e: any) {
       setError(e.message);
@@ -30,6 +30,23 @@ export const ReportView: React.FC<{
   };
 
   useEffect(() => { runAnalysis(); }, []);
+  const WAIT_STEPS = [
+    "Lecture de tes réponses",
+    "Repérage des moments clés du dialogue",
+    "Évaluation des six dimensions de la pensée",
+    "Rédaction du bilan personnalisé",
+    "Mise en forme de la trace d'apprentissage",
+  ];
+  const [waitStep, setWaitStep] = useState(0);
+  const [waitSeconds, setWaitSeconds] = useState(0);
+  useEffect(() => {
+    if (!loading) return;
+    const t = setInterval(() => setWaitSeconds(s => s + 1), 1000);
+    const stepper = setInterval(() => {
+      setWaitStep(s => (s + 1) % WAIT_STEPS.length);
+    }, 9000);
+    return () => { clearInterval(t); clearInterval(stepper); };
+  }, [loading]);
 
   const getChartData = () => {
     if (!analysis) return [];
@@ -47,7 +64,8 @@ export const ReportView: React.FC<{
     <div className="flex flex-col items-center justify-center h-screen bg-craie">
       <div className="mb-6"><ArgosEye state="active" size={72} /></div>
       <h2 className="font-serif text-xl font-semibold text-nuit">Analyse de la réflexion par Argos</h2>
-      <p className="text-ardoise text-sm mt-2">Calcul de la trace d'apprentissage</p>
+      <p className="text-ardoise text-sm mt-2">{WAIT_STEPS[waitStep]}</p>
+      <p className="text-ardoise/60 text-xs mt-4">Argos relit toute ta session, l'analyse prend environ une minute ({waitSeconds}s)</p>
     </div>
   );
 

@@ -23,7 +23,10 @@ const criteriaMapping = CRITICAL_THINKING_CRITERIA.map(
   (c) => `- ${c.scoreKey}Score (« ${c.dimension} ») évalue : ${c.label}. Observable attendu : ${c.observable}.`
 ).join('\n');
 
+const equityRule = `Regle d'equite du mode Critique : ne reproche a l'apprenant·e de ne pas avoir debusque une faille QUE si le transcript contient un raisonnement d'Argos comportant une faille logique nommable, par exemple generalisation abusive, causalite inversee, fausse dichotomie, pente glissante, appel a la popularite. Une objection raisonnable d'Argos, meme presentee comme avocat du diable, n'est pas une faille : y repondre en enrichissant son modele est une reussite, jamais un manquement. En cas de doute sur la presence d'une vraie faille, n'en fais pas une piste de progression.`;
+
 export const buildAnalysisPrompt = (
+  mode: 'TUTOR' | 'CRITIC',
   topic: string,
   aiDeclaration: string,
   transcript: TranscriptEntry[]
@@ -40,6 +43,8 @@ export const buildAnalysisPrompt = (
 
   return `
 Tu analyses une session de dialogue socratique sur "${topic}" pour produire le bilan d'apprentissage.
+Mode de la session : ${mode === 'CRITIC' ? "Critique (Argos a joue l'avocat du diable)" : 'Tuteur (accompagnement)'}.
+${mode === 'CRITIC' ? equityRule : ''}
 
 Déclaration d'usage d'IA faite par l'apprenant·e : "${aiDeclaration}"
 

@@ -10,14 +10,17 @@
  * ou les mots-clés techniques si le séparateur a été oublié.
  */
 export const cleanDisplayBotText = (text: string): string => {
-  // 1. Priorité au séparateur officiel ---
-  const separatorIndex = text.indexOf('---');
-  if (separatorIndex !== -1) {
+  // 1. Marqueur en fin de message : on ne coupe au séparateur --- que si la
+  // mention de phase se trouve après lui (un --- décoratif en milieu de
+  // message ne doit jamais avaler la suite du texte).
+  const phaseIdx = text.search(/Phase\s*:?\s*\d/i);
+  const separatorIndex = text.lastIndexOf('---');
+  if (separatorIndex !== -1 && phaseIdx > separatorIndex) {
     return text.substring(0, separatorIndex).trim();
   }
 
   // 2. Sécurité : recherche de mots-clés techniques au cas où le séparateur est oublié
-  const keywords = ['Phase:', 'Exigence:', 'Contrôle:'];
+  const keywords = ['Phase:', 'Phase 0', 'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', '**Phase', 'Exigence:', 'Contrôle:'];
   let firstKeywordIndex = -1;
 
   for (const kw of keywords) {
@@ -36,6 +39,6 @@ export const cleanDisplayBotText = (text: string): string => {
 
 /** Extrait le numéro de phase ; à défaut, conserve la phase courante. */
 export const extractPhase = (text: string, currentPhase: number): number => {
-  const match = text.match(/Phase:\s*(\d)/i);
+  const match = text.match(/Phase\s*:?\s*\**\s*(\d)/i);
   return match ? parseInt(match[1], 10) : currentPhase;
 };

@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { SocraticMode, SessionConfig, Message } from '../types';
-import { HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, Check } from 'lucide-react';
+import { HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircle2, Check, BookOpen, FileText } from 'lucide-react';
 import { parseSessionFile } from '../utils/session';
 import { ArgosEye } from './PhaseTracker';
 import { GuideModal } from './GuideModal';
+
+const MAX_CORPUS_CHARS = 100000;
 
 interface SetupViewProps {
   onStart: (config: SessionConfig) => void;
@@ -14,15 +16,33 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
   const [mode, setMode] = useState<SocraticMode>(SocraticMode.TUTOR);
+  const [corpus, setCorpus] = useState('');
   const [showGuide, setShowGuide] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const corpusFileRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && topic.trim()) {
-      onStart({ studentName: name, topic, mode });
+      onStart({ studentName: name, topic, mode, corpus: corpus.trim() || undefined });
     }
+  };
+
+  const handleCorpusFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = (event.target?.result as string) || '';
+        setCorpus((prev) => {
+          const prefix = prev ? `${prev}\n\n--- ${file.name} ---\n\n` : `--- ${file.name} ---\n\n`;
+          return (prefix + text).slice(0, MAX_CORPUS_CHARS);
+        });
+      };
+      reader.readAsText(file);
+    });
+    e.target.value = '';
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,10 +67,10 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
     <div className="h-full overflow-y-auto flex flex-col items-center bg-craie p-4 relative">
       <button
         onClick={() => setShowGuide(true)}
-        className="self-end sm:self-auto sm:absolute sm:top-6 sm:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-white text-ardoise border border-brume rounded-md hover:text-paon hover:border-paon transition-colors shrink-0"
+        className="self-end sm:self-auto sm:absolute sm:top-6 sm:right-6 z-50 flex items-center gap-2 px-5 py-3 bg-ambre text-white rounded-md shadow-md hover:bg-nuit transition-colors shrink-0"
       >
-        <span className="text-[11px] font-semibold uppercase tracking-wide">Le projet Argos</span>
-        <HelpCircle size={18} />
+        <HelpCircle size={20} />
+        <span className="text-[12px] font-semibold uppercase tracking-wide">Comment ça marche ?</span>
       </button>
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
@@ -130,12 +150,34 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
                 <div className="flex-1">
                   <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.CRITIC ? 'text-ambre' : 'text-nuit'}`}>Mode critique (audit logique)</div>
                   <p className="text-[13px] leading-relaxed text-ardoise">
-                    Je soumets un texte piégé. À toi de mener l'enquête pour débusquer les failles logiques et les biais cognitifs cachés.
+                    Je joue l'avocat du diable : je glisse dans notre dialogue des raisonnements faux, à toi de les débusquer et de défendre ta pensée.
                   </p>
                 </div>
                 {mode === SocraticMode.CRITIC && <Check size={18} className="absolute top-5 right-5 text-ambre" />}
               </button>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1 flex items-center gap-2">
+                <BookOpen size={14} className="text-paon" /> Corpus de référence <span className="normal-case tracking-normal text-brume font-normal">(optionnel, recommandé)</span>
+              </span>
+              <span className="text-[10px] text-ardoise">{corpus.length.toLocaleString('fr-FR')} / {MAX_CORPUS_CHARS.toLocaleString('fr-FR')}</span>
+            </div>
+            <p className="text-[12px] leading-relaxed text-ardoise ml-1">
+              Colle des extraits, chapitres ou notes de lecture de l'ouvrage étudié. Argos s'appuiera uniquement sur ce corpus pour attribuer un concept ou une citation à l'ouvrage ; sans corpus, il signalera que ses références viennent de mémoire.
+            </p>
+            <textarea
+              value={corpus}
+              onChange={(e) => setCorpus(e.target.value.slice(0, MAX_CORPUS_CHARS))}
+              placeholder="Ex : extraits de l'ouvrage, passages clés, notes de cours..."
+              className="w-full h-28 px-5 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit text-sm resize-y"
+            />
+            <button type="button" onClick={() => corpusFileRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-brume text-ardoise rounded-md text-[11px] font-semibold uppercase tracking-wide hover:border-paon hover:text-paon transition-colors">
+              <FileText size={14} /> Ajouter des fichiers texte (.txt, .md)
+            </button>
+            <input type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" multiple ref={corpusFileRef} onChange={handleCorpusFiles} className="hidden" />
           </div>
 
           <div className="pt-4">
@@ -154,6 +196,9 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
         </form>
       </div>
 
+      <p className="mt-5 text-[11px] leading-relaxed text-ardoise text-center">
+        Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · Les échanges transitent par l'API DeepSeek le temps de générer chaque réponse · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
+      </p>
       <div className="mt-4 flex items-center gap-2 text-ardoise text-[10px] uppercase tracking-wide">
         <Info size={12} />
         <span>Données locales non stockées</span>

@@ -3,7 +3,7 @@ import { Message, SocraticMode, AnalysisData } from "../types";
 /**
  * Client HTTP du backend Argos. Les prompts système et la clé API
  * vivent exclusivement côté serveur : le client n'envoie que le mode,
- * le sujet et l'historique du dialogue.
+ * le sujet, le corpus facultatif et l'historique du dialogue.
  */
 
 interface HistoryEntry {
@@ -35,11 +35,13 @@ const postJSON = async <T>(url: string, body: unknown): Promise<T> => {
 export class ChatSession {
   private mode: SocraticMode;
   private topic: string;
+  private corpus?: string;
   private history: HistoryEntry[];
 
-  constructor(mode: SocraticMode, topic: string, history: Message[]) {
+  constructor(mode: SocraticMode, topic: string, history: Message[], corpus?: string) {
     this.mode = mode;
     this.topic = topic;
+    this.corpus = corpus;
     this.history = history.map(m => ({ role: m.role, text: m.text }));
   }
 
@@ -47,6 +49,7 @@ export class ChatSession {
     const data = await postJSON<{ text: string }>('/api/chat', {
       mode: this.mode,
       topic: this.topic,
+      corpus: this.corpus,
       history: this.history,
       message,
     });
@@ -58,8 +61,8 @@ export class ChatSession {
   }
 }
 
-export const createChatSession = (mode: SocraticMode, topic: string, history: Message[] = []): ChatSession => {
-  return new ChatSession(mode, topic, history);
+export const createChatSession = (mode: SocraticMode, topic: string, history: Message[] = [], corpus?: string): ChatSession => {
+  return new ChatSession(mode, topic, history, corpus);
 };
 
 export const sendMessage = async (chat: ChatSession, message: string) => {
@@ -68,11 +71,13 @@ export const sendMessage = async (chat: ChatSession, message: string) => {
 };
 
 export const generateAnalysis = async (
+  mode: SocraticMode,
   transcript: Message[],
   topic: string,
   aiDeclaration: string
 ): Promise<AnalysisData> => {
   const parsed = await postJSON<Omit<AnalysisData, 'transcript' | 'aiDeclaration'>>('/api/analysis', {
+    mode,
     topic,
     aiDeclaration,
     transcript: transcript.map(m => ({

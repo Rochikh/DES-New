@@ -34,6 +34,7 @@ export const ChatView: React.FC<{
         mode: config.mode,
         date: new Date().toISOString()
       },
+      corpus: config.corpus || "",
       transcript: messages,
       aiDeclaration: declarationText || ""
     };

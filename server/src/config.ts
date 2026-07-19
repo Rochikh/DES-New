@@ -1,8 +1,8 @@
-// Modèles servis via OpenRouter (API compatible OpenAI).
+// Modèle servi via l'API Moonshot (Kimi K3, endpoint compatible OpenAI).
 // Constantes en tête de fichier, faciles à changer.
-export const MODEL_CHAT = 'deepseek/deepseek-v4-pro';
-export const MODEL_ANALYSIS = 'deepseek/deepseek-v4-pro';
-export const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+export const MODEL_CHAT = 'deepseek-chat';
+export const MODEL_ANALYSIS = 'deepseek-chat';
+export const MOONSHOT_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 export const PORT = Number(process.env.PORT) || 3000;
 
@@ -12,6 +12,8 @@ export const MAX_HISTORY_MESSAGES = 200;
 export const MAX_TOPIC_LENGTH = 500;
 export const MAX_DECLARATION_LENGTH = 4000;
 export const MAX_TRANSCRIPT_MESSAGES = 400;
+// Corpus de référence facultatif (extraits, notes de lecture).
+export const MAX_CORPUS_LENGTH = 100_000;
 
 // Rate limiting : l'application est publique, la clé paie à l'usage.
 export const RATE_LIMIT_WINDOW_MS = 60_000;

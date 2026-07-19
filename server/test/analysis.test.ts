@@ -65,7 +65,7 @@ describe('POST /api/analysis', () => {
       expect.arrayContaining(['reasoning', 'clarity', 'skepticism', 'process', 'reflection', 'integrity'])
     );
     const params = create.mock.calls[0][0];
-    expect(params.model).toBe('deepseek/deepseek-v4-pro');
+    expect(params.model).toBe('deepseek-chat');
     expect(params.response_format?.type).toBe('json_object');
   });
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import type { CompletionClient } from '../src/openrouter.js';
+import type { CompletionClient } from '../src/moonshot.js';
 
 const FAKE_KEY = 'sk-or-test-cle-factice-000';
-process.env.OPENROUTER_API_KEY = FAKE_KEY;
+process.env.MOONSHOT_API_KEY = FAKE_KEY;
 
 const makeMock = (text = 'Bonjour. Quel est ton objectif ?\n---\nPhase: 0') => {
   const create = vi.fn().mockResolvedValue({
@@ -32,7 +32,7 @@ describe('POST /api/chat', () => {
     expect(res.body.text).toMatch(/---\s*\nPhase:\s*\d/);
     expect(create).toHaveBeenCalledOnce();
     const params = create.mock.calls[0][0];
-    expect(params.model).toBe('deepseek/deepseek-v4-pro');
+    expect(params.model).toBe('deepseek-chat');
     expect(params.messages[0].role).toBe('system');
     expect(params.messages[0].content).toContain('Phase: [Numéro]');
     expect(params.messages[0].content).toContain("L'impact de l'IA sur l'emploi");

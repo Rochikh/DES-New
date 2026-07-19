@@ -10,10 +10,11 @@ import {
   MAX_TOPIC_LENGTH,
   MAX_DECLARATION_LENGTH,
   MAX_TRANSCRIPT_MESSAGES,
+  MAX_CORPUS_LENGTH,
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 } from './config.js';
-import type { CompletionClient, CompletionMessage, CompletionResponse } from './openrouter.js';
+import type { CompletionClient, CompletionMessage, CompletionResponse } from './moonshot.js';
 import { buildChatSystemPrompt, type ChatMode } from './prompts/core.js';
 import { buildAnalysisPrompt, type TranscriptEntry } from './prompts/analysis.js';
 
@@ -33,6 +34,9 @@ const isHistoryEntry = (m: unknown): m is { role: 'user' | 'model'; text: string
 const extractText = (response: CompletionResponse): string =>
   response.choices?.[0]?.message?.content ?? '';
 
+const stripJsonFences = (text: string): string =>
+  text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+
 const clampScore = (n: unknown): number =>
   Math.max(0, Math.min(100, Math.round(typeof n === 'number' && Number.isFinite(n) ? n : 0)));
 
@@ -41,7 +45,8 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
 
   // Derrière Traefik : nécessaire pour que le rate limit voie l'IP réelle
   app.set('trust proxy', 1);
-  app.use(express.json({ limit: '1mb' }));
+  // 2mb : le corpus de référence facultatif s'ajoute à l'historique.
+  app.use(express.json({ limit: '2mb' }));
 
   const limiter = rateLimit({
     windowMs: RATE_LIMIT_WINDOW_MS,
@@ -57,7 +62,7 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
   });
 
   app.post('/api/chat', async (req: Request, res: Response) => {
-    const { mode, topic, history, message } = req.body ?? {};
+    const { mode, topic, history, message, corpus } = req.body ?? {};
 
     if (mode !== 'TUTOR' && mode !== 'CRITIC') {
       res.status(400).json({ error: 'Mode invalide.' });
@@ -71,6 +76,10 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
       res.status(400).json({ error: 'Message invalide.' });
       return;
     }
+    if (corpus !== undefined && (typeof corpus !== 'string' || corpus.length > MAX_CORPUS_LENGTH)) {
+      res.status(400).json({ error: 'Corpus invalide.' });
+      return;
+    }
     if (
       !Array.isArray(history) ||
       history.length > MAX_HISTORY_MESSAGES ||
@@ -81,7 +90,7 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
     }
 
     const messages: CompletionMessage[] = [
-      { role: 'system', content: buildChatSystemPrompt(mode as ChatMode, topic) },
+      { role: 'system', content: buildChatSystemPrompt(mode as ChatMode, topic, typeof corpus === 'string' ? corpus : undefined) },
       ...history.map((m) => ({
         role: m.role === 'model' ? ('assistant' as const) : ('user' as const),
         content: m.text,
@@ -98,8 +107,8 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
     try {
       const response = await client.create({
         model: MODEL_CHAT,
-        temperature: 0.8,
-        max_tokens: 1024,
+        max_tokens: 5120,
+        max_completion_tokens: 5120,
         messages,
       });
       res.json({ text: extractText(response) });
@@ -130,17 +139,18 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
       return;
     }
 
-    const prompt = buildAnalysisPrompt(topic, aiDeclaration, transcript as TranscriptEntry[]);
+    const analysisMode = req.body?.mode === 'CRITIC' ? 'CRITIC' : 'TUTOR';
+    const prompt = buildAnalysisPrompt(analysisMode, topic, aiDeclaration, transcript as TranscriptEntry[]);
 
     const runAnalysis = async () => {
       const response = await client.create({
         model: MODEL_ANALYSIS,
-        temperature: 0.1,
-        max_tokens: 4096,
+        max_tokens: 6144,
+        max_completion_tokens: 6144,
         response_format: { type: 'json_object' },
         messages: [{ role: 'user', content: prompt }],
       });
-      return JSON.parse(extractText(response));
+      return JSON.parse(stripJsonFences(extractText(response)));
     };
 
     try {

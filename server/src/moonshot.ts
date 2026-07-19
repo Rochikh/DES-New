@@ -1,8 +1,15 @@
-import { OPENROUTER_URL } from './config.js';
+import { MOONSHOT_URL } from './config.js';
 
 /**
- * Client minimal de l'endpoint chat/completions d'OpenRouter (API compatible
- * OpenAI). L'interface est injectable pour les tests d'intégration.
+ * Client minimal de l'endpoint chat/completions de l'API Moonshot (Kimi K3,
+ * surface compatible OpenAI). L'interface est injectable pour les tests
+ * d'intégration.
+ *
+ * kimi-k3 impose une température fixe à 1.0 : ne jamais envoyer le champ
+ * `temperature` (une valeur différente est rejetée par l'API). Le
+ * raisonnement du modèle est toujours actif et facturé comme tokens de
+ * sortie : prévoir un plafond généreux (max_tokens ET max_completion_tokens,
+ * le nom exact du champ variant selon les surfaces compatibles OpenAI).
  */
 
 export interface CompletionMessage {
@@ -15,6 +22,7 @@ export interface CompletionParams {
   messages: CompletionMessage[];
   temperature?: number;
   max_tokens?: number;
+  max_completion_tokens?: number;
   response_format?: { type: 'json_object' };
 }
 
@@ -26,14 +34,12 @@ export interface CompletionClient {
   create: (params: CompletionParams) => Promise<CompletionResponse>;
 }
 
-export const createOpenRouterClient = (apiKey: string): CompletionClient => ({
+export const createMoonshotClient = (apiKey: string): CompletionClient => ({
   async create(params) {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetch(MOONSHOT_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://ia-des.rochane.fr',
-        'X-Title': 'Argos Socratique',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(params),
@@ -41,7 +47,7 @@ export const createOpenRouterClient = (apiKey: string): CompletionClient => ({
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
-      throw new Error(`OpenRouter ${response.status}: ${detail.slice(0, 500)}`);
+      throw new Error(`Moonshot ${response.status}: ${detail.slice(0, 500)}`);
     }
 
     return response.json() as Promise<CompletionResponse>;
