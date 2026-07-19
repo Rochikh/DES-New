@@ -4,7 +4,7 @@ import { SetupView } from './components/SetupView';
 import { ChatView } from './components/ChatView';
 import { ReportView } from './components/ReportView';
 import { createChatSession, ChatSession } from './services/api';
-import { AlertCircle, Mail } from 'lucide-react';
+import { AlertCircle, ExternalLink } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>(AppMode.SETUP);
@@ -101,9 +101,14 @@ const App: React.FC = () => {
       <footer className="shrink-0 py-2.5 text-center text-[10px] text-ardoise bg-craie border-t border-brume no-print flex items-center justify-center gap-6">
         <span className="uppercase tracking-wide">© Rochane Kherbouche • Licence CC BY SA</span>
         <span className="w-1 h-1 bg-brume rounded-full"></span>
-        <a href="mailto:contact@rochane.fr" className="flex items-center gap-2 hover:text-paon transition-colors uppercase tracking-wide">
-          <Mail size={12} />
-          me contacter
+        <a
+          href="https://rochane.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-3 py-1 rounded-full bg-paon text-craie hover:bg-paon-sombre transition-colors uppercase tracking-wide"
+        >
+          <ExternalLink size={12} />
+          Retrouver les outils de Rochane Kherbouche
         </a>
       </footer>
     </div>
