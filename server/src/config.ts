@@ -1,8 +1,8 @@
-// Modèle servi via l'API Moonshot (Kimi K3, endpoint compatible OpenAI).
+// Modèle servi via l'API DeepSeek (endpoint compatible OpenAI).
 // Constantes en tête de fichier, faciles à changer.
 export const MODEL_CHAT = 'deepseek-chat';
 export const MODEL_ANALYSIS = 'deepseek-chat';
-export const MOONSHOT_URL = 'https://api.deepseek.com/v1/chat/completions';
+export const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 export const PORT = Number(process.env.PORT) || 3000;
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import type { CompletionClient } from '../src/moonshot.js';
+import type { CompletionClient } from '../src/deepseek.js';
 
 const FAKE_KEY = 'sk-or-test-cle-factice-000';
-process.env.MOONSHOT_API_KEY = FAKE_KEY;
+process.env.DEEPSEEK_API_KEY = FAKE_KEY;
 
 const makeMock = (text = 'Bonjour. Quel est ton objectif ?\n---\nPhase: 0') => {
   const create = vi.fn().mockResolvedValue({
