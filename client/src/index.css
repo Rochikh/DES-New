@@ -1,6 +1,32 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tokens de la charte « copie corrigée », copiés de apps/styles.css */
+:root {
+  --white: #ffffff;
+  --paper: #fdfdfb;
+  --off: #f1f3f7;
+  --light: #e7eaf1;
+  --line: #dfe3ec;
+  --line2: #c6cddc;
+  --text: #14151b;
+  --muted: #5d6270;
+  --muted2: #63687a; /* AA : 5.5:1 sur blanc, 4.7:1 sur --accent-light */
+  --accent: #1d3db0;
+  --accent-light: #e9edfa;
+  --accent-hover: #152e8a;
+  --rouge: #cf2e2e;
+  --seyes: #ccd9ec;
+  --font: 'Instrument Sans', sans-serif;
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'Spline Sans Mono', monospace;
+  --radius: 4px;
+  --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+}
 
 /* Styles globaux */
 html,
@@ -11,7 +37,12 @@ body {
 }
 
 body {
-  @apply bg-craie text-nuit font-sans;
+  font-family: var(--font);
+  background: var(--paper);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
@@ -22,8 +53,57 @@ body {
 
 /* Focus clavier visible partout */
 :focus-visible {
-  outline: 2px solid #12676b;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Boutons de la charte */
+@layer components {
+  .btn-fill,
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 3px;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background-color var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
+  }
+  .btn-fill {
+    background: var(--accent);
+    color: var(--white);
+    border: 1.5px solid transparent;
+  }
+  .btn-fill:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+  .btn-outline {
+    background: var(--white);
+    color: var(--text);
+    border: 1.5px solid var(--line2);
+  }
+  .btn-outline:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-fill:disabled,
+  .btn-outline:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Label mono : kickers, étiquettes, chiffres */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -96,9 +176,9 @@ body {
   main {
     height: auto !important;
     overflow: visible !important;
-    background: white !important;
+    background: var(--white) !important;
     display: block !important;
-    color: #000 !important;
+    color: var(--text) !important;
   }
 
   .no-print {
@@ -119,25 +199,15 @@ body {
   .prose {
     font-size: 11pt !important;
     max-width: 100% !important;
-    color: #1a1a1a !important;
+    color: var(--text) !important;
   }
 
   header,
   section {
-    border: 1px solid #ddd9cf !important;
+    border: 1px solid var(--line) !important;
     box-shadow: none !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius) !important;
     page-break-inside: avoid;
-  }
-
-  /* L'en-tête nuit repasse en blanc bordé, le texte redevient sombre */
-  .bg-nuit {
-    background-color: #ffffff !important;
-    color: #1b2a32 !important;
-  }
-  [class*='text-craie'],
-  .text-white {
-    color: #1b2a32 !important;
   }
 
   /* Assurer que le radar s'affiche à l'impression */
