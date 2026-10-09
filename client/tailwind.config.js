@@ -1,46 +1,55 @@
 /** @type {import('tailwindcss').Config} */
 
-// Système de tokens Argos — palette « veille nocturne » dérivée du mythe
-// d'Argos Panoptès (le veilleur aux cent yeux, les yeux du paon).
+// Tokens alignés sur la charte « copie corrigée » (skill charte-rochane).
+// Les valeurs vivent dans le :root de src/index.css, copié de apps/styles.css.
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    // Deux rayons seulement : 8 px (contrôles) et 14 px (cartes, modales).
-    // La grille complète est écrasée pour rendre tout autre rayon impossible.
+    // Échelle fermée de la charte : 2 px (tags), 3 px (contrôles), 4 px (cartes).
+    // full reste réservé aux points et boutons ronds.
     borderRadius: {
       none: '0',
-      sm: '8px',
-      DEFAULT: '8px',
-      md: '8px',
-      lg: '14px',
-      xl: '14px',
-      '2xl': '14px',
-      '3xl': '14px',
+      sm: '2px',
+      DEFAULT: '3px',
+      md: '3px',
+      lg: 'var(--radius)',
       full: '9999px',
     },
     extend: {
       colors: {
-        nuit: '#1B2A32',      // fond des en-têtes et du rapport, texte principal
-        paon: {
-          DEFAULT: '#12676B', // primaire : actions, phase active, radar
-          sombre: '#0D4F53',  // hover / actif
+        white: 'var(--white)',
+        paper: 'var(--paper)',
+        off: 'var(--off)',
+        light: 'var(--light)',
+        line: 'var(--line)',
+        line2: 'var(--line2)',
+        text: 'var(--text)',
+        muted: 'var(--muted)',
+        muted2: 'var(--muted2)',
+        accent: {
+          DEFAULT: 'var(--accent)',
+          light: 'var(--accent-light)',
+          hover: 'var(--accent-hover)',
         },
-        iris: '#C9A227',      // accent unique : l'œil ouvert, avec parcimonie
-        ambre: '#8F5D1E',     // mode Critique, alertes douces (jamais de rouge)
-        craie: '#F5F3EE',     // fond clair général
-        ardoise: '#55606A',   // texte secondaire, icônes
-        brume: '#DDD9CF',     // bordures fines, filets
+        rouge: 'var(--rouge)',
+        seyes: 'var(--seyes)',
       },
       fontFamily: {
-        sans: ['"Source Sans 3 Variable"', 'system-ui', 'sans-serif'],
-        serif: ['"Source Serif 4 Variable"', 'Georgia', 'serif'],
+        sans: ['var(--font)'],
+        display: ['var(--font-display)'],
+        mono: ['var(--font-mono)'],
+      },
+      // Rayons du plugin typography ramenés sur l'échelle fermée
+      typography: {
+        DEFAULT: { css: { pre: { borderRadius: 'var(--radius)' }, kbd: { borderRadius: '2px' } } },
+        sm: { css: { pre: { borderRadius: 'var(--radius)' }, kbd: { borderRadius: '2px' } } },
       },
       boxShadow: {
-        // Élévation unique, réservée aux modales
-        modal: '0 8px 24px rgb(27 42 50 / 0.12)',
+        // Élément flottant (modales)
+        modal: '0 8px 40px rgba(0,0,0,0.14)',
       },
     },
   },

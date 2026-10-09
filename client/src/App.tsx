@@ -59,14 +59,14 @@ const App: React.FC = () => {
   const isReportMode = appMode === AppMode.REPORT;
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-craie">
+    <div className="flex flex-col min-h-screen w-full bg-paper">
       {error && appMode === AppMode.SETUP && (
-        <div className="bg-craie border-b-2 border-ambre text-nuit px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm font-semibold">
-            <AlertCircle size={18} className="text-ambre" />
+        <div className="bg-paper border-b border-line text-text px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 label-mono text-rouge">
+            <AlertCircle size={18} className="text-rouge" />
             {error}
           </div>
-          <button onClick={() => setError(null)} className="text-[11px] uppercase tracking-wide font-semibold text-ardoise hover:text-nuit">Fermer</button>
+          <button onClick={() => setError(null)} className="label-mono text-muted hover:text-accent">Fermer</button>
         </div>
       )}
 
@@ -98,14 +98,14 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="shrink-0 py-2.5 text-center text-[10px] text-ardoise bg-craie border-t border-brume no-print flex items-center justify-center gap-6">
-        <span className="uppercase tracking-wide">© Rochane Kherbouche • Licence CC BY SA</span>
-        <span className="w-1 h-1 bg-brume rounded-full"></span>
+      <footer className="shrink-0 py-2.5 px-4 text-center text-[0.8rem] text-muted2 bg-off border-t border-line no-print flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
+        <span>© Rochane Kherbouche • Licence CC BY SA</span>
+        <span className="w-1 h-1 bg-line2 rounded-full" aria-hidden="true"></span>
         <a
           href="https://rochane.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-3 py-1 rounded-full bg-paon text-craie hover:bg-paon-sombre transition-colors uppercase tracking-wide"
+          className="flex items-center gap-2 font-semibold text-accent hover:text-accent-hover hover:underline transition-colors"
         >
           <ExternalLink size={12} />
           Retrouver les outils de Rochane Kherbouche

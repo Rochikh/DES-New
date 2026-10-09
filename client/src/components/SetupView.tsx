@@ -64,39 +64,39 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto flex flex-col items-center bg-craie p-4 relative">
+    <div className="h-full overflow-y-auto flex flex-col items-center bg-paper p-4 relative">
       <button
         onClick={() => setShowGuide(true)}
-        className="self-end sm:self-auto sm:absolute sm:top-6 sm:right-6 z-50 flex items-center gap-2 px-5 py-3 bg-ambre text-white rounded-md shadow-md hover:bg-nuit transition-colors shrink-0"
+        className="btn-outline self-end sm:self-auto sm:absolute sm:top-6 sm:right-6 z-50 shrink-0"
       >
         <HelpCircle size={20} />
-        <span className="text-[12px] font-semibold uppercase tracking-wide">Comment ça marche ?</span>
+        <span>Comment ça marche ?</span>
       </button>
 
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
       <div className="w-full max-w-2xl flex flex-col items-center mt-4 mb-6 sm:my-auto">
-      <div className="bg-white p-8 sm:p-12 rounded-lg border border-brume w-full">
+      <div className="bg-white p-8 sm:p-12 rounded-lg border border-line w-full">
         <div className="flex flex-col items-center mb-10">
           <div className="mb-4" aria-hidden="true">
             <ArgosEye state="active" size={64} />
           </div>
-          <h1 className="font-serif text-4xl font-semibold text-nuit">Argos socratique</h1>
-          <p className="text-ardoise text-sm mt-2">Ton partenaire de réflexion critique</p>
+          <h1 className="font-display text-[clamp(2.1rem,3.6vw,3.1rem)] font-extrabold tracking-[-0.02em] leading-[1.1] text-text">Argos socratique</h1>
+          <p className="label-mono text-accent mt-3">Ton partenaire de réflexion critique</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label htmlFor="setup-name" className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Prénom</label>
+              <label htmlFor="setup-name" className="block label-mono text-accent ml-1">Prénom</label>
               <div className="relative">
-                <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-brume" size={20} />
+                <UserCircle2 className="absolute left-4 top-1/2 -translate-y-1/2 text-line2" size={20} />
                 <input
                   id="setup-name"
                   type="text"
                   required
                   autoComplete="off"
-                  className="w-full pl-12 pr-4 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit"
+                  className="w-full pl-12 pr-4 py-3.5 bg-paper border border-line rounded-md focus:border-accent focus:bg-white outline-none transition-colors text-text"
                   placeholder="Ex : Alex"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -104,13 +104,13 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="setup-topic" className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Sujet d'exploration</label>
+              <label htmlFor="setup-topic" className="block label-mono text-accent ml-1">Sujet d'exploration</label>
                 <input
                   id="setup-topic"
                   type="text"
                   required
                   autoComplete="off"
-                  className="w-full px-5 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit"
+                  className="w-full px-5 py-3.5 bg-paper border border-line rounded-md focus:border-accent focus:bg-white outline-none transition-colors text-text"
                   placeholder="Ex : L'impact de l'IA sur l'emploi"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
@@ -119,87 +119,87 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
           </div>
 
           <div className="space-y-4">
-            <span className="block text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1">Expérience de dialogue</span>
+            <span className="block label-mono text-accent ml-1">Expérience de dialogue</span>
 
             <div className="grid grid-cols-1 gap-4">
               <button
                 type="button"
                 onClick={() => setMode(SocraticMode.TUTOR)}
-                className={`group relative p-6 rounded-lg border text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.TUTOR ? 'border-paon bg-paon/5' : 'border-brume bg-white hover:border-paon'}`}
+                className={`group relative p-6 rounded-lg border text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.TUTOR ? 'border-accent bg-accent-light' : 'border-line bg-white hover:border-accent'}`}
               >
-                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.TUTOR ? 'bg-paon text-white' : 'bg-craie text-paon border border-brume'}`}>
+                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.TUTOR ? 'bg-accent text-white' : 'bg-paper text-accent border border-line'}`}>
                   <MessageCircleQuestion size={26} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.TUTOR ? 'text-paon-sombre' : 'text-nuit'}`}>Mode tuteur (accompagnement)</div>
-                  <p className="text-[13px] leading-relaxed text-ardoise">
+                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.TUTOR ? 'text-accent-hover' : 'text-text'}`}>Mode tuteur (accompagnement)</div>
+                  <p className="text-[13px] leading-relaxed text-muted">
                     Je t'aide à construire et à fortifier ton propre raisonnement en posant des questions ciblées sans jamais donner la solution.
                   </p>
                 </div>
-                {mode === SocraticMode.TUTOR && <Check size={18} className="absolute top-5 right-5 text-paon" />}
+                {mode === SocraticMode.TUTOR && <Check size={18} className="absolute top-5 right-5 text-accent" />}
               </button>
 
               <button
                 type="button"
                 onClick={() => setMode(SocraticMode.CRITIC)}
-                className={`group relative p-6 rounded-lg border text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.CRITIC ? 'border-ambre bg-ambre/5' : 'border-brume bg-white hover:border-ambre'}`}
+                className={`group relative p-6 rounded-lg border border-l-[3px] border-l-rouge text-left transition-colors flex items-start gap-5 ${mode === SocraticMode.CRITIC ? 'border-accent bg-accent-light' : 'border-line bg-white hover:border-accent'}`}
               >
-                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.CRITIC ? 'bg-ambre text-white' : 'bg-craie text-ambre border border-brume'}`}>
+                <div className={`p-3.5 rounded-md shrink-0 ${mode === SocraticMode.CRITIC ? 'bg-accent text-white' : 'bg-paper text-accent border border-line'}`}>
                   <ShieldAlert size={26} />
                 </div>
                 <div className="flex-1">
-                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.CRITIC ? 'text-ambre' : 'text-nuit'}`}>Mode critique (audit logique)</div>
-                  <p className="text-[13px] leading-relaxed text-ardoise">
+                  <div className={`font-semibold text-sm mb-1 ${mode === SocraticMode.CRITIC ? 'text-accent-hover' : 'text-text'}`}>Mode critique (audit logique)</div>
+                  <p className="text-[13px] leading-relaxed text-muted">
                     Je joue l'avocat du diable : je glisse dans notre dialogue des raisonnements faux, à toi de les débusquer et de défendre ta pensée.
                   </p>
                 </div>
-                {mode === SocraticMode.CRITIC && <Check size={18} className="absolute top-5 right-5 text-ambre" />}
+                {mode === SocraticMode.CRITIC && <Check size={18} className="absolute top-5 right-5 text-accent" />}
               </button>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-ardoise uppercase tracking-wide ml-1 flex items-center gap-2">
-                <BookOpen size={14} className="text-paon" /> Corpus de référence <span className="normal-case tracking-normal text-brume font-normal">(optionnel, recommandé)</span>
+              <span className="label-mono text-accent ml-1 flex items-center gap-2">
+                <BookOpen size={14} className="text-accent" /> Corpus de référence <span className="font-sans normal-case tracking-normal text-muted2 font-normal">(optionnel, recommandé)</span>
               </span>
-              <span className="text-[10px] text-ardoise">{corpus.length.toLocaleString('fr-FR')} / {MAX_CORPUS_CHARS.toLocaleString('fr-FR')}</span>
+              <span className="font-mono text-[0.7rem] text-muted2">{corpus.length.toLocaleString('fr-FR')} / {MAX_CORPUS_CHARS.toLocaleString('fr-FR')}</span>
             </div>
-            <p className="text-[12px] leading-relaxed text-ardoise ml-1">
+            <p className="text-[12px] leading-relaxed text-muted ml-1">
               Colle des extraits, chapitres ou notes de lecture de l'ouvrage étudié. Argos s'appuiera uniquement sur ce corpus pour attribuer un concept ou une citation à l'ouvrage ; sans corpus, il signalera que ses références viennent de mémoire.
             </p>
             <textarea
               value={corpus}
               onChange={(e) => setCorpus(e.target.value.slice(0, MAX_CORPUS_CHARS))}
               placeholder="Ex : extraits de l'ouvrage, passages clés, notes de cours..."
-              className="w-full h-28 px-5 py-3.5 bg-craie border border-brume rounded-md focus:border-paon focus:bg-white outline-none transition-colors text-nuit text-sm resize-y"
+              className="w-full h-28 px-5 py-3.5 bg-paper border border-line rounded-md focus:border-accent focus:bg-white outline-none transition-colors text-text text-sm resize-y"
             />
-            <button type="button" onClick={() => corpusFileRef.current?.click()} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-brume text-ardoise rounded-md text-[11px] font-semibold uppercase tracking-wide hover:border-paon hover:text-paon transition-colors">
+            <button type="button" onClick={() => corpusFileRef.current?.click()} className="btn-outline">
               <FileText size={14} /> Ajouter des fichiers texte (.txt, .md)
             </button>
             <input type="file" accept=".txt,.md,.markdown,text/plain,text/markdown" multiple ref={corpusFileRef} onChange={handleCorpusFiles} className="hidden" />
           </div>
 
           <div className="pt-4">
-            <button type="submit" className="w-full bg-paon text-white py-4 rounded-md font-semibold text-sm hover:bg-paon-sombre transition-colors">
+            <button type="submit" className="btn-fill w-full py-4">
               Lancer la discussion
             </button>
           </div>
 
-          <div className="pt-4 border-t border-brume">
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 py-3.5 px-6 bg-white border border-dashed border-brume text-ardoise rounded-md text-[11px] font-semibold uppercase tracking-wide hover:border-paon hover:text-paon transition-colors">
+          <div className="pt-4 border-t border-line">
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-outline w-full border-dashed py-3.5">
               <Upload size={16} /> Reprendre un travail (.JSON)
             </button>
             <input type="file" accept=".json" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-            {importError && <div className="text-[11px] text-ambre font-semibold text-center mt-3">{importError}</div>}
+            {importError && <div className="label-mono text-rouge text-center mt-3">{importError}</div>}
           </div>
         </form>
       </div>
 
-      <p className="mt-5 text-[11px] leading-relaxed text-ardoise text-center">
+      <p className="mt-5 text-[12px] leading-relaxed text-muted text-center">
         Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · Les échanges transitent par l'API DeepSeek le temps de générer chaque réponse · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
       </p>
-      <div className="mt-4 flex items-center gap-2 text-ardoise text-[10px] uppercase tracking-wide">
+      <div className="mt-4 flex items-center gap-2 text-muted2 label-mono">
         <Info size={12} />
         <span>Données locales non stockées</span>
       </div>

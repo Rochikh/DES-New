@@ -3,8 +3,8 @@ import { PROTOCOL_PHASES } from '../types';
 
 /**
  * Tracker de progression : une rangée de cinq yeux stylisés.
- * Argos Panoptès veille sur la session — œil clos pour les phases à venir,
- * œil qui s'ouvre (iris doré) pour la phase active, œil ouvert au trait
+ * Argos Panoptès veille sur la session : œil clos pour les phases à venir,
+ * œil qui s'ouvre (iris rouge) pour la phase active, œil ouvert au trait
  * pour les phases franchies. Micro-animation d'ouverture au changement de
  * phase, neutralisée sous prefers-reduced-motion (voir index.css).
  */
@@ -12,9 +12,9 @@ import { PROTOCOL_PHASES } from '../types';
 type EyeState = 'upcoming' | 'active' | 'done';
 
 const STROKE = {
-  upcoming: '#DDD9CF', // brume
-  active: '#12676B',   // paon
-  done: '#55606A',     // ardoise
+  upcoming: '#c6cddc', // --line2
+  active: '#1d3db0',   // --accent
+  done: '#63687a',     // --muted2
 };
 
 export const ArgosEye: React.FC<{
@@ -44,10 +44,10 @@ export const ArgosEye: React.FC<{
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          {/* Iris doré : seul emploi systématique de l'accent */}
-          {state === 'active' && <circle cx="17" cy="10" r="4.5" stroke="#C9A227" strokeWidth="1.5" />}
+          {/* Iris rouge : geste de correcteur sur la phase active */}
+          {state === 'active' && <circle cx="17" cy="10" r="4.5" stroke="#cf2e2e" strokeWidth="1.5" />}
           {/* Pupille */}
-          <circle cx="17" cy="10" r="2" fill="#1B2A32" />
+          <circle cx="17" cy="10" r="2" fill="#14151b" />
           {/* Cils courts de l'œil actif */}
           {state === 'active' && (
             <>
@@ -65,7 +65,7 @@ export const ArgosEye: React.FC<{
 export const PhaseTracker: React.FC<{ currentPhase: number }> = ({ currentPhase }) => {
   return (
     <div
-      className="bg-white border-b border-brume px-4 sm:px-6 py-2.5 no-print"
+      className="bg-white border-b border-line px-4 sm:px-6 py-2.5 no-print"
       role="group"
       aria-label={`Progression : phase ${currentPhase}, ${PROTOCOL_PHASES[currentPhase]?.label}`}
     >
@@ -77,12 +77,12 @@ export const PhaseTracker: React.FC<{ currentPhase: number }> = ({ currentPhase 
             <div key={p.id} className="flex flex-col items-center gap-0.5" title={`${p.label} : ${p.desc}`}>
               <ArgosEye state={state} />
               <span
-                className={`text-[11px] leading-tight ${
+                className={`label-mono leading-tight ${
                   state === 'active'
-                    ? 'text-paon font-semibold'
+                    ? 'text-accent font-semibold'
                     : state === 'done'
-                      ? 'text-ardoise hidden sm:block'
-                      : 'text-brume hidden sm:block'
+                      ? 'text-muted2 hidden sm:block'
+                      : 'text-line2 hidden sm:block'
                 }`}
               >
                 {p.id}. {p.label}

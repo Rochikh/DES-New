@@ -14,7 +14,7 @@ import {
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 } from './config.js';
-import type { CompletionClient, CompletionMessage, CompletionResponse } from './moonshot.js';
+import type { CompletionClient, CompletionMessage, CompletionResponse } from './deepseek.js';
 import { buildChatSystemPrompt, type ChatMode } from './prompts/core.js';
 import { buildAnalysisPrompt, type TranscriptEntry } from './prompts/analysis.js';
 

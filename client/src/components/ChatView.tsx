@@ -116,24 +116,24 @@ export const ChatView: React.FC<{
   }, [messages, isLoading]);
 
   return (
-    <div className="flex flex-col h-full bg-craie relative">
+    <div className="flex flex-col h-full bg-paper relative">
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
 
       {showDeclarationModal && (
-        <div className="absolute inset-0 z-50 bg-nuit/60 flex items-center justify-center p-4">
+        <div className="absolute inset-0 z-50 bg-[rgba(20,21,27,0.45)] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-modal max-w-xl w-full p-8">
-            <h2 className="font-serif text-xl font-semibold flex items-center gap-3 mb-6 text-nuit">
-              <FileSignature className="text-paon" /> Journal d'usage de l'IA
+            <h2 className="font-display text-[1.18rem] font-extrabold tracking-[-0.015em] flex items-center gap-3 mb-6 text-text">
+              <FileSignature className="text-accent" /> Journal d'usage de l'IA
             </h2>
             <textarea
               value={declarationText}
               onChange={(e) => setDeclarationText(e.target.value)}
               placeholder="Comment as-tu utilisé l'IA pour tes recherches ?"
-              className="w-full h-32 p-4 bg-craie border border-brume rounded-md mb-6 outline-none focus:border-paon text-sm"
+              className="w-full h-32 p-4 bg-paper border border-line rounded-md mb-6 outline-none focus:border-accent text-sm"
             />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeclarationModal(false)} className="px-5 text-[11px] font-semibold uppercase tracking-wide text-ardoise hover:text-nuit">Retour</button>
-              <button onClick={() => onFinish(declarationText || "Aucun usage déclaré.")} className="px-6 py-2.5 bg-paon text-white rounded-md text-[11px] font-semibold uppercase tracking-wide hover:bg-paon-sombre transition-colors">Générer la trace</button>
+              <button onClick={() => setShowDeclarationModal(false)} className="btn-outline">Retour</button>
+              <button onClick={() => onFinish(declarationText || "Aucun usage déclaré.")} className="btn-fill">Générer la trace</button>
             </div>
           </div>
         </div>
@@ -141,29 +141,29 @@ export const ChatView: React.FC<{
 
       <PhaseTracker currentPhase={currentPhase} />
 
-      <header className="bg-white border-b border-brume px-6 py-3.5 flex justify-between items-center shrink-0 z-10 no-print">
+      <header className="bg-white border-b border-line px-6 py-3.5 flex justify-between items-center shrink-0 z-10 no-print">
         <div className="overflow-hidden flex items-center gap-4">
           <div className="hidden sm:block">
-            <h2 className="text-sm font-semibold text-nuit truncate">{config.topic}</h2>
-            <p className="text-[11px] text-ardoise">Phase {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label}</p>
+            <h2 className="font-display text-base font-extrabold tracking-[-0.015em] text-text truncate">{config.topic}</h2>
+            <p className="label-mono text-accent">Phase {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label}</p>
           </div>
           <button
             onClick={handleExportJSON}
             title="Sauvegarder pour reprendre plus tard"
-            className="p-2 text-ardoise hover:text-paon rounded-md transition-colors flex items-center gap-2"
+            className="p-2 text-muted hover:text-accent rounded-md transition-colors flex items-center gap-2"
           >
             <Save size={18} />
-            <span className="text-[11px] font-semibold uppercase tracking-wide hidden md:inline">Sauvegarder</span>
+            <span className="text-[0.85rem] font-semibold hidden md:inline">Sauvegarder</span>
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowGuide(true)} className="p-2 text-ardoise hover:text-nuit transition-colors" title="Le projet Argos"><HelpCircle size={20} /></button>
-          <button onClick={() => setShowDeclarationModal(true)} className="flex items-center gap-2 px-4 py-2 bg-ambre text-white rounded-md text-[11px] font-semibold uppercase tracking-wide hover:opacity-90 transition-opacity"><StopCircle size={14} /> Terminer la session</button>
+          <button onClick={() => setShowGuide(true)} className="p-2 text-muted hover:text-accent transition-colors" title="Le projet Argos"><HelpCircle size={20} /></button>
+          <button onClick={() => setShowDeclarationModal(true)} className="btn-fill px-4 py-2"><StopCircle size={14} /> Terminer la session</button>
         </div>
       </header>
 
       {error && (
-        <div className="bg-craie border-b border-ambre text-nuit text-sm px-6 py-2 no-print">{error}</div>
+        <div className="bg-paper border-b border-line label-mono text-rouge px-6 py-2 no-print">{error}</div>
       )}
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scrollbar-hide">
@@ -171,18 +171,16 @@ export const ChatView: React.FC<{
           <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`group relative max-w-[88%] sm:max-w-[75%] rounded-lg px-6 py-4 border ${
               msg.role === 'user'
-                ? 'bg-nuit text-craie border-nuit'
-                : 'bg-white text-nuit border-brume'
+                ? 'bg-accent-light text-text border-accent-light'
+                : 'bg-white text-text border-line'
             }`}>
               {msg.role === 'user' && msg.responseTimeSeconds !== undefined && msg.responseTimeSeconds > 0 && (
-                <div className={`absolute -top-5 right-2 flex items-center gap-1.5 text-[10px] ${msg.hasRhythmAnomaly ? 'text-ambre font-semibold' : 'text-ardoise'}`}>
+                <div className={`absolute -top-5 right-2 flex items-center gap-1.5 font-mono text-[0.68rem] ${msg.hasRhythmAnomaly ? 'text-rouge font-semibold' : 'text-muted2'}`}>
                   <Timer size={10} />
                   Flux : {msg.responseTimeSeconds}s {msg.hasRhythmAnomaly && "• Rupture de rythme"}
                 </div>
               )}
-              <div className={`prose prose-sm max-w-none leading-relaxed ${
-                msg.role === 'user' ? 'prose-invert prose-p:text-craie' : 'prose-p:text-nuit'
-              }`}>
+              <div className="prose prose-sm max-w-none leading-relaxed prose-p:text-text">
                 <ReactMarkdown>
                   {msg.role === 'model' ? cleanDisplayBotText(msg.text) : msg.text}
                 </ReactMarkdown>
@@ -192,31 +190,31 @@ export const ChatView: React.FC<{
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-brume text-ardoise px-5 py-3 rounded-lg flex items-center gap-3">
+            <div className="bg-white border border-line text-muted px-5 py-3 rounded-lg flex items-center gap-3">
               <span className="flex gap-1" aria-hidden="true">
-                <span className="thinking-dot w-1.5 h-1.5 bg-paon rounded-full"></span>
-                <span className="thinking-dot w-1.5 h-1.5 bg-paon rounded-full"></span>
-                <span className="thinking-dot w-1.5 h-1.5 bg-paon rounded-full"></span>
+                <span className="thinking-dot w-1.5 h-1.5 bg-accent rounded-full"></span>
+                <span className="thinking-dot w-1.5 h-1.5 bg-accent rounded-full"></span>
+                <span className="thinking-dot w-1.5 h-1.5 bg-accent rounded-full"></span>
               </span>
-              <span className="text-sm">Argos réfléchit</span>
+              <span className="label-mono">Argos réfléchit</span>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="bg-white border-t border-brume p-4 sm:p-6 shrink-0 no-print">
+      <div className="bg-white border-t border-line p-4 sm:p-6 shrink-0 no-print">
         <div className="max-w-4xl mx-auto relative">
           <div className="flex justify-between items-center mb-3 px-2">
             <button
               onClick={() => handleSend("Je suis un peu bloqué sur ce point, peux-tu m'aider à avancer ou m'expliquer ce concept ?")}
               disabled={isLoading}
-              className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ardoise hover:text-paon transition-colors"
+              className="flex items-center gap-2 text-[0.85rem] font-semibold text-accent hover:text-accent-hover transition-colors"
             >
               <HelpCircle size={14} />
               Besoin d'un indice ou d'une explication ?
             </button>
-            <span className="text-[11px] text-ardoise">
+            <span className="font-mono text-[0.7rem] text-muted2">
               {inputText.length} caractères
             </span>
           </div>
@@ -226,13 +224,13 @@ export const ChatView: React.FC<{
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Réponds ici avec précision..."
-              className="w-full bg-craie rounded-md pl-6 pr-16 py-4 border border-brume focus:border-paon focus:bg-white outline-none transition-colors text-base resize-none overflow-y-auto"
+              className="w-full bg-paper rounded-md pl-6 pr-16 py-4 border border-line focus:border-accent focus:bg-white outline-none transition-colors text-base resize-none overflow-y-auto"
               rows={1}
             />
             <button
               onClick={() => handleSend()}
               disabled={!inputText.trim() || isLoading}
-              className="absolute right-3 bottom-3 p-3 bg-paon text-white rounded-md disabled:opacity-20 hover:bg-paon-sombre transition-colors"
+              className="btn-fill absolute right-3 bottom-3 p-3"
               title="Envoyer le message"
             >
               <Send size={20} />

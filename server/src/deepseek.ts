@@ -1,13 +1,12 @@
-import { MOONSHOT_URL } from './config.js';
+import { DEEPSEEK_URL } from './config.js';
 
 /**
- * Client minimal de l'endpoint chat/completions de l'API Moonshot (Kimi K3,
- * surface compatible OpenAI). L'interface est injectable pour les tests
+ * Client minimal de l'endpoint chat/completions de l'API DeepSeek
+ * (surface compatible OpenAI). L'interface est injectable pour les tests
  * d'intégration.
  *
- * kimi-k3 impose une température fixe à 1.0 : ne jamais envoyer le champ
- * `temperature` (une valeur différente est rejetée par l'API). Le
- * raisonnement du modèle est toujours actif et facturé comme tokens de
+ * Le champ `temperature` n'est jamais envoyé : on laisse la valeur par
+ * défaut de l'API. Le raisonnement du modèle est facturé comme tokens de
  * sortie : prévoir un plafond généreux (max_tokens ET max_completion_tokens,
  * le nom exact du champ variant selon les surfaces compatibles OpenAI).
  */
@@ -34,9 +33,9 @@ export interface CompletionClient {
   create: (params: CompletionParams) => Promise<CompletionResponse>;
 }
 
-export const createMoonshotClient = (apiKey: string): CompletionClient => ({
+export const createDeepSeekClient = (apiKey: string): CompletionClient => ({
   async create(params) {
-    const response = await fetch(MOONSHOT_URL, {
+    const response = await fetch(DEEPSEEK_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -47,7 +46,7 @@ export const createMoonshotClient = (apiKey: string): CompletionClient => ({
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
-      throw new Error(`Moonshot ${response.status}: ${detail.slice(0, 500)}`);
+      throw new Error(`DeepSeek ${response.status}: ${detail.slice(0, 500)}`);
     }
 
     return response.json() as Promise<CompletionResponse>;
