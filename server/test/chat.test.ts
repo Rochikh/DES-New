@@ -32,7 +32,7 @@ describe('POST /api/chat', () => {
     expect(res.body.text).toMatch(/---\s*\nPhase:\s*\d/);
     expect(create).toHaveBeenCalledOnce();
     const params = create.mock.calls[0][0];
-    expect(params.model).toBe('deepseek-chat');
+    expect(params.model).toBe('deepseek-v4-flash');
     expect(params.messages[0].role).toBe('system');
     expect(params.messages[0].content).toContain('Phase: [Numéro]');
     expect(params.messages[0].content).toContain("L'impact de l'IA sur l'emploi");
