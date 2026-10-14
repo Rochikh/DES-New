@@ -7,8 +7,8 @@ Deux modes : **Tuteur** (accompagnement du raisonnement) et **Critique** (audit 
 ## Architecture
 
 - `client/` : React 19 + TypeScript + Vite + Tailwind 3. Aucune clé côté client.
-- `server/` : Node 22 + Express, appels à DeepSeek (API compatible OpenAI). Deux routes (`POST /api/chat`, `POST /api/analysis`), prompts système et clé API exclusivement côté serveur, rate limit 30 req/min/IP. Le serveur sert aussi le build client en statique.
-- Modèle : `deepseek-chat` pour le dialogue et le bilan (constantes dans `server/src/config.ts`).
+- `server/` : Node 22 + Express, appels à Claude (`@anthropic-ai/sdk`) ou à DeepSeek (API compatible OpenAI) selon `AI_PROVIDER`. Deux routes (`POST /api/chat`, `POST /api/analysis`), prompts système et clé API exclusivement côté serveur, rate limit 30 req/min/IP. Le serveur sert aussi le build client en statique.
+- Fournisseur : `AI_PROVIDER=claude` ou `deepseek` (`deepseek` par défaut). Avec Claude, modèle `claude-opus-5-5`, effort `medium` pour le dialogue et `high` pour le bilan (sortie JSON par schéma). Un 429 Claude bascule l'appel en cours sur DeepSeek (`deepseek-v4-flash`), dont la clé reste donc requise. Constantes dans `server/src/config.ts`.
 
 ## Lancement local
 
@@ -16,7 +16,7 @@ Prérequis : Node.js ≥ 22, ou Docker.
 
 ```bash
 # 1. Clé API serveur
-cp .env.example .env      # puis renseigner DEEPSEEK_API_KEY
+cp .env.example .env      # puis renseigner DEEPSEEK_API_KEY, ANTHROPIC_API_KEY et AI_PROVIDER
 
 # 2a. Avec Docker
 docker compose up --build # http://localhost:8090
