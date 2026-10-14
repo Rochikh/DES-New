@@ -137,9 +137,18 @@ ${trimmed}
 
 export type ChatMode = 'TUTOR' | 'CRITIC';
 
-export const buildChatSystemPrompt = (mode: ChatMode, topic: string, corpus?: string): string => {
+/**
+ * Prompt système en deux parties pour le cache Claude : `instructions`
+ * ne dépend que du mode (partagé entre sessions), `session` porte le corpus
+ * et le sujet (stables sur toute la session).
+ */
+export const buildChatSystemParts = (
+  mode: ChatMode,
+  topic: string,
+  corpus?: string
+): { instructions: string; session: string } => {
   const modeBlock = mode === 'TUTOR' ? TUTOR_MODE : CRITIC_MODE;
-  return [
+  const instructions = [
     IDENTITY_AND_STANCE,
     EPISTEMIC_HONESTY,
     CONCEPTUAL_GROUND,
@@ -151,7 +160,7 @@ export const buildChatSystemPrompt = (mode: ChatMode, topic: string, corpus?: st
     ADAPTIVITY,
     EVALUATION_GRID,
     STYLE_RULES,
-    buildCorpusBlock(corpus),
-    `Sujet d'exploration : "${topic}".`,
   ].join('\n\n');
+  const session = [buildCorpusBlock(corpus), `Sujet d'exploration : "${topic}".`].join('\n\n');
+  return { instructions, session };
 };

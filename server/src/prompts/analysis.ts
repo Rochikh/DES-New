@@ -25,6 +25,36 @@ const criteriaMapping = CRITICAL_THINKING_CRITERIA.map(
 
 const equityRule = `Regle d'equite du mode Critique : ne reproche a l'apprenant·e de ne pas avoir debusque une faille QUE si le transcript contient un raisonnement d'Argos comportant une faille logique nommable, par exemple generalisation abusive, causalite inversee, fausse dichotomie, pente glissante, appel a la popularite. Une objection raisonnable d'Argos, meme presentee comme avocat du diable, n'est pas une faille : y repondre en enrichissant son modele est une reussite, jamais un manquement. En cas de doute sur la presence d'une vraie faille, n'en fais pas une piste de progression.`;
 
+/**
+ * Schéma JSON du bilan pour les sorties structurées Claude
+ * (output_config.format). Les bornes 0-100 restent appliquées par le serveur.
+ */
+export const buildAnalysisSchema = () => {
+  const scoreKeys = CRITICAL_THINKING_CRITERIA.map((c) => c.scoreKey);
+  const scoreFields = scoreKeys.map((k) => `${k}Score`);
+  const stringList = { type: 'array', items: { type: 'string' } } as const;
+  const text = { type: 'string' } as const;
+  const integer = { type: 'integer' } as const;
+  return {
+    type: 'object',
+    properties: {
+      summary: text,
+      ...Object.fromEntries(scoreFields.map((f) => [f, integer])),
+      rhythmBreakCount: integer,
+      keyStrengths: stringList,
+      weaknesses: stringList,
+      scoreRationales: {
+        type: 'object',
+        properties: Object.fromEntries(scoreKeys.map((k) => [k, text])),
+        required: scoreKeys,
+        additionalProperties: false,
+      },
+    },
+    required: ['summary', ...scoreFields, 'rhythmBreakCount', 'keyStrengths', 'weaknesses', 'scoreRationales'],
+    additionalProperties: false,
+  } as const;
+};
+
 export const buildAnalysisPrompt = (
   mode: 'TUTOR' | 'CRITIC',
   topic: string,

@@ -88,7 +88,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
               <h4 className="label-mono text-accent">Protection des données et éthique</h4>
             </div>
             <p className="text-[12px] text-muted leading-relaxed">
-              La confidentialité est inscrite dans le code (Privacy by Design). Rien n'est stocké côté serveur : tes échanges transitent par le serveur d'Argos, qui interroge l'API du modèle (DeepSeek) uniquement le temps de générer chaque réponse, puis la conversation vit dans ton seul navigateur. Tu restes le·la seul·e propriétaire de ta trace d'apprentissage, exportable en format JSON. Conseil : utilise un pseudonyme et n'inscris aucune donnée personnelle ou sensible dans tes échanges.
+              La confidentialité est inscrite dans le code (Privacy by Design). Rien n'est stocké côté serveur : tes échanges transitent par le serveur d'Argos, qui interroge l'API d'Anthropic (modèle Claude) le temps de générer chaque réponse, ou celle de DeepSeek quand Claude est saturé. La conversation vit ensuite dans ton seul navigateur. Tu restes le·la seul·e propriétaire de ta trace d'apprentissage, exportable en format JSON. Conseil : utilise un pseudonyme et n'inscris aucune donnée personnelle ou sensible dans tes échanges.
             </p>
             <div className="flex items-center gap-2 pt-2 label-mono text-muted2">
               <Fingerprint size={14} /> Sans compte, sans base de données

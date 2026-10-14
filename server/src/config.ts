@@ -1,5 +1,14 @@
-// Modèle servi via l'API DeepSeek (endpoint compatible OpenAI).
-// Constantes en tête de fichier, faciles à changer.
+// Fournisseur choisi par AI_PROVIDER (claude ou deepseek, deepseek par
+// défaut). Constantes en tête de fichier, faciles à changer.
+export const CLAUDE_MODEL = 'claude-opus-5-5';
+export const CLAUDE_EFFORT_CHAT = 'medium';
+export const CLAUDE_EFFORT_ANALYSIS = 'high';
+// Le raisonnement compte dans max_tokens même s'il n'est pas renvoyé.
+export const CLAUDE_MAX_TOKENS = 16_000;
+// Même réglage que Compagnon de route : 280 s par appel, sans retry SDK.
+export const CLAUDE_TIMEOUT_MS = 280_000;
+
+// DeepSeek (endpoint compatible OpenAI) : fournisseur principal ou repli sur 429 Claude.
 export const MODEL_CHAT = 'deepseek-v4-flash';
 export const MODEL_ANALYSIS = 'deepseek-v4-flash';
 export const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';

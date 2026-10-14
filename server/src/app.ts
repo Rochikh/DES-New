@@ -3,8 +3,6 @@ import rateLimit from 'express-rate-limit';
 import path from 'node:path';
 import fs from 'node:fs';
 import {
-  MODEL_CHAT,
-  MODEL_ANALYSIS,
   MAX_MESSAGE_LENGTH,
   MAX_HISTORY_MESSAGES,
   MAX_TOPIC_LENGTH,
@@ -14,8 +12,8 @@ import {
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
 } from './config.js';
-import type { CompletionClient, CompletionMessage, CompletionResponse } from './deepseek.js';
-import { buildChatSystemPrompt, type ChatMode } from './prompts/core.js';
+import type { ChatRequest, LlmClient } from './llm.js';
+import { buildChatSystemParts, type ChatMode } from './prompts/core.js';
 import { buildAnalysisPrompt, type TranscriptEntry } from './prompts/analysis.js';
 
 interface CreateAppOptions {
@@ -31,16 +29,13 @@ const isHistoryEntry = (m: unknown): m is { role: 'user' | 'model'; text: string
   ((m as { role: unknown }).role === 'user' || (m as { role: unknown }).role === 'model') &&
   typeof (m as { text: unknown }).text === 'string';
 
-const extractText = (response: CompletionResponse): string =>
-  response.choices?.[0]?.message?.content ?? '';
-
 const stripJsonFences = (text: string): string =>
   text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
 
 const clampScore = (n: unknown): number =>
   Math.max(0, Math.min(100, Math.round(typeof n === 'number' && Number.isFinite(n) ? n : 0)));
 
-export const createApp = (client: CompletionClient, options: CreateAppOptions = {}): Express => {
+export const createApp = (client: LlmClient, options: CreateAppOptions = {}): Express => {
   const app = express();
 
   // Derrière Traefik : nécessaire pour que le rate limit voie l'IP réelle
@@ -89,8 +84,8 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
       return;
     }
 
-    const messages: CompletionMessage[] = [
-      { role: 'system', content: buildChatSystemPrompt(mode as ChatMode, topic, typeof corpus === 'string' ? corpus : undefined) },
+    const system = buildChatSystemParts(mode as ChatMode, topic, typeof corpus === 'string' ? corpus : undefined);
+    const messages: ChatRequest['messages'] = [
       ...history.map((m) => ({
         role: m.role === 'model' ? ('assistant' as const) : ('user' as const),
         content: m.text,
@@ -100,18 +95,12 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
     // Robustesse inter-fournisseurs : certains backends exigent un tour
     // utilisateur avant le premier tour assistant ; une session importée
     // peut commencer par la première réplique d'Argos.
-    if (messages[1]?.role === 'assistant') {
-      messages.splice(1, 0, { role: 'user', content: '(Reprise de session)' });
+    if (messages[0]?.role === 'assistant') {
+      messages.unshift({ role: 'user', content: '(Reprise de session)' });
     }
 
     try {
-      const response = await client.create({
-        model: MODEL_CHAT,
-        max_tokens: 5120,
-        max_completion_tokens: 5120,
-        messages,
-      });
-      res.json({ text: extractText(response) });
+      res.json({ text: await client.chat({ system, messages }) });
     } catch (err) {
       console.error('Erreur /api/chat:', err);
       res.status(500).json({ error: 'Argos est momentanément indisponible.' });
@@ -142,16 +131,7 @@ export const createApp = (client: CompletionClient, options: CreateAppOptions = 
     const analysisMode = req.body?.mode === 'CRITIC' ? 'CRITIC' : 'TUTOR';
     const prompt = buildAnalysisPrompt(analysisMode, topic, aiDeclaration, transcript as TranscriptEntry[]);
 
-    const runAnalysis = async () => {
-      const response = await client.create({
-        model: MODEL_ANALYSIS,
-        max_tokens: 6144,
-        max_completion_tokens: 6144,
-        response_format: { type: 'json_object' },
-        messages: [{ role: 'user', content: prompt }],
-      });
-      return JSON.parse(stripJsonFences(extractText(response)));
-    };
+    const runAnalysis = async () => JSON.parse(stripJsonFences(await client.analysis(prompt)));
 
     try {
       let parsed;

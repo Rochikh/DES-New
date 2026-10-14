@@ -197,7 +197,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
       </div>
 
       <p className="mt-5 text-[12px] leading-relaxed text-muted text-center">
-        Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · Les échanges transitent par l'API DeepSeek le temps de générer chaque réponse · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
+        Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · Les échanges transitent par l'API d'Anthropic (Claude), ou par DeepSeek en cas de saturation, le temps de générer chaque réponse · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
       </p>
       <div className="mt-4 flex items-center gap-2 text-muted2 label-mono">
         <Info size={12} />
