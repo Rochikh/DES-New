@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import type { CompletionClient } from '../src/openrouter.js';
+import type { LlmClient } from '../src/llm.js';
 
 const validAnalysis = {
   summary: 'Tu as défini le terme central dès le deuxième échange, ce qui a structuré la suite.',
@@ -25,11 +25,9 @@ const validAnalysis = {
 };
 
 const makeMock = (payload: unknown = validAnalysis) => {
-  const create = vi.fn().mockResolvedValue({
-    choices: [{ message: { content: JSON.stringify(payload) } }],
-  });
-  const client: CompletionClient = { create };
-  return { client, create };
+  const analysis = vi.fn().mockResolvedValue(JSON.stringify(payload));
+  const client: LlmClient = { chat: vi.fn(), analysis };
+  return { client, analysis };
 };
 
 const validBody = {
@@ -43,7 +41,7 @@ const validBody = {
 
 describe('POST /api/analysis', () => {
   it('répond 200 avec les 6 scores, rhythmBreakCount et scoreRationales complet', async () => {
-    const { client, create } = makeMock();
+    const { client, analysis } = makeMock();
     const app = createApp(client);
 
     const res = await request(app).post('/api/analysis').send(validBody);
@@ -64,9 +62,8 @@ describe('POST /api/analysis', () => {
     expect(Object.keys(res.body.scoreRationales)).toEqual(
       expect.arrayContaining(['reasoning', 'clarity', 'skepticism', 'process', 'reflection', 'integrity'])
     );
-    const params = create.mock.calls[0][0];
-    expect(params.model).toBe('deepseek-v4-flash');
-    expect(params.response_format?.type).toBe('json_object');
+    expect(analysis).toHaveBeenCalledOnce();
+    expect(analysis.mock.calls[0][0]).toContain("L'impact de l'IA sur l'emploi");
   });
 
   it('borne les scores hors limites dans [0, 100]', async () => {
@@ -80,26 +77,26 @@ describe('POST /api/analysis', () => {
   });
 
   it('réessaie une fois après un échec transitoire puis répond 200', async () => {
-    const create = vi
+    const analysis = vi
       .fn()
       .mockRejectedValueOnce(new Error('transient'))
-      .mockResolvedValueOnce({ choices: [{ message: { content: JSON.stringify(validAnalysis) } }] });
-    const app = createApp({ create });
+      .mockResolvedValueOnce(JSON.stringify(validAnalysis));
+    const app = createApp({ chat: vi.fn(), analysis });
 
     const res = await request(app).post('/api/analysis').send(validBody);
 
     expect(res.status).toBe(200);
-    expect(create).toHaveBeenCalledTimes(2);
+    expect(analysis).toHaveBeenCalledTimes(2);
   });
 
   it('renvoie 502 si le JSON est invalide deux fois', async () => {
-    const create = vi.fn().mockResolvedValue({ choices: [{ message: { content: 'pas du JSON' } }] });
-    const app = createApp({ create });
+    const analysis = vi.fn().mockResolvedValue('pas du JSON');
+    const app = createApp({ chat: vi.fn(), analysis });
 
     const res = await request(app).post('/api/analysis').send(validBody);
 
     expect(res.status).toBe(502);
-    expect(create).toHaveBeenCalledTimes(2);
+    expect(analysis).toHaveBeenCalledTimes(2);
   });
 
   it('refuse un transcript vide (400)', async () => {

@@ -1,17 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import type { CompletionClient } from '../src/deepseek.js';
+import type { LlmClient } from '../src/llm.js';
 
 const FAKE_KEY = 'sk-or-test-cle-factice-000';
 process.env.DEEPSEEK_API_KEY = FAKE_KEY;
 
 const makeMock = (text = 'Bonjour. Quel est ton objectif ?\n---\nPhase: 0') => {
-  const create = vi.fn().mockResolvedValue({
-    choices: [{ message: { content: text } }],
-  });
-  const client: CompletionClient = { create };
-  return { client, create };
+  const chat = vi.fn().mockResolvedValue(text);
+  const client: LlmClient = { chat, analysis: vi.fn() };
+  return { client, chat };
 };
 
 const validBody = {
@@ -23,32 +21,30 @@ const validBody = {
 
 describe('POST /api/chat', () => {
   it('répond 200 avec le texte contenant le marqueur de phase', async () => {
-    const { client, create } = makeMock();
+    const { client, chat } = makeMock();
     const app = createApp(client);
 
     const res = await request(app).post('/api/chat').send(validBody);
 
     expect(res.status).toBe(200);
     expect(res.body.text).toMatch(/---\s*\nPhase:\s*\d/);
-    expect(create).toHaveBeenCalledOnce();
-    const params = create.mock.calls[0][0];
-    expect(params.model).toBe('deepseek-v4-flash');
-    expect(params.messages[0].role).toBe('system');
-    expect(params.messages[0].content).toContain('Phase: [Numéro]');
-    expect(params.messages[0].content).toContain("L'impact de l'IA sur l'emploi");
+    expect(chat).toHaveBeenCalledOnce();
+    const { system } = chat.mock.calls[0][0];
+    expect(system.instructions).toContain('Phase: [Numéro]');
+    expect(system.session).toContain("L'impact de l'IA sur l'emploi");
   });
 
   it('transmet le mode Critique dans le prompt système', async () => {
-    const { client, create } = makeMock();
+    const { client, chat } = makeMock();
     const app = createApp(client);
 
     await request(app).post('/api/chat').send({ ...validBody, mode: 'CRITIC' });
 
-    expect(create.mock.calls[0][0].messages[0].content).toContain('Mode : Critique');
+    expect(chat.mock.calls[0][0].system.instructions).toContain('Mode : Critique');
   });
 
   it('convertit l\'historique et garantit un tour utilisateur avant le premier tour assistant', async () => {
-    const { client, create } = makeMock();
+    const { client, chat } = makeMock();
     const app = createApp(client);
 
     // Session importée : commence par la première réplique d'Argos
@@ -60,10 +56,10 @@ describe('POST /api/chat', () => {
       ],
     });
 
-    const messages = create.mock.calls[0][0].messages;
-    expect(messages[0].role).toBe('system');
-    expect(messages[1].role).toBe('user');
-    expect(messages[2].role).toBe('assistant');
+    const { messages } = chat.mock.calls[0][0];
+    expect(messages[0]).toEqual({ role: 'user', content: '(Reprise de session)' });
+    expect(messages[1].role).toBe('assistant');
+    expect(messages[2]).toEqual({ role: 'user', content: 'Je veux comprendre le sujet X.' });
     expect(messages.at(-1)).toEqual({ role: 'user', content: validBody.message });
   });
 
@@ -89,8 +85,7 @@ describe('POST /api/chat', () => {
   });
 
   it('renvoie 500 propre si l\'appel au fournisseur échoue', async () => {
-    const create = vi.fn().mockRejectedValue(new Error('boom'));
-    const app = createApp({ create });
+    const app = createApp({ chat: vi.fn().mockRejectedValue(new Error('boom')), analysis: vi.fn() });
     const res = await request(app).post('/api/chat').send(validBody);
     expect(res.status).toBe(500);
     expect(res.body.error).toBeTruthy();
@@ -107,8 +102,7 @@ describe('POST /api/chat', () => {
   });
 
   it('ne laisse jamais fuiter la clé API dans une réponse', async () => {
-    const create = vi.fn().mockRejectedValue(new Error(`auth failed for ${FAKE_KEY}`));
-    const app = createApp({ create });
+    const app = createApp({ chat: vi.fn().mockRejectedValue(new Error(`auth failed for ${FAKE_KEY}`)), analysis: vi.fn() });
     const res = await request(app).post('/api/chat').send(validBody);
     expect(JSON.stringify(res.body)).not.toContain(FAKE_KEY);
     expect(JSON.stringify(res.headers)).not.toContain(FAKE_KEY);
