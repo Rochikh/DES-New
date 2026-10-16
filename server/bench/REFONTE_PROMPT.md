@@ -34,36 +34,44 @@ Aucun correctif : le défaut relève du prompt.
 - buildCorpusBlock : sans corpus, la suggestion de coller des extraits passe au deuxième message (« Une seule fois, dans ton deuxième message »).
 - Critère vérifié : premiers messages de A, B, C, D centrés sur intention et niveau ; B, C, D ne proposent plus « comprendre » à une personne qui arrive avec une thèse. Longueurs : A 77, B 82, C 89, D 92 mots.
 
+### Étape 2 : plan de session, commit `7347922`
+
+`feat: plan de session d'Argos dans le bloc technique`.
+
+- SESSION_PLAN (nouveau bloc, entre le bloc de mode et BLOOM_PROGRESSION) : après le diagnostic, un objectif et deux à quatre étapes, chacune avec son critère observable. Chaque question sert l'étape en cours. Révision quand la situation change : étapes acquises marquées « (acquise) », étapes abandonnées marquées « (abandonnée) », numéros d'origine conservés, étapes nouvelles aux numéros suivants. Annonce de la direction en une phrase à la fixation, et à la révision seulement si l'objectif ou la direction change.
+- Bloc technique de fin de message :
+  ```
+  ---
+  Plan: [objectif] ; étapes : 1. [étape (critère)] / 2. [étape (critère)] / ... ; en cours : [numéro]
+  Phase: [Numéro]
+  ```
+  Ligne Plan omise tant que le plan n'est pas fixé. La séquence ---, le mot « Phase » et la mention « Plan: » sont réservés à ce bloc.
+- Client : `cleanDisplayBotText` coupe au `---` (ligne Plan comprise), `Plan:` ajouté aux mots-clés de secours, `extractPhase` lit le dernier marqueur. Rapport « Parcours de réflexion » (écran et impression) : `cleanDisplayBotText` puis `ReactMarkdown`, comme le chat.
+- Historique renvoyé au serveur et export JSON : texte brut conservé, ligne Plan comprise, pour que la reprise de session garde le plan.
+- Bilan (`analysis.ts`) : ligne Plan exclue du transcript, ligne Phase conservée.
+- Critère vérifié : plans différents pour A et B, C, D dans les deux modes, et entre B, C, D en simulé (dissertation, oral, évaluation). Questions successives cohérentes avec l'étape en cours, à quelques détours métacognitifs près. Une annonce de direction par profil, à la fixation. Numérotation stable dans D scripté (étapes 1 à 4 acquises, étape 5 ajoutée). A quitte la phase 0 dans les deux modes.
+- Mode Critique : le plan initial n'intègre pas l'obligation d'un raisonnement fallacieux par phase. Le comportement la respecte en simulé par la seule consigne de CRITIC_MODE. D scripté a manqué les phases 1 et 2, bloqué en phase 0. Bullet Critique écarté, à revoir avec les régimes de l'étape 3.
+- Décalage phase / étape du plan : réduit à un cran au plus après la règle de numérotation. Il alimente l'étape 3.
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
-- **Rapport rendu comme le chat.** À l'étape 2, dans « Parcours de réflexion » (écran et impression) : `cleanDisplayBotText` puis le même rendu `ReactMarkdown` que le chat. Le marqueur, la ligne Plan et les astérisques disparaissent du rapport en une seule correction.
+- **Rapport rendu comme le chat** (fait à l'étape 2). Dans « Parcours de réflexion » (écran et impression) : `cleanDisplayBotText` puis le même rendu `ReactMarkdown` que le chat. Le marqueur, la ligne Plan et les astérisques disparaissent du rapport en une seule correction.
 - **Persona D** : consigne de C, avec « Tu n'as pas le texte sous les yeux, tu cites de mémoire » à la place du bloc `<texte>`.
 - **Critère de restitution sans diagnostic** : si le sujet et l'ouverture révèlent déjà l'intention et le niveau, Argos restitue en une phrase ce qu'il en comprend, pour que l'apprenant·e puisse corriger, puis pose sa première question sur le contenu. Aucun profil du banc n'a encore déclenché ce cas.
 - Les tests sont réparés avant les étapes qui modifient `phase.ts` et le client, pour disposer d'un filet en état de marche.
+- **Export JSON brut** : il garde la ligne Plan, puisqu'il sert à la reprise de session. La ligne est masquée partout où une personne lit le texte.
+- **Pas de bullet Critique dans SESSION_PLAN** : le banc a montré que le comportement suit CRITIC_MODE. Le défaut observé tient au blocage de phase.
+- **Étapes abandonnées** gardées dans la ligne Plan, marquées « (abandonnée) », pour une numérotation stable.
 
 ## Ajouts au plan
 
 - **Étape 6** : en plus du cadratin, STYLE_RULES interdit l'antithèse rhétorique par négation dans les réponses d'Argos (« ce n'est pas X, c'est Y »). Les négations factuelles restent permises (« ce n'est pas toujours 0 », statut épistémique « vient du savoir général, absent du corpus »). La règle doit rendre cette distinction claire au modèle.
-- **Mode simulé biaisé pour valider l'étape 4.** Définition à préciser avant l'étape 4. Hypothèse de travail : une variante de la persona A qui évite les « je ne sais pas » consécutifs, pour vérifier que l'apport de contenu découle du niveau diagnostiqué, le déclencheur de BLOCKAGE_HANDLING restant inactif.
+- **Mode simulé biaisé pour l'étape 4.** Le mode simulé désigne la persona A telle qu'elle existe. Sa consigne dit qu'elle progresse quand Argos explique avec un exemple, ce qui favorise d'avance l'étape 4. Pour valider l'étape 4, le mode scripté sert de témoin neutre, le mode simulé de complément.
 
 ## Étapes restantes
 
-### Étape 2 : plan propre à la session
-
-Non commencée.
-
-- Après le diagnostic, Argos fixe un objectif et une suite courte d'étapes pour cette personne et ce contenu, puis le révise si la situation change.
-- Persistance : une ligne cachée juste avant le marqueur de phase :
-  ```
-  ---
-  Plan: <une ligne>
-  Phase: N
-  ```
-  « Plan: » interdit ailleurs dans le message, comme « Phase ».
-- Client : ligne Plan masquée à l'affichage et dans l'export. Vérifier que l'historique renvoyé au serveur garde le texte brut avec la ligne Plan. Vérifier ce que reçoit le prompt d'analyse et en exclure la ligne Plan.
-- Rapport : correction de `ReportView.tsx:258` (voir décisions validées).
-- Critère : plans différents pour A, B, C ; questions successives cohérentes avec le plan (banc en mode simulé).
+Reprise à l'étape 3.
 
 ### Étape 3 : régimes à la place des phases fixes
 
@@ -75,19 +83,23 @@ Non commencée.
 
 - Niveau faible au diagnostic : Argos explique d'abord, sans attendre deux « je ne sais pas ». Le déclencheur actuel de BLOCKAGE_HANDLING reste en filet.
 - L'étayage dégressif d'IDENTITY_AND_STANCE suit le niveau diagnostiqué au lieu de la position dans la session.
-- Critère : profil A, un apport de contenu dans les deux premiers messages après le diagnostic (validé aussi en mode simulé biaisé).
+- Critère : profil A, un apport de contenu dans les deux premiers messages après le diagnostic. Témoin neutre : mode scripté. Complément : mode simulé, biaisé en faveur de l'étape 4.
+- A simulé réussit chaque palier : le transcript ne montre pas la réaction d'Argos à un échec. Valider sur A scripté en priorité.
 
 ### Étape 5 : concision
 
 - Une fonction par message : une question, ou un apport suivi d'une question.
 - Reformulation de contrôle réservée aux propos ambigus. Relance métacognitive moins fréquente. Micro-bilan supprimé en fin de phase, conservé en fin de session. Statut épistémique annoncé seulement pour les apports factuels.
 - Plafond : 60 mots hors apport de contenu, 120 pour un apport.
+- Reformulation « Si je te suis, tu dis que... » présente dans 5 messages sur 6 de A simulé : à réserver aux propos ambigus.
+- Une seule question par message : A simulé tours 1, 3, 4, 6 en posent deux ou trois.
 - Critère : longueur médiane par profil, avant et après, en tableau.
 
 ### Étape 6 : nettoyage formel
 
 - Supprimer les trois cadratins et les deux antithèses (« Tu n'es ni un examinateur ni un correcteur », « Le sophisme n'est pas un piège gratuit, c'est un désaccord fertile »). Rétablir les accents de CRITIC_MODE.
 - STYLE_RULES : interdiction du tiret cadratin en sortie et de l'antithèse rhétorique par négation (voir ajouts au plan).
+- Genre présumé d'après le prénom : A simulé tour 5, « tu t'y es prise » avant tout accord de Camille. Règle : écriture inclusive tant que l'apprenant·e n'a pas marqué son genre, puis alignement sur ses propres accords.
 - Critère : grep du cadratin dans `core.ts` à zéro.
 
 ### Étape 7 : sujet délimité
@@ -114,7 +126,8 @@ Non commencée.
 
 - **Mode scripté** (par défaut) : ouverture identique à `ChatView.tsx`, puis 6 réponses fixes. Sert à la comparaison avant/après.
 - **Mode simulé** (`--simule`) : les 6 réponses sont générées par `claude-haiku-5-5` à partir d'une consigne de persona par profil. Le simulateur ne voit d'Argos que le texte affiché (sans marqueur ni ligne Plan).
-- Sortie par tour : marqueur de phase brut, forme exacte oui ou non, phase parsée par `phase.ts`, marqueur visible oui ou non, longueur en mots du texte affiché, fournisseur. Réponses brutes en JSON par profil et `summary.md` dans `server/bench/out/<horodatage>[-simule]/` (ignoré par git).
+- Simulateur : raisonnement désactivé (actif par défaut, il épuisait le plafond), 1000 tokens par réplique. `learnerStop` enregistre le stop_reason de chaque réplique ; `max_tokens` signale une réplique coupée, avec un avertissement en console.
+- Sortie par tour : marqueur de phase brut, forme exacte oui ou non (ligne Plan facultative), phase parsée par `phase.ts`, marqueur visible oui ou non, étape du plan en cours, longueur en mots du texte affiché, fournisseur, ligne Plan. Les tours déjà joués sont sauvegardés si un appel échoue. Réponses brutes en JSON par profil et `summary.md` dans `server/bench/out/<horodatage>[-simule]/` (ignoré par git).
 
 Lancement, depuis `server/` :
 
