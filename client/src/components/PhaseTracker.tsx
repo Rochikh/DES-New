@@ -2,7 +2,8 @@ import React from 'react';
 import { Regime, protocolPhases } from '../types';
 
 /**
- * Tracker de progression : une rangée de cinq yeux stylisés.
+ * Tracker de progression : un œil stylisé pour le diagnostic, puis un par
+ * phase du régime en cours.
  * Argos Panoptès veille sur la session : œil clos pour les phases à venir,
  * œil qui s'ouvre (iris rouge) pour la phase active, œil ouvert au trait
  * pour les phases franchies. Micro-animation d'ouverture au changement de

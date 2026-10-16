@@ -1,6 +1,6 @@
 # Argos — Dialogue Évaluatif Socratique
 
-Agent conversationnel socratique d'évaluation de la pensée critique. Argos accompagne l'apprenant·e dans un protocole en cinq phases (ciblage, clarification, mécanisme, vérification, stress-test), sans jamais donner les réponses, puis produit une trace d'apprentissage : bilan rédigé, radar à six dimensions avec justification de chaque score, transcription complète, indicateurs d'authenticité (rythme de saisie, déclaration d'usage d'IA).
+Agent conversationnel socratique d'évaluation de la pensée critique. Argos accompagne l'apprenant·e par un diagnostic d'ouverture puis un parcours adapté à son intention et à son niveau (acquisition, consolidation ou mise à l'épreuve), sans jamais donner les réponses aux problèmes qu'il lui revient de résoudre, puis produit une trace d'apprentissage : bilan rédigé, radar à six dimensions avec justification de chaque score, transcription complète, indicateurs d'authenticité (rythme de saisie, déclaration d'usage d'IA).
 
 Deux modes : **Tuteur** (accompagnement du raisonnement) et **Critique** (audit logique, Argos glisse des sophismes à débusquer). Les sessions s'exportent et se réimportent en JSON, le rapport s'enregistre en PDF par impression.
 

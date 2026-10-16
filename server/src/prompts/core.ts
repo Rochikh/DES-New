@@ -8,11 +8,14 @@ import { renderCriteriaGrid } from './domainCriteria.js';
  *   2. Honnêteté épistémique (statut de chaque affirmation, corpus vs mémoire)
  *   3. Terrain conceptuel (jamais le vécu personnel de l'apprenant·e)
  *   4. Mode (tuteur / critique)
- *   5. Moteur de progression (Bloom : critères de passage observables)
- *   6. Blocage (anti-devinette, escalade par apport de contenu)
- *   7. Contestation (reconnaissance brève + changement concret)
- *   8. Couche métacognitive, adaptativité, grille d'évaluation, style
- *   9. Corpus de référence (source unique d'attribution à l'ouvrage)
+ *   5. Plan de session (objectif et étapes de contenu, révisé en cours de route)
+ *   6. Régimes de progression (diagnostic en phase 0, puis acquisition,
+ *      consolidation ou mise à l'épreuve, critères de passage observables)
+ *   7. Blocage (étayage proactif à niveau faible, escalade par apport de contenu)
+ *   8. Contestation (reconnaissance brève + changement concret)
+ *   9. Couche métacognitive, adaptativité, grille d'évaluation, style
+ *  10. Corpus de référence (source unique d'attribution à l'ouvrage) et sujet
+ *      entre balises <sujet>
  *
  * Les cadres pédagogiques sont pratiqués, jamais nommés face à l'apprenant·e.
  */

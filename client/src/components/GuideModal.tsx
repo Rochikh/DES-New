@@ -61,15 +61,14 @@ export const GuideModal: React.FC<GuideModalProps> = ({ onClose }) => {
 
           <section className="space-y-6">
             <h3 className="label-mono text-accent flex items-center gap-2">
-              <BookOpen size={18} /> Le protocole en 5 étapes
+              <BookOpen size={18} /> Un diagnostic, puis un parcours adapté
             </h3>
             <div className="grid grid-cols-1 gap-3">
               {[
-                { n: "0", t: "Ciblage", d: "Définition précise de l'objet de recherche." },
-                { n: "1", t: "Clarification", d: "Levée des ambiguïtés conceptuelles." },
-                { n: "2", t: "Mécanisme", d: "Analyse des relations de cause à effet." },
-                { n: "3", t: "Vérification", d: "Recherche de preuves et de protocoles de test." },
-                { n: "4", t: "Stress-test", d: "Confrontation de l'idée à ses propres limites." }
+                { n: "0", t: "Diagnostic", d: "Argos cerne ton intention et ton niveau, puis choisit ton parcours." },
+                { n: "A", t: "Acquisition", d: "Pour découvrir une notion : comprendre, vérifier, appliquer." },
+                { n: "C", t: "Consolidation", d: "Pour réviser ou préparer une évaluation : rappeler, relier, transférer." },
+                { n: "É", t: "Mise à l'épreuve", d: "Pour défendre une position : clarifier, expliquer le mécanisme, vérifier, chercher les limites. Le mode Critique suit toujours ce parcours." }
               ].map(phase => (
                 <div key={phase.n} className="flex gap-4 items-center p-3 bg-white rounded-lg border border-line">
                   <span className="w-8 h-8 flex items-center justify-center bg-accent-light text-accent rounded-full font-mono text-[0.72rem] font-semibold shrink-0">{phase.n}</span>
