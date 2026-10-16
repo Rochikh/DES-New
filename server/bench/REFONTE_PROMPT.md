@@ -118,7 +118,8 @@ Aucun correctif : le défaut relève du prompt.
 - tsc serveur et client, tests (serveur 18/18, client 17/17), build serveur et client.
 - En-tête de `core.ts` : dix blocs, dont plan de session, régimes, sujet balisé. GuideModal : « Un diagnostic, puis un parcours adapté » (Diagnostic, Acquisition, Consolidation, Mise à l'épreuve) à la place du protocole en cinq étapes. README et commentaire de `PhaseTracker` alignés.
 - Banc final (scripté A à D, simulé A à E) : forme exacte 100 %, aucun recul de phase, aucun repli, zéro cadratin, une question au plus par message, « Si je te suis » une fois sur 63 messages. Médianes : scripté A 87, B 53, C 64, D 90 ; simulé A 51, B 56, C 76, D 98, E 77.
-- `ARGOS_REFERENCE.md` introuvable sur le serveur. Écarts à y reporter :
+- Déploiement : badge renommé « Intégrité intellectuelle » (commit `787732c`), rebuild du service `argos` via `/root/docker-compose.yml`, session réelle sur ia-des.rochane.fr (diagnostic, régime d'acquisition, bilan avec quatre critères non observés), GET 200, push. Étape close.
+- `ARGOS_REFERENCE.md`, tenue hors serveur, a été corrigée sur les écarts suivants :
   1. Modèle : `claude-opus-5-5` pour le dialogue (effort medium) et le bilan (effort high, sortie structurée), repli DeepSeek.
   2. Environnement : `/root/infra/env/argos.env`.
   3. Progression : diagnostic en phase 0, puis régime d'acquisition, de consolidation ou de mise à l'épreuve ; barre de progression par régime ; mode Critique toujours en mise à l'épreuve.
@@ -147,11 +148,7 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reste le déploiement de l'étape 8.
-
-### Étape 8 : déploiement (en attente du go)
-
-- Rebuild du service `argos` via `/root/docker-compose.yml`, une session réelle sur ia-des.rochane.fr, vérification 200, push.
+Aucune. Refonte close le 16/10/2026.
 
 ## Banc
 
