@@ -93,6 +93,16 @@ Aucun correctif : le défaut relève du prompt.
 - Critère : médianes avant (étape 3) et après. Scripté A 91 → 93, B 86 → 52, C 93 → 72, D 116 → 77. Simulé A 87 → 58, B 110 → 62, C 124 → 99, D 140 → 113, E 81 → 55. Baisse nette sauf A scripté : l'alternance y est visible (121, 38, 138, 38, 104 mots), la médiane sur sept messages tombe sur un message d'explication. Une question par message sur 63 messages sur 63, « Si je te suis » de presque tous les messages à 1 sur 63 (premier essai).
 - Deux essais avant la version retenue : plafonds seuls (médianes stables), puis cibles chiffrées (baisse sur B, D, E seulement).
 
+### Étape 6 : nettoyage formel
+
+`refactor: nettoyage formel du prompt de chat`.
+
+- Cadratins supprimés (honnêteté épistémique, bloc corpus ; celui de STYLE_RULES l'avait été à l'étape 5). Antithèses retirées : « Tu n'es ni un examinateur ni un correcteur », « Le sophisme n'est pas un piège gratuit, c'est... », et « tu ne te contentes pas de questionner » (même patron). Accents de CRITIC_MODE rétablis.
+- STYLE_RULES : interdiction du tiret cadratin et de l'antithèse rhétorique par négation, négations factuelles permises avec exemples. Écriture inclusive tant que l'apprenant·e n'a pas marqué son genre dans ses messages, le prénom seul n'indiquant pas le genre, puis alignement sur ses accords.
+- Critère vérifié : cadratin à zéro dans `core.ts`. Banc complet : zéro cadratin et zéro « ce n'est pas X, c'est Y » dans les réponses. A simulé : Camille écrit « je suis pas sûre » au tour 5, Argos s'aligne ensuite ; aucun accord genré avant.
+- Médianes de ce banc (bruit d'un run à l'autre) : scripté A 101, B 45, C 92, D 90 ; simulé A 66, B 55, C 106, D 91, E 89.
+- `analysis.ts` garde sa règle d'équité sans accents (hors du périmètre de l'étape).
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
@@ -112,14 +122,7 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reprise à l'étape 6.
-
-### Étape 6 : nettoyage formel
-
-- Supprimer les trois cadratins et les deux antithèses (« Tu n'es ni un examinateur ni un correcteur », « Le sophisme n'est pas un piège gratuit, c'est un désaccord fertile »). Rétablir les accents de CRITIC_MODE.
-- STYLE_RULES : interdiction du tiret cadratin en sortie et de l'antithèse rhétorique par négation (voir ajouts au plan).
-- Genre présumé d'après le prénom : A simulé tour 5, « tu t'y es prise » avant tout accord de Camille. Règle : écriture inclusive tant que l'apprenant·e n'a pas marqué son genre, puis alignement sur ses propres accords.
-- Critère : grep du cadratin dans `core.ts` à zéro.
+Reprise à l'étape 7.
 
 ### Étape 7 : sujet délimité
 
