@@ -29,6 +29,8 @@ export interface Message {
   strategy?: SocraticStrategy;
   phase?: number;
   regime?: Regime;
+  /** Message d'ouverture technique : envoyé au modèle, masqué à l'écran et dans le rapport */
+  opening?: boolean;
   responseTimeSeconds?: number;
   hasRhythmAnomaly?: boolean;
 }

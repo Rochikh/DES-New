@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Message, SessionConfig, Regime, REGIME_LABELS, protocolPhases } from '../types';
 import { sendMessage, ChatSession } from '../services/api';
 import { cleanDisplayBotText, extractPhase, extractRegime } from '../utils/phase';
+import { buildUserMessage, isOpeningMessage } from '../utils/transcript';
 import { PhaseTracker } from './PhaseTracker';
 import { GuideModal } from './GuideModal';
 
@@ -48,28 +49,18 @@ export const ChatView: React.FC<{
     URL.revokeObjectURL(url);
   };
 
-  const handleSend = async (initialPrompt?: string) => {
-    const text = initialPrompt || inputText;
+  // preset : texte d'un bouton d'action rapide ou message d'ouverture (opening).
+  // Tout texte envoyé au modèle entre dans la transcription.
+  const handleSend = async (preset?: string, opening = false) => {
+    const text = preset ?? inputText;
     if (!text.trim() || !chatInstance || isLoading) return;
 
     const now = Date.now();
-    const responseTimeMs = now - lastModelTime;
-    const responseTimeSeconds = Math.max(1, Math.round(responseTimeMs / 1000));
+    const responseTimeSeconds = Math.max(1, Math.round((now - lastModelTime) / 1000));
+    const kind = opening ? 'opening' : preset !== undefined ? 'preset' : 'typed';
+    const userMsg = buildUserMessage(text, kind, responseTimeSeconds, now);
 
-    const charCount = text.length;
-    const cpm = (charCount / responseTimeSeconds) * 60;
-    const isAnomaly = !initialPrompt && charCount > 100 && cpm > 600;
-
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      text: initialPrompt ? "(Démarrage de session)" : text,
-      timestamp: now,
-      responseTimeSeconds: initialPrompt ? 0 : responseTimeSeconds,
-      hasRhythmAnomaly: isAnomaly
-    };
-
-    if (!initialPrompt) setMessages(prev => [...prev, userMsg]);
+    setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setIsLoading(true);
     setError(null);
@@ -108,7 +99,7 @@ export const ChatView: React.FC<{
 
   useEffect(() => {
     if (messages.length === 0 && chatInstance) {
-      handleSend(`Bonjour Argos, je suis ${config.studentName}. Lancez la session sur : ${config.topic}.`);
+      handleSend(`Bonjour Argos, je suis ${config.studentName}. Lancez la session sur : ${config.topic}.`, true);
     } else if (messages.length > 0) {
       const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
       if (lastModelMsg?.phase !== undefined) setCurrentPhase(lastModelMsg.phase);
@@ -174,7 +165,7 @@ export const ChatView: React.FC<{
       )}
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scrollbar-hide">
-        {messages.filter(m => !m.text.includes("Bonjour Argos")).map((msg) => (
+        {messages.filter(m => !isOpeningMessage(m)).map((msg) => (
           <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`group relative max-w-[88%] sm:max-w-[75%] rounded-lg px-6 py-4 border ${
               msg.role === 'user'

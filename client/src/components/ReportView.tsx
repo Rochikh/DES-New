@@ -7,6 +7,7 @@ import { Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbul
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { ArgosEye } from './PhaseTracker';
 import { cleanDisplayBotText } from '../utils/phase';
+import { isOpeningMessage } from '../utils/transcript';
 
 export const ReportView: React.FC<{
   config: SessionConfig;
@@ -270,7 +271,7 @@ export const ReportView: React.FC<{
             <h3 className="font-display text-[clamp(1.7rem,2.8vw,2.3rem)] font-extrabold tracking-[-0.02em] leading-[1.1] text-text">Parcours de réflexion</h3>
           </div>
           <div className="space-y-4 print:space-y-6">
-            {transcript.filter(m => !m.text.includes("Bonjour Argos")).map((m, i) => (
+            {transcript.filter(m => !isOpeningMessage(m)).map((m, i) => (
               <div key={i} className={`p-4 rounded-md text-sm print:text-[10pt] print:break-inside-avoid relative bg-white border border-line ${m.role === 'user' ? 'border-l-[3px] border-l-line2' : 'border-l-[3px] border-l-accent'}`}>
                 {m.role === 'user' && m.responseTimeSeconds !== undefined && m.responseTimeSeconds > 0 && (
                   <div className="absolute top-2 right-4 flex items-center gap-1 font-mono text-[0.68rem] text-muted2">
