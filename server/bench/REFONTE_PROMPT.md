@@ -83,6 +83,16 @@ Aucun correctif : le défaut relève du prompt.
 - IDENTITY_AND_STANCE : l'étayage dégressif suit le niveau diagnostiqué puis manifesté, au lieu de la position dans la session.
 - Critère vérifié : A scripté (témoin neutre) et A simulé reçoivent un apport de contenu aux tours 1 et 2, les deux premiers messages après le diagnostic. A scripté atteint la phase 2 (bloqué en phase 1 avant l'étape). E simulé inchangé (consolidation, phase 3).
 
+### Étape 5 : concision
+
+`feat: concision des messages d'Argos`.
+
+- STYLE_RULES : une fonction par message (une question, ou un apport suivi d'une question), une seule question, plafonds 60 mots sans apport et 120 avec, cibles 40 et 80, réaction d'une phrase, un apport sur une seule notion. En acquisition, alternance explication puis question seule, deux apports consécutifs réservés au blocage.
+- CRITIC_MODE : un seul raisonnement fallacieux par phase, questions courtes entre deux. « Défends encore ta position fautive un tour » inchangé.
+- Reformulation réservée aux propos ambigus. Relance métacognitive un échange sur cinq ou six. Bilan de démarche réservé à la fin de session (micro-bilan de fin de phase supprimé). Statut épistémique annoncé pour les apports factuels. Diagnostic en une seule question.
+- Critère : médianes avant (étape 3) et après. Scripté A 91 → 93, B 86 → 52, C 93 → 72, D 116 → 77. Simulé A 87 → 58, B 110 → 62, C 124 → 99, D 140 → 113, E 81 → 55. Baisse nette sauf A scripté : l'alternance y est visible (121, 38, 138, 38, 104 mots), la médiane sur sept messages tombe sur un message d'explication. Une question par message sur 63 messages sur 63, « Si je te suis » de presque tous les messages à 1 sur 63 (premier essai).
+- Deux essais avant la version retenue : plafonds seuls (médianes stables), puis cibles chiffrées (baisse sur B, D, E seulement).
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
@@ -102,16 +112,7 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reprise à l'étape 5.
-
-### Étape 5 : concision
-
-- Une fonction par message : une question, ou un apport suivi d'une question.
-- Reformulation de contrôle réservée aux propos ambigus. Relance métacognitive moins fréquente. Micro-bilan supprimé en fin de phase, conservé en fin de session. Statut épistémique annoncé seulement pour les apports factuels.
-- Plafond : 60 mots hors apport de contenu, 120 pour un apport.
-- Reformulation « Si je te suis, tu dis que... » présente dans 5 messages sur 6 de A simulé : à réserver aux propos ambigus.
-- Une seule question par message : A simulé tours 1, 3, 4, 6 en posent deux ou trois.
-- Critère : longueur médiane par profil, avant et après, en tableau.
+Reprise à l'étape 6.
 
 ### Étape 6 : nettoyage formel
 
