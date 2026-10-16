@@ -50,17 +50,23 @@ export const ReportView: React.FC<{
     return () => { clearInterval(t); clearInterval(stepper); };
   }, [loading]);
 
-  const getChartData = () => {
+  const getScores = (): Array<{ subject: string; A: number | null }> => {
     if (!analysis) return [];
     return [
-      { subject: 'Raisonnement', A: analysis.reasoningScore, fullMark: 100 },
-      { subject: 'Clarté', A: analysis.clarityScore, fullMark: 100 },
-      { subject: 'Intégrité', A: analysis.integrityScore, fullMark: 100 },
-      { subject: 'Doute constructif', A: analysis.skepticismScore, fullMark: 100 },
-      { subject: 'Méthode', A: analysis.processScore, fullMark: 100 },
-      { subject: 'Prise de recul', A: analysis.reflectionScore, fullMark: 100 },
+      { subject: 'Raisonnement', A: analysis.reasoningScore },
+      { subject: 'Clarté', A: analysis.clarityScore },
+      { subject: 'Intégrité', A: analysis.integrityScore },
+      { subject: 'Doute constructif', A: analysis.skepticismScore },
+      { subject: 'Méthode', A: analysis.processScore },
+      { subject: 'Prise de recul', A: analysis.reflectionScore },
     ];
   };
+
+  // Le radar ne trace que les critères observés ; sous trois axes, il cède la place à une liste.
+  const getChartData = () =>
+    getScores()
+      .filter((s): s is { subject: string; A: number } => s.A !== null)
+      .map((s) => ({ ...s, fullMark: 100 }));
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-paper">
@@ -205,6 +211,7 @@ export const ReportView: React.FC<{
                 <RadarIcon className="text-accent" size={16} />
                 <h3 className="label-mono text-accent">Dimensions de la pensée</h3>
              </div>
+             {getChartData().length >= 3 ? (
              <div className="w-full h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getChartData()}>
@@ -222,6 +229,21 @@ export const ReportView: React.FC<{
                   </RadarChart>
                 </ResponsiveContainer>
              </div>
+             ) : (
+               <ul className="w-full space-y-1">
+                 {getScores().map((s) => (
+                   <li key={s.subject} className="flex justify-between text-[12px] text-muted">
+                     <span className="font-semibold text-text">{s.subject}</span>
+                     <span className="font-mono">{s.A === null ? 'non observé' : `${s.A}/100`}</span>
+                   </li>
+                 ))}
+               </ul>
+             )}
+             {getChartData().length >= 3 && getChartData().length < 6 && (
+               <p className="w-full text-[11px] text-muted2 mt-2">
+                 Non observé dans cette session : {getScores().filter((s) => s.A === null).map((s) => s.subject).join(', ')}.
+               </p>
+             )}
              {rationales && (
                <div className="w-full mt-4 pt-4 border-t border-line space-y-2 print:break-inside-avoid">
                  {([

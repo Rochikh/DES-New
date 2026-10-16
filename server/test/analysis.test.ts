@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import type { LlmClient } from '../src/llm.js';
+import { buildAnalysisSchema } from '../src/prompts/analysis.js';
 
 const validAnalysis = {
   summary: 'Tu as défini le terme central dès le deuxième échange, ce qui a structuré la suite.',
@@ -74,6 +75,24 @@ describe('POST /api/analysis', () => {
 
     expect(res.body.reasoningScore).toBe(100);
     expect(res.body.clarityScore).toBe(0);
+  });
+
+  it('transmet null pour un critère non observé et borne toujours l\'intégrité', async () => {
+    const { client } = makeMock({ ...validAnalysis, skepticismScore: null, reflectionScore: null, integrityScore: null });
+    const app = createApp(client);
+
+    const res = await request(app).post('/api/analysis').send(validBody);
+
+    expect(res.body.skepticismScore).toBeNull();
+    expect(res.body.reflectionScore).toBeNull();
+    expect(res.body.integrityScore).toBe(0);
+  });
+
+  it('déclare null possible pour cinq critères et l\'intégrité entière obligatoire', () => {
+    const schema = buildAnalysisSchema();
+    expect(schema.properties.reasoningScore).toEqual({ anyOf: [{ type: 'integer' }, { type: 'null' }] });
+    expect(schema.properties.integrityScore).toEqual({ type: 'integer' });
+    expect(schema.required).toContain('integrityScore');
   });
 
   it('réessaie une fois après un échec transitoire puis répond 200', async () => {

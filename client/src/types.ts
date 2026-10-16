@@ -52,11 +52,12 @@ export interface ScoreRationales {
 
 export interface AnalysisData {
   summary: string;
-  reasoningScore: number;
-  clarityScore: number;
-  skepticismScore: number;
-  processScore: number;
-  reflectionScore: number;
+  /** null : critère non observé dans la session (le régime ne l'a pas exercé) */
+  reasoningScore: number | null;
+  clarityScore: number | null;
+  skepticismScore: number | null;
+  processScore: number | null;
+  reflectionScore: number | null;
   integrityScore: number;
   rhythmBreakCount: number;
   keyStrengths: string[];

@@ -66,6 +66,15 @@ Aucun correctif : le défaut relève du prompt.
 - Banc : colonne Régime, profil E (révision avant partiel, simulé seulement), décompte des révisions par type.
 - Critère vérifié (scripté A à D, simulé A à E) : forme exacte 100 %, aucun recul de phase, aucune phase 0 après fixation du régime. Régimes : A acquisition, B, C, D épreuve, E consolidation. Sophismes dès le premier tour après le diagnostic en C et D. Révisions visibles au cinquième échange bloqué : A scripté (aide renforcée), C scripté (aide renforcée puis trois étapes ajoutées).
 
+### Étape 3 bis : critères non observés
+
+`feat: critères non observés dans le bilan`.
+
+- Schéma JSON : les cinq critères hors intégrité acceptent null (`anyOf` entier ou null). `integrityScore` reste un entier obligatoire : la déclaration d'usage d'IA rend l'intégrité observable dans chaque session. Badge inchangé.
+- Prompt d'analyse : règle des critères non observés, lue dans les lignes Régime du transcript. Un critère que le régime n'a pas permis d'exercer, et que l'apprenant·e n'a pas manifesté de lui·elle-même, reçoit null et « non observé dans cette session », jamais une note faible.
+- Serveur : `clampOptionalScore` transmet null. Client : scores `number | null`, radar limité aux axes notés, liste des scores sous trois axes, mention des critères non observés.
+- Critère vérifié sur un bilan réel : A scripté (acquisition) reçoit null pour doute constructif, méthode et prise de recul ; B scripté (épreuve) reçoit six notes.
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
@@ -85,12 +94,7 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reprise à l'étape 3 bis.
-
-### Étape 3 bis : critères non observés
-
-- Les cinq critères hors intégrité acceptent null (« non observé dans cette session ») : schéma JSON, serveur, types, radar, prompt d'analyse. `integrityScore` reste un entier obligatoire, badge inchangé.
-- Radar : axes notés seulement, liste des scores sous trois axes.
+Reprise à l'étape 4.
 
 ### Étape 4 : étayage proactif
 

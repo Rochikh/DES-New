@@ -35,6 +35,9 @@ const stripJsonFences = (text: string): string =>
 const clampScore = (n: unknown): number =>
   Math.max(0, Math.min(100, Math.round(typeof n === 'number' && Number.isFinite(n) ? n : 0)));
 
+/** Critère non observé dans la session : null transmis tel quel. */
+const clampOptionalScore = (n: unknown): number | null => (n === null ? null : clampScore(n));
+
 export const createApp = (client: LlmClient, options: CreateAppOptions = {}): Express => {
   const app = express();
 
@@ -145,11 +148,11 @@ export const createApp = (client: LlmClient, options: CreateAppOptions = {}): Ex
 
       res.json({
         summary: typeof parsed.summary === 'string' ? parsed.summary : '',
-        reasoningScore: clampScore(parsed.reasoningScore),
-        clarityScore: clampScore(parsed.clarityScore),
-        skepticismScore: clampScore(parsed.skepticismScore),
-        processScore: clampScore(parsed.processScore),
-        reflectionScore: clampScore(parsed.reflectionScore),
+        reasoningScore: clampOptionalScore(parsed.reasoningScore),
+        clarityScore: clampOptionalScore(parsed.clarityScore),
+        skepticismScore: clampOptionalScore(parsed.skepticismScore),
+        processScore: clampOptionalScore(parsed.processScore),
+        reflectionScore: clampOptionalScore(parsed.reflectionScore),
         integrityScore: clampScore(parsed.integrityScore),
         rhythmBreakCount: Math.max(0, Math.round(Number(parsed.rhythmBreakCount) || 0)),
         keyStrengths: Array.isArray(parsed.keyStrengths) ? parsed.keyStrengths.map(String) : [],

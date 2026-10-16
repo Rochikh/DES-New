@@ -28,6 +28,8 @@ const equityRule = `Regle d'equite du mode Critique : ne reproche a l'apprenant�
 /**
  * Schéma JSON du bilan pour les sorties structurées Claude
  * (output_config.format). Les bornes 0-100 restent appliquées par le serveur.
+ * Un critère non observé dans la session vaut null, sauf l'intégrité,
+ * toujours observable puisque la déclaration d'usage d'IA est demandée.
  */
 export const buildAnalysisSchema = () => {
   const scoreKeys = CRITICAL_THINKING_CRITERIA.map((c) => c.scoreKey);
@@ -35,11 +37,12 @@ export const buildAnalysisSchema = () => {
   const stringList = { type: 'array', items: { type: 'string' } } as const;
   const text = { type: 'string' } as const;
   const integer = { type: 'integer' } as const;
+  const nullableInteger = { anyOf: [integer, { type: 'null' }] } as const;
   return {
     type: 'object',
     properties: {
       summary: text,
-      ...Object.fromEntries(scoreFields.map((f) => [f, integer])),
+      ...Object.fromEntries(scoreFields.map((f) => [f, f === 'integrityScore' ? integer : nullableInteger])),
       rhythmBreakCount: integer,
       keyStrengths: stringList,
       weaknesses: stringList,
@@ -83,6 +86,8 @@ Déclaration d'usage d'IA faite par l'apprenant·e : "${aiDeclaration}"
 Grille d'évaluation. Chaque dimension du radar est adossée à un critère précis, évalue chaque score à l'aune de son critère et de rien d'autre :
 ${criteriaMapping}
 
+Règle des critères non observés : les lignes Régime du transcript indiquent le ou les régimes de la session (acquisition, consolidation, épreuve). Un critère que ces régimes n'ont pas permis d'exercer, et que l'apprenant·e n'a pas manifesté de lui·elle-même, reçoit le score null et la justification « non observé dans cette session ». Ne le note jamais faible. Un critère exercé reçoit un score de 0 à 100. L'intégrité reste toujours notée de 0 à 100 : la déclaration d'usage d'IA la rend observable dans chaque session.
+
 Chaque score va de 0 à 100. Ancre chaque jugement dans des moments précis du transcript, pas dans une impression d'ensemble. rhythmBreakCount compte les réponses de l'apprenant·e marquées d'une rupture de rythme dans le transcript.
 
 Règles d'écriture du champ summary (bilan, 150 mots max) :
@@ -99,11 +104,11 @@ keyStrengths et weaknesses : 2 à 3 éléments chacun, formulés en une phrase c
 Format de sortie : réponds uniquement avec un objet JSON valide, sans texte autour, contenant exactement ces champs :
 {
   "summary": string,
-  "reasoningScore": entier 0-100,
-  "clarityScore": entier 0-100,
-  "skepticismScore": entier 0-100,
-  "processScore": entier 0-100,
-  "reflectionScore": entier 0-100,
+  "reasoningScore": entier 0-100 ou null,
+  "clarityScore": entier 0-100 ou null,
+  "skepticismScore": entier 0-100 ou null,
+  "processScore": entier 0-100 ou null,
+  "reflectionScore": entier 0-100 ou null,
   "integrityScore": entier 0-100,
   "rhythmBreakCount": entier,
   "keyStrengths": [string],
