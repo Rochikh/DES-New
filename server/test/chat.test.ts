@@ -31,6 +31,7 @@ describe('POST /api/chat', () => {
     expect(chat).toHaveBeenCalledOnce();
     const { system } = chat.mock.calls[0][0];
     expect(system.instructions).toContain('Phase: [Numéro]');
+    expect(system.instructions).toContain('Régime: [acquisition, consolidation ou épreuve]');
     expect(system.session).toContain("L'impact de l'IA sur l'emploi");
   });
 

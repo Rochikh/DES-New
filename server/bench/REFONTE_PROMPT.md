@@ -53,6 +53,19 @@ Aucun correctif : le défaut relève du prompt.
 - Mode Critique : le plan initial n'intègre pas l'obligation d'un raisonnement fallacieux par phase. Le comportement la respecte en simulé par la seule consigne de CRITIC_MODE. D scripté a manqué les phases 1 et 2, bloqué en phase 0. Bullet Critique écarté, à revoir avec les régimes de l'étape 3.
 - Décalage phase / étape du plan : réduit à un cran au plus après la règle de numérotation. Il alimente l'étape 3.
 
+### Étape 3 : régimes de progression
+
+`feat: régimes de progression à la place des phases fixes`.
+
+- REGIMES remplace BLOOM_PROGRESSION. Phase 0 réservée au diagnostic. Trois régimes choisis au diagnostic : acquisition (Comprendre, Vérifier, Appliquer), consolidation (Rappeler, Relier, Transférer), mise à l'épreuve (Clarification, Mécanisme, Vérification, Stress-test). Le mode Critique emploie toujours la mise à l'épreuve.
+- Numéro de phase = phase en cours, celle qui suit le critère le plus haut rempli. Un critère supérieur valide les phases inférieures. Le numéro vaut au moins 1 dès le régime fixé et ne recule pas, sauf changement de régime.
+- Blocage : après 4 à 5 échanges sur une même phase ou une même étape, révision du plan visible dans la ligne Plan (étape découpée, régime changé, ou « (aide renforcée) »). En Critique, pas de changement de régime.
+- SESSION_PLAN : étapes de contenu (notion, passage, argument, objection). EVALUATION_GRID : occasions ménagées pour les critères que le régime permet d'exercer. TUTOR_MODE : les explications du régime d'acquisition restent permises.
+- Bloc technique : ligne `Régime: [acquisition, consolidation ou épreuve]` entre Plan et Phase, absente pendant le diagnostic.
+- Client : `extractRegime`, tables de phases par régime, barre et en-tête selon le régime, `Message.regime` pour la reprise. Un export ancien sans régime s'affiche en mise à l'épreuve.
+- Banc : colonne Régime, profil E (révision avant partiel, simulé seulement), décompte des révisions par type.
+- Critère vérifié (scripté A à D, simulé A à E) : forme exacte 100 %, aucun recul de phase, aucune phase 0 après fixation du régime. Régimes : A acquisition, B, C, D épreuve, E consolidation. Sophismes dès le premier tour après le diagnostic en C et D. Révisions visibles au cinquième échange bloqué : A scripté (aide renforcée), C scripté (aide renforcée puis trois étapes ajoutées).
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
@@ -62,6 +75,7 @@ Aucun correctif : le défaut relève du prompt.
 - Les tests sont réparés avant les étapes qui modifient `phase.ts` et le client, pour disposer d'un filet en état de marche.
 - **Export JSON brut** : il garde la ligne Plan, puisqu'il sert à la reprise de session. La ligne est masquée partout où une personne lit le texte.
 - **Pas de bullet Critique dans SESSION_PLAN** : le banc a montré que le comportement suit CRITIC_MODE. Le défaut observé tient au blocage de phase.
+- **Recouvrement plan / phases en mise à l'épreuve accepté** : les critères des phases décrivent ce que demande une thèse à défendre. La retouche « l'ordre des étapes suit la thèse et le texte » a été retirée, sans effet mesuré au banc.
 - **Étapes abandonnées** gardées dans la ligne Plan, marquées « (abandonnée) », pour une numérotation stable.
 
 ## Ajouts au plan
@@ -71,13 +85,12 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reprise à l'étape 3.
+Reprise à l'étape 3 bis.
 
-### Étape 3 : régimes à la place des phases fixes
+### Étape 3 bis : critères non observés
 
-- Proposer d'abord, sans écrire, une structure : régime d'acquisition (explication courte, vérification de compréhension, application), régime de consolidation, régime de mise à l'épreuve (les phases actuelles). Le mode Critique utilise la mise à l'épreuve après le diagnostic.
-- Indiquer l'impact sur le marqueur, `phase.ts`, la barre de progression, le prompt d'analyse et les tests (`chat.test.ts`, `analysis.test.ts`).
-- STOP avant implémentation, puis STOP après.
+- Les cinq critères hors intégrité acceptent null (« non observé dans cette session ») : schéma JSON, serveur, types, radar, prompt d'analyse. `integrityScore` reste un entier obligatoire, badge inchangé.
+- Radar : axes notés seulement, liste des scores sous trois axes.
 
 ### Étape 4 : étayage proactif
 
@@ -112,6 +125,7 @@ Reprise à l'étape 3.
 - tsc, tests, build, rebuild du service `argos` via `/root/docker-compose.yml`, une session réelle sur ia-des.rochane.fr, vérification 200.
 - Mettre à jour l'en-tête de `core.ts` et le GuideModal si la progression a changé (texte montré avant écriture).
 - Lister les écarts à reporter dans `ARGOS_REFERENCE.md` (modèle, chemin de l'env, régimes, ligne Plan). Commit et push après go.
+- Badge « Indice de cohérence » (`ReportView.tsx`) : il affiche `integrityScore`, la note du critère d'intégrité, alors qu'`ARGOS_REFERENCE.md` le décrit comme une mesure d'authenticité du processus. Libellé ou fiche à corriger.
 
 ## Banc
 

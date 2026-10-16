@@ -21,7 +21,8 @@ import { createDeepSeekClient } from '../src/deepseek.js';
 import { CLAUDE_MODEL, MODEL_CHAT } from '../src/config.js';
 import type { ChatRequest, LlmClient } from '../src/llm.js';
 import { buildChatSystemParts, type ChatMode } from '../src/prompts/core.js';
-import { cleanDisplayBotText, extractPhase } from '../../client/src/utils/phase.js';
+import { cleanDisplayBotText, extractPhase, extractRegime } from '../../client/src/utils/phase.js';
+import type { Regime } from '../../client/src/types.js';
 
 interface Profile {
   id: string;
@@ -35,6 +36,7 @@ interface Profile {
 }
 
 const SIMULATOR_MODEL = 'claude-haiku-5-5';
+const SIMULATED_TURNS = 6;
 
 const PERSONA_FRAME = `Tu joues un·e étudiant·e qui dialogue avec un tuteur nommé Argos. Écris uniquement la réplique de l'étudiant·e, en français, sans didascalie, sans mise en forme, sans sortir du rôle. Réponds à ce qu'Argos vient de te dire. Tes connaissances se limitent à ton profil et au texte ci-dessous.`;
 
@@ -64,6 +66,12 @@ const THESIS_REPLIES = [
 
 const PERSONA_A = `${PERSONA_FRAME}
 Profil : Camille, première année de licence, aucune pratique de l'algèbre abstraite. Tu as sous les yeux le texte ci-dessous, qui définit un groupe, et tu le comprends mal. Tu veux comprendre cette structure, sans évaluation en vue. Tes réponses sont courtes : une phrase, souvent moins de quinze mots, avec des hésitations (« euh », « je crois », « je sais pas trop »). Environ une fois sur trois, tu dis que tu ne sais pas. Tu confonds facilement associativité et commutativité. Quand Argos explique avec un exemple simple, tu progresses un peu et tu le montres par une réponse en partie juste.
+<texte>
+${GROUP_CORPUS}
+</texte>`;
+
+const PERSONA_E = `${PERSONA_FRAME}
+Profil : Alix, première année de licence. Tu as suivi le cours sur les groupes il y a trois semaines et tu révises pour un partiel la semaine prochaine. Tu as sous les yeux le texte ci-dessous. Tu sais citer les trois propriétés et tu sais que (Z, +) est un groupe. Tu confonds encore associativité et commutativité : tu crois que l'associativité permet d'échanger a et b. Tes réponses font une à trois phrases, sur un ton assez assuré, parfois fausses sans que tu le saches. Tu demandes volontiers des exercices du type de ceux du partiel. Quand Argos te montre la différence sur un exemple précis, tu la comprends en partie : il te faut un deuxième exemple pour cesser de confondre.
 <texte>
 ${GROUP_CORPUS}
 </texte>`;
@@ -137,6 +145,17 @@ const PROFILES: Profile[] = [
     topic: THESIS_TOPIC,
     replies: THESIS_REPLIES,
   },
+  {
+    id: 'E',
+    persona: PERSONA_E,
+    label: 'Révision avant partiel, Tuteur, définition d\'un groupe',
+    mode: 'TUTOR',
+    studentName: 'Alix',
+    topic: 'réviser la notion de groupe pour mon partiel de la semaine prochaine',
+    corpus: GROUP_CORPUS,
+    // Profil joué en simulé seulement.
+    replies: [],
+  },
 ];
 
 /** Dernière ligne mentionnant « phase » (insensible à la casse), telle quelle. */
@@ -156,9 +175,10 @@ interface Turn {
   rawMarker: string | null;
   /** Ligne Plan du bloc technique, telle quelle */
   plan: string | null;
-  /** Le message se termine-t-il par ---\nPhase: N, forme exacte exigée ? */
+  /** Le message se termine-t-il par ---\n[Plan]\n[Régime]\nPhase: N, forme exacte exigée ? */
   markerWellFormed: boolean;
   parsedPhase: number;
+  parsedRegime: Regime | null;
   displayed: string;
   displayedHasMarker: boolean;
   words: number;
@@ -217,11 +237,13 @@ const runProfile = async (profile: Profile, simulated: boolean, turns: Turn[]): 
   const opening = `Bonjour Argos, je suis ${profile.studentName}. Lancez la session sur : ${profile.topic}.`;
   const messages: ChatRequest['messages'] = [];
   let phase = 0;
+  let regime: Regime | null = null;
 
   // Côté simulateur, l'apprenant·e ne voit que le texte affiché d'Argos.
   const dialogue: Array<{ argos: string; learner?: string }> = [];
 
-  for (let i = 0; i <= profile.replies.length; i++) {
+  const nTurns = simulated ? SIMULATED_TURNS : profile.replies.length;
+  for (let i = 0; i <= nTurns; i++) {
     let user: string;
     let learnerStop: string | null = null;
     if (i === 0) user = opening;
@@ -236,6 +258,7 @@ const runProfile = async (profile: Profile, simulated: boolean, turns: Turn[]): 
     const raw = await client.chat({ system, messages: [...messages] });
     messages.push({ role: 'assistant', content: raw });
     phase = extractPhase(raw, phase);
+    regime = extractRegime(raw, regime);
     const displayed = cleanDisplayBotText(raw);
     dialogue.push({ argos: displayed });
     turns.push({
@@ -245,16 +268,44 @@ const runProfile = async (profile: Profile, simulated: boolean, turns: Turn[]): 
       raw,
       rawMarker: rawPhaseMarker(raw),
       plan: raw.match(/^Plan:.*$/m)?.[0].trim() ?? null,
-      markerWellFormed: /\n---\s*\n(Plan: .+\n)?Phase: \d\s*$/.test(raw),
+      markerWellFormed: /\n---\s*\n(Plan: .+\n)?(Régime: (acquisition|consolidation|épreuve)\n)?Phase: \d\s*$/.test(raw),
       parsedPhase: phase,
+      parsedRegime: regime,
       displayed,
-      displayedHasMarker: /phase\s*:?\s*\d|Plan:/i.test(displayed) || displayed.includes('---'),
+      displayedHasMarker: /phase\s*:?\s*\d|Plan:|R[ée]gime\s*:/i.test(displayed) || displayed.includes('---'),
       words: wordCount(displayed),
       provider: fellBack ? 'deepseek (repli 429)' : provider,
     });
     if (learnerStop === 'max_tokens') console.warn(`[${profile.id}] tour ${i} : réplique simulée coupée (stop=max_tokens)`);
-    console.info(`[${profile.id}] tour ${i} : phase ${phase}, ${turns[i].words} mots, marqueur ${JSON.stringify(turns[i].rawMarker)}`);
+    console.info(`[${profile.id}] tour ${i} : régime ${regime ?? '-'}, phase ${phase}, ${turns[i].words} mots, marqueur ${JSON.stringify(turns[i].rawMarker)}`);
   }
+};
+
+/** Numéros d'étapes de la ligne Plan (« 1. », « / 2. »...). */
+const stepNumbers = (plan: string | null): number[] =>
+  [...(plan ?? '').matchAll(/(?:étapes\s*:\s*|\/\s*)(\d+)\./g)].map((m) => Number(m[1]));
+
+/**
+ * Révisions du plan par type, d'un tour au suivant : régime changé, mention
+ * « (aide renforcée) » nouvelle, étapes ajoutées (découpage ou nouvelle
+ * direction : le type se lit dans la ligne Plan).
+ */
+const revisionCounts = (turns: Turn[]): string => {
+  let regime = 0;
+  let aid = 0;
+  let added = 0;
+  for (let i = 1; i < turns.length; i++) {
+    const prev = turns[i - 1];
+    const cur = turns[i];
+    if (prev.parsedRegime && cur.parsedRegime !== prev.parsedRegime) regime++;
+    const aidCount = (p: string | null) => (p?.match(/\(aide renforcée\)/g) ?? []).length;
+    aid += Math.max(0, aidCount(cur.plan) - aidCount(prev.plan));
+    if (prev.plan) {
+      const before = new Set(stepNumbers(prev.plan));
+      added += stepNumbers(cur.plan).filter((n) => !before.has(n)).length;
+    }
+  }
+  return `Révisions : régime changé ${regime}, aide renforcée ${aid}, étapes ajoutées ${added}`;
 };
 
 const median = (xs: number[]): number => {
@@ -277,6 +328,10 @@ const main = async () => {
   // Profils en série : en parallèle, la limite de connexions Claude
   // déclencherait le repli DeepSeek et fausserait la mesure.
   for (const profile of selected) {
+    if (!simulated && !profile.replies.length) {
+      console.info(`[${profile.id}] ignoré en scripté : profil sans réponses fixes`);
+      continue;
+    }
     const turns: Turn[] = [];
     try {
       await runProfile(profile, simulated, turns);
@@ -287,14 +342,16 @@ const main = async () => {
     summary.push(
       `## Profil ${profile.id} : ${profile.label}`,
       '',
-      '| Tour | Marqueur brut | Forme exacte | Phase parsée | Marqueur visible | Étape du plan | Mots | Fournisseur | Plan |',
-      '|---|---|---|---|---|---|---|---|---|',
+      '| Tour | Marqueur brut | Forme exacte | Régime | Phase parsée | Marqueur visible | Étape du plan | Mots | Fournisseur | Plan |',
+      '|---|---|---|---|---|---|---|---|---|---|',
       ...turns.map(
         (t) =>
-          `| ${t.turn} | ${t.rawMarker === null ? '(absent)' : '`' + t.rawMarker + '`'} | ${t.markerWellFormed ? 'oui' : 'non'} | ${t.parsedPhase} | ${t.displayedHasMarker ? 'oui' : 'non'} | ${t.plan?.match(/en cours\s*:\s*(\d+)/)?.[1] ?? '-'} | ${t.words} | ${t.provider} | ${t.plan ?? '(absent)'} |`
+          `| ${t.turn} | ${t.rawMarker === null ? '(absent)' : '`' + t.rawMarker + '`'} | ${t.markerWellFormed ? 'oui' : 'non'} | ${t.parsedRegime ?? '-'} | ${t.parsedPhase} | ${t.displayedHasMarker ? 'oui' : 'non'} | ${t.plan?.match(/en cours\s*:\s*(\d+)/)?.[1] ?? '-'} | ${t.words} | ${t.provider} | ${t.plan ?? '(absent)'} |`
       ),
       '',
       `Longueur médiane : ${median(turns.map((t) => t.words))} mots`,
+      '',
+      revisionCounts(turns),
       ''
     );
   }

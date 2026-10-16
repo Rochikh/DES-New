@@ -55,6 +55,16 @@ describe('parseSessionFile (rétrocompatibilité)', () => {
     expect(session.aiDeclaration).toBe('');
   });
 
+  it('conserve le régime des messages pour la reprise de session', () => {
+    const session = parseSessionFile(
+      JSON.stringify({
+        transcript: [{ id: 'r1', role: 'model', text: 'Reformule.\n---\nRégime: acquisition\nPhase: 1', timestamp: 1, phase: 1, regime: 'acquisition' }],
+      })
+    );
+
+    expect(session.messages[0].regime).toBe('acquisition');
+  });
+
   it('rejette un fichier sans transcript', () => {
     expect(() => parseSessionFile(JSON.stringify({ metadata: {} }))).toThrow();
   });

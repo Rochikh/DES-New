@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanDisplayBotText, extractPhase } from './phase';
+import { cleanDisplayBotText, extractPhase, extractRegime } from './phase';
 
 describe('extractPhase', () => {
   it('extrait le numéro depuis le marqueur officiel', () => {
@@ -20,6 +20,23 @@ describe('extractPhase', () => {
   });
 });
 
+describe('extractRegime', () => {
+  it('lit le régime de la ligne Régime', () => {
+    expect(extractRegime('Texte\n---\nPlan: X ; en cours : 1\nRégime: acquisition\nPhase: 1', null)).toBe('acquisition');
+    expect(extractRegime('Texte\n---\nRégime: consolidation\nPhase: 2', null)).toBe('consolidation');
+  });
+
+  it('normalise les graphies de la mise à l\'épreuve', () => {
+    expect(extractRegime('Texte\n---\nRégime: épreuve\nPhase: 1', null)).toBe('epreuve');
+    expect(extractRegime('Texte\n---\nRegime: mise à l\'épreuve\nPhase: 1', null)).toBe('epreuve');
+  });
+
+  it('conserve le régime courant si la ligne manque', () => {
+    expect(extractRegime('Texte\n---\nPhase: 0', null)).toBeNull();
+    expect(extractRegime('Texte\n---\nPhase: 2', 'consolidation')).toBe('consolidation');
+  });
+});
+
 describe('cleanDisplayBotText', () => {
   it('supprime le marqueur après le séparateur ---', () => {
     expect(cleanDisplayBotText('Que veux-tu explorer ?\n---\nPhase: 0')).toBe(
@@ -31,6 +48,13 @@ describe('cleanDisplayBotText', () => {
     expect(cleanDisplayBotText('Que sais-tu de N ?\n---\nPlan: comprendre un groupe ; en cours : 1\nPhase: 1')).toBe(
       'Que sais-tu de N ?'
     );
+  });
+
+  it('supprime la ligne Régime avec le marqueur', () => {
+    expect(cleanDisplayBotText('Reformule-le.\n---\nPlan: X ; en cours : 1\nRégime: acquisition\nPhase: 1')).toBe(
+      'Reformule-le.'
+    );
+    expect(cleanDisplayBotText('Reformule-le.\nRégime: acquisition\nPhase: 1')).toBe('Reformule-le.');
   });
 
   it('coupe sur les mots-clés techniques si le séparateur est oublié', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PROTOCOL_PHASES } from '../types';
+import { Regime, protocolPhases } from '../types';
 
 /**
  * Tracker de progression : une rangée de cinq yeux stylisés.
@@ -62,15 +62,16 @@ export const ArgosEye: React.FC<{
   );
 };
 
-export const PhaseTracker: React.FC<{ currentPhase: number }> = ({ currentPhase }) => {
+export const PhaseTracker: React.FC<{ currentPhase: number; regime: Regime | null }> = ({ currentPhase, regime }) => {
+  const phases = protocolPhases(regime);
   return (
     <div
       className="bg-white border-b border-line px-4 sm:px-6 py-2.5 no-print"
       role="group"
-      aria-label={`Progression : phase ${currentPhase}, ${PROTOCOL_PHASES[currentPhase]?.label}`}
+      aria-label={`Progression : phase ${currentPhase}, ${phases[currentPhase]?.label}`}
     >
       <div className="max-w-4xl mx-auto flex items-start justify-between sm:justify-center sm:gap-10">
-        {PROTOCOL_PHASES.map((p) => {
+        {phases.map((p) => {
           const state: EyeState =
             currentPhase === p.id ? 'active' : currentPhase > p.id ? 'done' : 'upcoming';
           return (

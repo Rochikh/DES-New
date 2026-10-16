@@ -28,6 +28,7 @@ export interface Message {
   timestamp: number;
   strategy?: SocraticStrategy;
   phase?: number;
+  regime?: Regime;
   responseTimeSeconds?: number;
   hasRhythmAnomaly?: boolean;
 }
@@ -66,10 +67,42 @@ export interface AnalysisData {
   aiDeclaration: string;
 }
 
-export const PROTOCOL_PHASES = [
-  { id: 0, label: "Ciblage", desc: "Identification de l'intention et de l'objet de recherche." },
-  { id: 1, label: "Clarification", desc: "Définition rigoureuse des termes et des concepts utilisés." },
-  { id: 2, label: "Mécanisme", desc: "Exploration du 'comment' : les relations de cause à effet." },
-  { id: 3, label: "Vérification", desc: "Recherche de preuves, de protocoles et de critères de vérité." },
-  { id: 4, label: "Stress-test", desc: "Confrontation à des contre-exemples et limites du modèle." }
-];
+/** Régime choisi par Argos au diagnostic, lu dans la ligne Régime du bloc technique. */
+export type Regime = 'acquisition' | 'consolidation' | 'epreuve';
+
+export interface ProtocolPhase {
+  id: number;
+  label: string;
+  desc: string;
+}
+
+export const REGIME_LABELS: Record<Regime, string> = {
+  acquisition: "Acquisition",
+  consolidation: "Consolidation",
+  epreuve: "Mise à l'épreuve"
+};
+
+const DIAGNOSTIC_PHASE: ProtocolPhase = { id: 0, label: "Diagnostic", desc: "Identification de l'intention et du niveau." };
+
+const REGIME_PHASES: Record<Regime, ProtocolPhase[]> = {
+  acquisition: [
+    { id: 1, label: "Comprendre", desc: "Explication courte, puis reformulation avec ses propres mots." },
+    { id: 2, label: "Vérifier", desc: "Réponse juste à une question de contrôle." },
+    { id: 3, label: "Appliquer", desc: "Traitement d'un cas nouveau." }
+  ],
+  consolidation: [
+    { id: 1, label: "Rappeler", desc: "Restitution d'une notion sans aide." },
+    { id: 2, label: "Relier", desc: "Articulation de deux notions par une relation explicite." },
+    { id: 3, label: "Transférer", desc: "Résolution d'une question du type de l'évaluation, ou d'un cas nouveau." }
+  ],
+  epreuve: [
+    { id: 1, label: "Clarification", desc: "Définition rigoureuse des termes et des concepts utilisés." },
+    { id: 2, label: "Mécanisme", desc: "Exploration du 'comment' : les relations de cause à effet." },
+    { id: 3, label: "Vérification", desc: "Recherche de preuves, de protocoles et de critères de vérité." },
+    { id: 4, label: "Stress-test", desc: "Confrontation à des contre-exemples et limites du modèle." }
+  ]
+};
+
+/** Phases affichées : le diagnostic seul tant que le régime n'est pas choisi. */
+export const protocolPhases = (regime: Regime | null): ProtocolPhase[] =>
+  [DIAGNOSTIC_PHASE, ...(regime ? REGIME_PHASES[regime] : [])];

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, StopCircle, FileSignature, HelpCircle, Save, Timer } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Message, SessionConfig, PROTOCOL_PHASES } from '../types';
+import { Message, SessionConfig, Regime, REGIME_LABELS, protocolPhases } from '../types';
 import { sendMessage, ChatSession } from '../services/api';
-import { cleanDisplayBotText, extractPhase } from '../utils/phase';
+import { cleanDisplayBotText, extractPhase, extractRegime } from '../utils/phase';
 import { PhaseTracker } from './PhaseTracker';
 import { GuideModal } from './GuideModal';
 
@@ -20,6 +20,7 @@ export const ChatView: React.FC<{
   const [showGuide, setShowGuide] = useState(false);
   const [declarationText, setDeclarationText] = useState('');
   const [currentPhase, setCurrentPhase] = useState(0);
+  const [currentRegime, setCurrentRegime] = useState<Regime | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastModelTime, setLastModelTime] = useState<number>(Date.now());
 
@@ -77,13 +78,16 @@ export const ChatView: React.FC<{
       const res = await sendMessage(chatInstance, text);
       const phase = extractPhase(res.text, currentPhase);
       setCurrentPhase(phase);
+      const regime = extractRegime(res.text, currentRegime);
+      setCurrentRegime(regime);
 
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'model',
         text: res.text,
         timestamp: Date.now(),
-        phase
+        phase,
+        ...(regime ? { regime } : {})
       };
       setMessages(prev => [...prev, aiMsg]);
       setLastModelTime(Date.now());
@@ -108,6 +112,9 @@ export const ChatView: React.FC<{
     } else if (messages.length > 0) {
       const lastModelMsg = [...messages].reverse().find(m => m.role === 'model');
       if (lastModelMsg?.phase !== undefined) setCurrentPhase(lastModelMsg.phase);
+      // Sessions antérieures aux régimes : leurs phases 1 à 4 sont celles de la mise à l'épreuve.
+      if (lastModelMsg?.regime) setCurrentRegime(lastModelMsg.regime);
+      else if (lastModelMsg?.phase) setCurrentRegime('epreuve');
     }
   }, [chatInstance]);
 
@@ -139,13 +146,13 @@ export const ChatView: React.FC<{
         </div>
       )}
 
-      <PhaseTracker currentPhase={currentPhase} />
+      <PhaseTracker currentPhase={currentPhase} regime={currentRegime} />
 
       <header className="bg-white border-b border-line px-6 py-3.5 flex justify-between items-center shrink-0 z-10 no-print">
         <div className="overflow-hidden flex items-center gap-4">
           <div className="hidden sm:block">
             <h2 className="font-display text-base font-extrabold tracking-[-0.015em] text-text truncate">{config.topic}</h2>
-            <p className="label-mono text-accent">Phase {currentPhase} : {PROTOCOL_PHASES[currentPhase]?.label}</p>
+            <p className="label-mono text-accent">{currentRegime && `${REGIME_LABELS[currentRegime]}, `}Phase {currentPhase} : {protocolPhases(currentRegime)[currentPhase]?.label}</p>
           </div>
           <button
             onClick={handleExportJSON}
