@@ -75,6 +75,14 @@ Aucun correctif : le défaut relève du prompt.
 - Serveur : `clampOptionalScore` transmet null. Client : scores `number | null`, radar limité aux axes notés, liste des scores sous trois axes, mention des critères non observés.
 - Critère vérifié sur un bilan réel : A scripté (acquisition) reçoit null pour doute constructif, méthode et prise de recul ; B scripté (épreuve) reçoit six notes.
 
+### Étape 4 : étayage proactif
+
+`feat: étayage proactif selon le niveau diagnostiqué`.
+
+- BLOCKAGE_HANDLING : à niveau faible au diagnostic, Argos explique dès son premier message après le diagnostic (apport court et concret, puis question qui vérifie ou applique). La règle des deux « je ne sais pas » reste en filet.
+- IDENTITY_AND_STANCE : l'étayage dégressif suit le niveau diagnostiqué puis manifesté, au lieu de la position dans la session.
+- Critère vérifié : A scripté (témoin neutre) et A simulé reçoivent un apport de contenu aux tours 1 et 2, les deux premiers messages après le diagnostic. A scripté atteint la phase 2 (bloqué en phase 1 avant l'étape). E simulé inchangé (consolidation, phase 3).
+
 ## Décisions validées
 
 - **Pas de règle Markdown dans STYLE_RULES.** Le chat rend le Markdown correctement (`ReactMarkdown`). Le défaut est dans `client/src/components/ReportView.tsx:258` : la section « Parcours de réflexion » affiche `m.text` brut, astérisques et marqueur de phase compris.
@@ -94,14 +102,7 @@ Aucun correctif : le défaut relève du prompt.
 
 ## Étapes restantes
 
-Reprise à l'étape 4.
-
-### Étape 4 : étayage proactif
-
-- Niveau faible au diagnostic : Argos explique d'abord, sans attendre deux « je ne sais pas ». Le déclencheur actuel de BLOCKAGE_HANDLING reste en filet.
-- L'étayage dégressif d'IDENTITY_AND_STANCE suit le niveau diagnostiqué au lieu de la position dans la session.
-- Critère : profil A, un apport de contenu dans les deux premiers messages après le diagnostic. Témoin neutre : mode scripté. Complément : mode simulé, biaisé en faveur de l'étape 4.
-- A simulé réussit chaque palier : le transcript ne montre pas la réaction d'Argos à un échec. Valider sur A scripté en priorité.
+Reprise à l'étape 5.
 
 ### Étape 5 : concision
 
