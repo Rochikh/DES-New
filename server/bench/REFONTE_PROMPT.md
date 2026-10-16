@@ -124,7 +124,7 @@ Aucun correctif : le défaut relève du prompt.
   3. Progression : diagnostic en phase 0, puis régime d'acquisition, de consolidation ou de mise à l'épreuve ; barre de progression par régime ; mode Critique toujours en mise à l'épreuve.
   4. Bloc technique : lignes `Plan:`, `Régime:`, `Phase:`. Plan et Régime masqués à l'affichage, gardés dans l'export JSON ; ligne Plan retirée du transcript du bilan.
   5. Bilan : cinq critères acceptent « non observé » (null) ; intégrité toujours notée ; radar limité aux axes notés.
-  6. Badge « Indice de cohérence » : il affiche la note du critère d'intégrité, la fiche le décrit comme mesure d'authenticité du processus. Libellé ou fiche à corriger.
+  6. Badge de la section Authenticité du processus : libellé « Intégrité intellectuelle » (anciennement « Indice de cohérence »). Il affiche la note du critère d'intégrité, seuil d'alerte à 70.
   7. Sujet de session entre balises `<sujet>`.
   8. Style : une question par message, plafonds 60 et 120 mots, ni cadratin ni antithèse, inclusif jusqu'à marque de genre.
 

@@ -132,7 +132,7 @@ export const ReportView: React.FC<{
                 <Target className="text-accent" size={20} /> Authenticité du processus
               </h3>
               <div className={`px-3 py-1.5 rounded-sm label-mono flex items-center gap-2 border ${analysis.integrityScore >= 70 ? 'border-accent bg-accent-light text-accent' : 'border-line bg-paper text-rouge'}`}>
-                Indice de cohérence : {analysis.integrityScore}/100
+                Intégrité intellectuelle : {analysis.integrityScore}/100
                 {analysis.integrityScore < 70 && <AlertTriangle size={14} />}
               </div>
             </div>
