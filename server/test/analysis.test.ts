@@ -99,6 +99,25 @@ describe('POST /api/analysis', () => {
     expect(analysis).toHaveBeenCalledTimes(2);
   });
 
+  it('exclut la ligne Plan du transcript transmis au bilan', async () => {
+    const { client, analysis } = makeMock();
+    const app = createApp(client);
+
+    await request(app)
+      .post('/api/analysis')
+      .send({
+        ...validBody,
+        transcript: [
+          { role: 'model', text: 'Que sais-tu de N ?\n---\nPlan: définir un groupe ; en cours : 1\nPhase: 1' },
+          ...validBody.transcript.slice(1),
+        ],
+      });
+
+    const prompt = analysis.mock.calls[0][0];
+    expect(prompt).not.toContain('Plan:');
+    expect(prompt).toContain('Phase: 1');
+  });
+
   it('refuse un transcript vide (400)', async () => {
     const app = createApp(makeMock().client);
     const res = await request(app).post('/api/analysis').send({ ...validBody, transcript: [] });

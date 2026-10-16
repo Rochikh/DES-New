@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { AnalysisData, SessionConfig } from '../types';
 import { generateAnalysis } from '../services/api';
 import { Message } from '../types';
 import { Target, RotateCcw, Download, Radar as RadarIcon, CheckCircle2, Lightbulb, FileText, ShieldCheck, FileSignature, AlertTriangle, Info, Timer } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { ArgosEye } from './PhaseTracker';
+import { cleanDisplayBotText } from '../utils/phase';
 
 export const ReportView: React.FC<{
   config: SessionConfig;
@@ -255,7 +257,9 @@ export const ReportView: React.FC<{
                 )}
                 <span className="label-mono print:text-[8pt] block mb-1 text-accent">{m.role === 'user' ? 'Étudiant·e' : 'Argos'}</span>
                 <div className="prose prose-sm max-w-none text-text">
-                   {m.text}
+                  <ReactMarkdown>
+                    {m.role === 'model' ? cleanDisplayBotText(m.text) : m.text}
+                  </ReactMarkdown>
                 </div>
               </div>
             ))}

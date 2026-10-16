@@ -1,8 +1,10 @@
 /**
- * Parsing du marqueur de phase émis par Argos en fin de message :
+ * Parsing du bloc technique émis par Argos en fin de message :
  *   ---
+ *   Plan: [une ligne]   (absente tant que le diagnostic n'a pas fixé le plan)
  *   Phase: [n]
- * Le marqueur pilote le tracker de progression et ne doit jamais être affiché.
+ * Le marqueur pilote le tracker de progression. Le bloc n'est jamais affiché
+ * mais reste dans le texte brut renvoyé au serveur : Argos y relit son plan.
  */
 
 /**
@@ -20,7 +22,7 @@ export const cleanDisplayBotText = (text: string): string => {
   }
 
   // 2. Sécurité : recherche de mots-clés techniques au cas où le séparateur est oublié
-  const keywords = ['Phase:', 'Phase 0', 'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', '**Phase', 'Exigence:', 'Contrôle:'];
+  const keywords = ['Plan:', 'Phase:', 'Phase 0', 'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', '**Phase', 'Exigence:', 'Contrôle:'];
   let firstKeywordIndex = -1;
 
   for (const kw of keywords) {
@@ -37,8 +39,11 @@ export const cleanDisplayBotText = (text: string): string => {
   return text;
 };
 
-/** Extrait le numéro de phase ; à défaut, conserve la phase courante. */
+/**
+ * Extrait le numéro de phase du dernier marqueur (la ligne Plan qui le
+ * précède peut mentionner une phase) ; à défaut, conserve la phase courante.
+ */
 export const extractPhase = (text: string, currentPhase: number): number => {
-  const match = text.match(/Phase\s*:?\s*\**\s*(\d)/i);
-  return match ? parseInt(match[1], 10) : currentPhase;
+  const matches = [...text.matchAll(/Phase\s*:?\s*\**\s*(\d)/gi)];
+  return matches.length ? parseInt(matches[matches.length - 1][1], 10) : currentPhase;
 };

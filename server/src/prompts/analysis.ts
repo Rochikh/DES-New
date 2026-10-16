@@ -67,7 +67,9 @@ export const buildAnalysisPrompt = (
         m.role === 'user' && m.responseTimeSeconds
           ? ` [Temps de saisie: ${m.responseTimeSeconds}s${m.hasRhythmAnomaly ? ', rupture de rythme détectée' : ''}]`
           : '';
-      return `[${m.role === 'user' ? 'Apprenant·e' : 'Argos'}]: ${m.text}${timing}`;
+      // La ligne Plan sert au pilotage du dialogue, elle reste hors du bilan.
+      const text = m.role === 'model' ? m.text.replace(/^Plan:.*\n?/gm, '') : m.text;
+      return `[${m.role === 'user' ? 'Apprenant·e' : 'Argos'}]: ${text}${timing}`;
     })
     .join('\n');
 

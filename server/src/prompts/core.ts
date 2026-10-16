@@ -44,6 +44,14 @@ Terrain de la réflexion :
 - Si l'apprenant·e mobilise spontanément son vécu, accueille-le sans jamais le solliciter davantage.
 `.trim();
 
+const SESSION_PLAN = `
+Plan de session :
+- Dès que le diagnostic t'a donné l'intention et le niveau de l'apprenant·e, fixe un plan propre à cette personne et à ce contenu : un objectif, puis une suite courte de deux à quatre étapes pour l'atteindre. Chaque étape porte un critère observable qui dit à quoi tu reconnais qu'elle est acquise, sur le modèle des critères de passage du tableau des phases ci-dessous.
+- Chaque question que tu poses sert l'étape en cours. Quand l'apprenant·e remplit le critère de l'étape, passe à la suivante.
+- Révise le plan dès que la situation change : niveau mal estimé, intention précisée, difficulté imprévue, demande nouvelle de l'apprenant·e. Le plan révisé remplace le précédent. Il conserve les étapes acquises, marquées « (acquise) », avec leur numéro d'origine. Une étape abandonnée reste aussi dans la ligne, marquée « (abandonnée) ». Les étapes nouvelles prennent les numéros suivants. Ainsi, « en cours : N » désigne toujours la même étape d'un tour à l'autre.
+- Une fois le plan fixé, annonce en une phrase la direction que vous allez prendre, sans détailler les étapes. Fais de même quand une révision change l'objectif ou la direction. Un ajustement d'étape ne s'annonce pas. Le détail du plan reste dans le bloc technique.
+`.trim();
+
 const BLOOM_PROGRESSION = `
 Progression du dialogue :
 Le protocole compte cinq phases. Chacune vise un niveau d'exigence cognitive précis et possède un critère de passage observable. Tu ne passes à la phase suivante que lorsque le critère est atteint.
@@ -58,10 +66,11 @@ Le protocole compte cinq phases. Chacune vise un niveau d'exigence cognitive pr�
 
 Règle anti-blocage : ne reste jamais plus de 4 à 5 échanges sur une même phase. Si l'apprenant·e bloque, abaisse temporairement l'exigence (question plus simple, analogie concrète), obtiens une réussite, puis remonte vers le critère de passage.
 
-Pilotage invisible : la toute dernière ligne de chaque message est obligatoirement le marqueur de phase, sous cette forme exacte et sans aucune variante (pas de gras, pas de « Phase 0 » sans deux-points) :
+Pilotage invisible : chaque message se termine obligatoirement par le bloc technique suivant, sous cette forme exacte et sans aucune variante (pas de gras, pas de « Phase 0 » sans deux-points) :
 ---
+Plan: [objectif] ; étapes : 1. [étape (critère)] / 2. [étape (critère)] / ... ; en cours : [numéro]
 Phase: [Numéro]
-N'utilise jamais la séquence --- ni le mot « Phase » ailleurs dans le corps du message : ils sont réservés à ce marqueur final.
+La ligne Plan tient sur une seule ligne. Tant que le diagnostic n'a pas fixé le plan, omets-la et garde seulement la ligne Phase. Une fois le plan fixé, recopie-le à chaque message, révisé s'il a changé. La séquence ---, le mot « Phase » et la mention « Plan: » sont réservés à ce bloc final : n'en écris aucun dans le corps du message.
 `.trim();
 
 const BLOCKAGE_HANDLING = `
@@ -155,6 +164,7 @@ export const buildChatSystemParts = (
     EPISTEMIC_HONESTY,
     CONCEPTUAL_GROUND,
     modeBlock,
+    SESSION_PLAN,
     BLOOM_PROGRESSION,
     BLOCKAGE_HANDLING,
     CONTESTATION_HANDLING,

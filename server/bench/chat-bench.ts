@@ -150,8 +150,12 @@ const wordCount = (text: string): number => text.split(/\s+/).filter(Boolean).le
 interface Turn {
   turn: number;
   user: string;
+  /** Mode simulé : stop_reason de la réplique (max_tokens = réplique coupée) */
+  learnerStop: string | null;
   raw: string;
   rawMarker: string | null;
+  /** Ligne Plan du bloc technique, telle quelle */
+  plan: string | null;
   /** Le message se termine-t-il par ---\nPhase: N, forme exacte exigée ? */
   markerWellFormed: boolean;
   parsedPhase: number;
@@ -179,27 +183,39 @@ const buildClient = (onFallback: () => void): { client: LlmClient; provider: str
 const simulator = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? '' });
 
 /** Réplique de l'apprenant·e simulé·e : Argos parle en user, l'apprenant·e en assistant. */
-const simulateReply = async (persona: string, dialogue: Array<{ argos: string; learner?: string }>): Promise<string> => {
+const simulateReply = async (
+  persona: string,
+  dialogue: Array<{ argos: string; learner?: string }>
+): Promise<{ reply: string; stop: Anthropic.Message['stop_reason'] }> => {
   const messages: Anthropic.MessageParam[] = dialogue.flatMap((d) => [
     { role: 'user' as const, content: d.argos },
     ...(d.learner ? [{ role: 'assistant' as const, content: d.learner }] : []),
   ]);
-  const response = await simulator.messages.create({ model: SIMULATOR_MODEL, max_tokens: 400, system: persona, messages });
-  return response.content
+  // Raisonnement désactivé : actif par défaut, il épuisait le plafond
+  // et laissait une réplique vide. À 400 tokens, les répliques étaient coupées.
+  const response = await simulator.messages.create({
+    model: SIMULATOR_MODEL,
+    max_tokens: 1000,
+    thinking: { type: 'disabled' },
+    system: persona,
+    messages,
+  });
+  const reply = response.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
     .join('')
     .trim();
+  if (!reply) throw new Error(`Réplique simulée vide (stop=${response.stop_reason})`);
+  return { reply, stop: response.stop_reason };
 };
 
-const runProfile = async (profile: Profile, simulated: boolean): Promise<Turn[]> => {
+const runProfile = async (profile: Profile, simulated: boolean, turns: Turn[]): Promise<void> => {
   let fellBack = false;
   const { client, provider } = buildClient(() => (fellBack = true));
   const system = buildChatSystemParts(profile.mode, profile.topic, profile.corpus);
   // Même message d'ouverture que ChatView.tsx
   const opening = `Bonjour Argos, je suis ${profile.studentName}. Lancez la session sur : ${profile.topic}.`;
   const messages: ChatRequest['messages'] = [];
-  const turns: Turn[] = [];
   let phase = 0;
 
   // Côté simulateur, l'apprenant·e ne voit que le texte affiché d'Argos.
@@ -207,9 +223,12 @@ const runProfile = async (profile: Profile, simulated: boolean): Promise<Turn[]>
 
   for (let i = 0; i <= profile.replies.length; i++) {
     let user: string;
+    let learnerStop: string | null = null;
     if (i === 0) user = opening;
     else if (simulated) {
-      user = await simulateReply(profile.persona, dialogue);
+      const sim = await simulateReply(profile.persona, dialogue);
+      user = sim.reply;
+      learnerStop = sim.stop;
       dialogue[dialogue.length - 1].learner = user;
     } else user = profile.replies[i - 1];
     messages.push({ role: 'user', content: user });
@@ -222,18 +241,20 @@ const runProfile = async (profile: Profile, simulated: boolean): Promise<Turn[]>
     turns.push({
       turn: i,
       user,
+      learnerStop,
       raw,
       rawMarker: rawPhaseMarker(raw),
-      markerWellFormed: /\n---\s*\nPhase: \d\s*$/.test(raw),
+      plan: raw.match(/^Plan:.*$/m)?.[0].trim() ?? null,
+      markerWellFormed: /\n---\s*\n(Plan: .+\n)?Phase: \d\s*$/.test(raw),
       parsedPhase: phase,
       displayed,
-      displayedHasMarker: /phase\s*:?\s*\d/i.test(displayed) || displayed.includes('---'),
+      displayedHasMarker: /phase\s*:?\s*\d|Plan:/i.test(displayed) || displayed.includes('---'),
       words: wordCount(displayed),
       provider: fellBack ? 'deepseek (repli 429)' : provider,
     });
+    if (learnerStop === 'max_tokens') console.warn(`[${profile.id}] tour ${i} : réplique simulée coupée (stop=max_tokens)`);
     console.info(`[${profile.id}] tour ${i} : phase ${phase}, ${turns[i].words} mots, marqueur ${JSON.stringify(turns[i].rawMarker)}`);
   }
-  return turns;
 };
 
 const median = (xs: number[]): number => {
@@ -256,16 +277,21 @@ const main = async () => {
   // Profils en série : en parallèle, la limite de connexions Claude
   // déclencherait le repli DeepSeek et fausserait la mesure.
   for (const profile of selected) {
-    const turns = await runProfile(profile, simulated);
-    fs.writeFileSync(path.join(outDir, `${profile.id}.json`), JSON.stringify({ profile, simulated, turns }, null, 2));
+    const turns: Turn[] = [];
+    try {
+      await runProfile(profile, simulated, turns);
+    } finally {
+      // Tours déjà joués sauvegardés même si un appel échoue en cours de route.
+      fs.writeFileSync(path.join(outDir, `${profile.id}.json`), JSON.stringify({ profile, simulated, turns }, null, 2));
+    }
     summary.push(
       `## Profil ${profile.id} : ${profile.label}`,
       '',
-      '| Tour | Marqueur brut | Forme exacte | Phase parsée | Marqueur visible | Mots | Fournisseur |',
-      '|---|---|---|---|---|---|---|',
+      '| Tour | Marqueur brut | Forme exacte | Phase parsée | Marqueur visible | Étape du plan | Mots | Fournisseur | Plan |',
+      '|---|---|---|---|---|---|---|---|---|',
       ...turns.map(
         (t) =>
-          `| ${t.turn} | ${t.rawMarker === null ? '(absent)' : '`' + t.rawMarker + '`'} | ${t.markerWellFormed ? 'oui' : 'non'} | ${t.parsedPhase} | ${t.displayedHasMarker ? 'oui' : 'non'} | ${t.words} | ${t.provider} |`
+          `| ${t.turn} | ${t.rawMarker === null ? '(absent)' : '`' + t.rawMarker + '`'} | ${t.markerWellFormed ? 'oui' : 'non'} | ${t.parsedPhase} | ${t.displayedHasMarker ? 'oui' : 'non'} | ${t.plan?.match(/en cours\s*:\s*(\d+)/)?.[1] ?? '-'} | ${t.words} | ${t.provider} | ${t.plan ?? '(absent)'} |`
       ),
       '',
       `Longueur médiane : ${median(turns.map((t) => t.words))} mots`,
