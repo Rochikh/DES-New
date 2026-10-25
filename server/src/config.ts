@@ -12,6 +12,8 @@ export const CLAUDE_TIMEOUT_MS = 280_000;
 export const MODEL_CHAT = 'deepseek-v4-flash';
 export const MODEL_ANALYSIS = 'deepseek-v4-flash';
 export const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
+// Délai d'un tour DeepSeek (nouvel appel des garde-fous compris) avant repli sur Claude.
+export const DEEPSEEK_TIMEOUT_MS = 150_000;
 
 export const PORT = Number(process.env.PORT) || 3000;
 

@@ -33,7 +33,9 @@ export const transitText = (provider: Provider | null): string => {
   if (provider === 'claude') {
     return "Les échanges transitent par l'API d'Anthropic (Claude), ou par DeepSeek si Claude est indisponible, le temps de générer chaque réponse";
   }
-  if (provider === 'deepseek') return "Les échanges transitent par l'API de DeepSeek le temps de générer chaque réponse";
+  if (provider === 'deepseek') {
+    return "Les échanges transitent par l'API de DeepSeek, ou par Anthropic (Claude) si DeepSeek est indisponible, le temps de générer chaque réponse";
+  }
   return "Les échanges transitent par l'API du fournisseur d'IA le temps de générer chaque réponse";
 };
 
@@ -42,6 +44,8 @@ export const guideProviderText = (provider: Provider | null): string => {
   if (provider === 'claude') {
     return "l'API d'Anthropic (modèle Claude) le temps de générer chaque réponse, ou celle de DeepSeek quand Claude est indisponible";
   }
-  if (provider === 'deepseek') return "l'API de DeepSeek le temps de générer chaque réponse";
+  if (provider === 'deepseek') {
+    return "l'API de DeepSeek le temps de générer chaque réponse, ou celle d'Anthropic (modèle Claude) quand DeepSeek est indisponible";
+  }
   return "l'API du fournisseur d'IA le temps de générer chaque réponse";
 };

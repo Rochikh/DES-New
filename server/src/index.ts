@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
 import { createDeepSeekClient } from './deepseek.js';
 import { createClaudeClient } from './claude.js';
-import { PORT } from './config.js';
+import { withFallback } from './provider.js';
+import { PORT, DEEPSEEK_TIMEOUT_MS } from './config.js';
 
 // Charge .env en développement local (en production Docker, l'environnement
 // est fourni par docker compose).
@@ -28,9 +29,12 @@ if (provider !== 'claude' && provider !== 'deepseek') {
   process.exit(1);
 }
 
-// DeepSeek est toujours requis : fournisseur principal ou repli de Claude (429, crédits épuisés).
+// Les deux clés sont requises : chaque fournisseur sert de repli à l'autre.
+// Claude bascule sur DeepSeek (429, crédits épuisés) ; DeepSeek bascule sur
+// Claude (429, 5xx, délai dépassé).
 const deepseek = createDeepSeekClient(requireEnv('DEEPSEEK_API_KEY'));
-const client = provider === 'claude' ? createClaudeClient(requireEnv('ANTHROPIC_API_KEY'), deepseek) : deepseek;
+const claude = createClaudeClient(requireEnv('ANTHROPIC_API_KEY'), deepseek);
+const client = provider === 'claude' ? claude : withFallback(deepseek, claude, DEEPSEEK_TIMEOUT_MS);
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const clientDist = path.resolve(here, '../../client/dist');

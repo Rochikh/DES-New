@@ -245,3 +245,11 @@ npx tsx --env-file=/root/infra/env/argos.env bench/chat-bench.ts [--simule] [--p
 ```
 
 Sans liste de profils, tous les profils jouables dans le mode choisi sont joués. Compter environ 5 minutes pour les quatre profils en scripté.
+
+### Bascule sur DeepSeek pour l'atelier (25/10/2026)
+
+- Repli DeepSeek vers Claude (`server/src/provider.ts`) : 429, 5xx ou tour au-delà de 150 s (nouvel appel des garde-fous compris) basculent l'appel sur Claude, dialogue et bilan. Les deux clés sont requises au démarrage. Tests dans `server/test/provider.test.ts`.
+- Garde-fous DeepSeek : troisième motif du nouvel appel, plus d'un « ? » ou « ؟ » hors bloc technique. Toujours un seul nouvel appel par tour.
+- Transparence avec AI_PROVIDER=deepseek : DeepSeek nommé, Claude (Anthropic) en repli.
+- Banc A et B scriptés sur DeepSeek, avant le motif « questions » : bloc 14 / 14, une question 13 / 14 (B tour 3, question reformulée), bilans valides. Après : bloc 14 / 14, une question 14 / 14, bilans valides (A : 4 null, intégrité 75 ; B : 6 notes, intégrité 68), aucun nouvel appel, aucun repli. Médianes A 58, B 45.
+- Bascule : `AI_PROVIDER=deepseek` dans `/root/infra/env/argos.env`. Retour sur Claude : `sed -i 's/^AI_PROVIDER=.*/AI_PROVIDER=claude/' /root/infra/env/argos.env && cd /root && docker compose up -d --build argos`.

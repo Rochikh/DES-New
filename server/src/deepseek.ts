@@ -12,7 +12,8 @@ import type { ChatRequest, LlmClient } from './llm.js';
  * le nom exact du champ variant selon les surfaces compatibles OpenAI).
  *
  * DeepSeek omet parfois le bloc technique de fin de message (---, Plan,
- * Régime, Phase) et repasse parfois au français face à un message en arabe.
+ * Régime, Phase), repasse parfois au français face à un message en arabe, et
+ * pose parfois plus d'une question.
  * Un seul nouvel appel par tour, avec un rappel qui cumule les motifs. Après
  * un second échec, le dernier bloc valide de l'historique est recopié pour
  * que le client conserve Plan, Régime et Phase du tour précédent ; la langue
@@ -63,6 +64,12 @@ const FORMAT_REMINDER = `Rappel de format : termine obligatoirement ton message 
 
 const LANGUAGE_REMINDER = `Rappel de langue : l'apprenant·e écrit en arabe. Rédige chaque phrase de ton message en arabe ; seuls les mots-clés du bloc technique restent en caractères latins.`;
 
+const QUESTION_REMINDER = `Rappel de style : une seule question par message, sans question secondaire ni reformulation de la question.`;
+
+/** Plus d'une question (« ? » ou « ؟ ») hors bloc technique. */
+const multipleQuestions = (reply: string): boolean =>
+  (reply.trimEnd().replace(TECH_BLOCK, '').match(/[?؟]/g) ?? []).length > 1;
+
 /** Part des lettres arabes parmi les lettres arabes et latines du texte (0 sans lettre). */
 const arabicShare = (text: string): number => {
   const arabic = (text.match(/[\u0600-\u06FF]/g) ?? []).length;
@@ -101,6 +108,7 @@ export const createDeepSeekClient = (apiKey: string): LlmClient => ({
     const reminders = [
       ...(TECH_BLOCK.test(first.trimEnd()) ? [] : [FORMAT_REMINDER]),
       ...(languageLost(messages, first) ? [LANGUAGE_REMINDER] : []),
+      ...(multipleQuestions(first) ? [QUESTION_REMINDER] : []),
     ];
     if (!reminders.length) return first;
     console.warn(`DeepSeek : nouvel appel (${reminders.map((r) => r.split(' :')[0]).join(', ')})`);

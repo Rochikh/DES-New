@@ -119,3 +119,40 @@ describe('createDeepSeekClient : langue arabe', () => {
     expect(text).toBe(`Toujours en français.${BLOCK}`);
   });
 });
+
+describe('createDeepSeekClient : questions multiples', () => {
+  const BLOCK = '\n---\nRégime: épreuve\nPhase: 3';
+
+  it('relance avec un rappel de style quand la réponse pose deux questions', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchMock = stubCompletions(
+      `Comment départager ces deux mécanismes ? Quel indice te ferait retenir l'un ?${BLOCK}`,
+      `Quel indice te ferait retenir l'un des deux mécanismes ?${BLOCK}`
+    );
+
+    const text = await createDeepSeekClient('cle-factice').chat(req);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(systemOf(fetchMock, 1)).toContain('Rappel de style');
+    expect(text).toBe(`Quel indice te ferait retenir l'un des deux mécanismes ?${BLOCK}`);
+  });
+
+  it('compte aussi le point d\'interrogation arabe et renvoie la seconde réponse même fautive', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const twice = `لماذا؟ وكيف؟${BLOCK}`;
+    const fetchMock = stubCompletions(twice, twice);
+
+    const text = await createDeepSeekClient('cle-factice').chat(req);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(text).toBe(twice);
+  });
+
+  it('ne relance pas une réponse à une seule question', async () => {
+    const fetchMock = stubCompletions(`Une seule question ?${BLOCK}`);
+
+    await createDeepSeekClient('cle-factice').chat(req);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+});

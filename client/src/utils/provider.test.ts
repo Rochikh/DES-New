@@ -7,10 +7,9 @@ describe('textes de transparence', () => {
     expect(guideProviderText('claude')).toContain("l'API d'Anthropic (modèle Claude)");
   });
 
-  it('nomment DeepSeek seul quand le fournisseur est deepseek', () => {
-    expect(transitText('deepseek')).toContain("l'API de DeepSeek");
-    expect(transitText('deepseek')).not.toMatch(/Anthropic|Claude/);
-    expect(guideProviderText('deepseek')).not.toMatch(/Anthropic|Claude/);
+  it('nomment DeepSeek et le repli Claude quand le fournisseur est deepseek', () => {
+    expect(transitText('deepseek')).toContain("l'API de DeepSeek, ou par Anthropic (Claude)");
+    expect(guideProviderText('deepseek')).toMatch(/^l'API de DeepSeek .*Anthropic \(modèle Claude\)/);
   });
 
   it('restent neutres tant que le fournisseur est inconnu', () => {

@@ -21,7 +21,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClaudeClient } from '../src/claude.js';
 import { createDeepSeekClient } from '../src/deepseek.js';
-import { CLAUDE_MODEL, MODEL_CHAT } from '../src/config.js';
+import { CLAUDE_MODEL, DEEPSEEK_TIMEOUT_MS, MODEL_CHAT } from '../src/config.js';
+import { withFallback } from '../src/provider.js';
 import type { ChatRequest, LlmClient } from '../src/llm.js';
 import { buildChatSystemParts, type ChatMode } from '../src/prompts/core.js';
 import { cleanDisplayBotText, extractPhase, extractRegime } from '../../client/src/utils/phase.js';
@@ -220,7 +221,18 @@ interface Turn {
 const buildClient = (providerArg: string | undefined, onFallback: () => void): { client: LlmClient; provider: string } => {
   const provider = (providerArg ?? process.env.AI_PROVIDER ?? 'deepseek').trim().toLowerCase();
   const deepseek = createDeepSeekClient(process.env.DEEPSEEK_API_KEY ?? '');
-  if (provider !== 'claude') return { client: deepseek, provider: `deepseek ${MODEL_CHAT}` };
+  if (provider !== 'claude') {
+    // Même chemin que la prod : repli sur Claude (429, 5xx, délai), instrumenté.
+    const claude = createClaudeClient(process.env.ANTHROPIC_API_KEY ?? '', deepseek);
+    const fallback: LlmClient = {
+      chat: (req) => {
+        onFallback();
+        return claude.chat(req);
+      },
+      analysis: (p) => claude.analysis(p),
+    };
+    return { client: withFallback(deepseek, fallback, DEEPSEEK_TIMEOUT_MS), provider: `deepseek ${MODEL_CHAT}` };
+  }
   // Le repli est instrumenté : un tour servi par DeepSeek est signalé.
   const fallback: LlmClient = {
     chat: (req) => {
@@ -306,7 +318,7 @@ const runProfile = async (profile: Profile, simulated: boolean, providerArg: str
       displayed,
       displayedHasMarker: /phase\s*:?\s*\d|Plan:|R[ée]gime\s*:/i.test(displayed) || displayed.includes('---'),
       words: wordCount(displayed),
-      provider: fellBack ? 'deepseek (repli 429)' : provider,
+      provider: fellBack ? (provider.startsWith('claude') ? 'deepseek (repli)' : 'claude (repli)') : provider,
     });
     if (learnerStop === 'max_tokens') console.warn(`[${profile.id}] tour ${i} : réplique simulée coupée (stop=max_tokens)`);
     console.info(`[${profile.id}] tour ${i} : régime ${regime ?? '-'}, phase ${phase}, ${turns[i].words} mots, marqueur ${JSON.stringify(turns[i].rawMarker)}`);
