@@ -200,6 +200,25 @@ Verdict : DeepSeek reste en repli pour l'atelier, AI_PROVIDER=claude. Il tient l
 
 Défauts DeepSeek restants : bloc technique abandonné en cours de session (3 tours consécutifs sur un run), genre déduit du prénom en arabe (dialogue et bilan). Verdict inchangé : Claude principal, DeepSeek en repli.
 
+### Garde-fous du chemin DeepSeek (25/10/2026)
+
+Correction confinée à `server/src/deepseek.ts`, prompt inchangé. Un seul nouvel appel par tour, rappel ajouté aux consignes système, motifs cumulés :
+
+- bloc technique absent (forme exacte ---, [Plan:], [Régime:], Phase: N) ;
+- langue perdue : dernier message de l'apprenant·e à plus de 50 % de lettres arabes, réponse hors bloc à moins de 50 %. Le tour 0 répond au gabarit d'ouverture en français et n'est pas contrôlé.
+
+Après un second échec, la seconde réponse est renvoyée ; si le bloc manque encore, le dernier bloc valide de l'historique y est recopié (Plan, Régime et Phase du tour précédent). Tests dans `server/test/deepseek.test.ts`.
+
+Premier essai (rappel de format seul) : bloc 34 / 34 sans aucun nouvel appel, arabe intact sur 1 run de G sur 3 ; non appliqué.
+
+| Banc | Bloc technique | Nouveaux appels | Arabe, tours 0 à 4 |
+|---|---|---|---|
+| DeepSeek G, 3 runs | 15 / 15 | 2 (run 2 : langue au tour 2, format au tour 3) | 3 runs sur 3 |
+| DeepSeek C scripté | 7 / 7 | 0 | sans objet |
+| Opus G | 5 / 5 | sans objet | oui |
+
+Au tour 2 du run 2, la seconde réponse a rétabli l'arabe et perdu le bloc : bloc du tour 1 recopié, phase 1 conservée.
+
 ## Banc
 
 `server/bench/chat-bench.ts` appelle la vraie fonction de chat (`createClaudeClient` ou DeepSeek selon `AI_PROVIDER`, ou selon `--provider` qui le remplace) avec le prompt de prod. Profils joués en série : en parallèle, la limite de connexions Claude déclencherait le repli DeepSeek. Un tour servi par le repli est signalé dans la colonne Fournisseur.
