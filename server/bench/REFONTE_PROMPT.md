@@ -150,9 +150,44 @@ Aucun correctif : le défaut relève du prompt.
 
 Aucune. Refonte close le 16/10/2026.
 
+## Préparation de l'atelier Tunisie (25/10/2026)
+
+Atelier de 30 apprenant·e·s, sessions possibles en français, anglais et arabe. Commit `3141ed5`, déployé le 25/10 via `/root/docker-compose.yml`.
+
+- **Identifiant DeepSeek** : `GET /models` ne liste plus que `deepseek-flash` (DeepSeek-V4.1-Flash) et `deepseek-v4-pro`. `deepseek-chat` et `deepseek-v4-flash` répondent encore, tous deux redirigés vers `deepseek-flash` (champ `model` de la réponse). Le client utilisait déjà `deepseek-v4-flash` : aucun changement. Si l'alias disparaît, passer `MODEL_CHAT` et `MODEL_ANALYSIS` à `deepseek-flash`.
+- **Repli** : Claude bascule sur DeepSeek sur le 429 et sur le 400 de solde de crédits épuisé (`credit balance` dans le message). Les autres 400 sont propagés. Tests dans `server/test/claude.test.ts`.
+- **Transparence** : `GET /api/config` renvoie `{ provider }` (AI_PROVIDER). La ligne de l'écran d'accueil et le guide nomment Anthropic avec repli DeepSeek si `claude`, DeepSeek seul si `deepseek`, un fournisseur neutre tant que la réponse manque (`client/src/utils/provider.ts`).
+- **Banc** : option `--provider claude|deepseek`, profils scriptés F (anglais, photosynthèse) et G (arabe, effet de serre), 4 échanges, Tuteur, sans corpus. L'ouverture reste celle de `ChatView.tsx`, en français : le tour 0 est attendu en français, la langue est jugée à partir du tour 1.
+
+### Banc DeepSeek (`deepseek-flash`) comparé à Opus
+
+Opus : dernier banc de l'étape 8, sauf F et G (banc Claude du 25/10, `--provider claude F G`).
+
+| Critère | Opus | DeepSeek |
+|---|---|---|
+| Médiane scriptée A / B / C / D | 87 / 53 / 64 / 90 | 75 / 54 / 86 / 78 |
+| Médiane scriptée F / G | 77 / 48 | 50 / 47 |
+| Médiane simulée A / B / C / D / E | 51 / 56 / 76 / 98 / 77 | 60 / 44 / 86 / 89 / 29 |
+| Bloc technique en forme exacte | 100 % | 70 / 72 (C4 scripté, C2 simulé sans bloc) |
+| Marqueurs en caractères latins | oui | oui, y compris en F et G (ligne Plan rédigée en anglais pour F, en français pour G) |
+| Une question au plus par message | oui | oui, 72 / 72 (consignes à l'impératif et clôtures comprises) |
+| Régime choisi, aucun recul de phase | oui | oui : A, F, G acquisition ; B, C, D épreuve ; E consolidation |
+| Langue de l'apprenant·e (tours 1 à 4) | F 4/4 anglais, G 4/4 arabe | F 4/4 anglais, **G 2/4 arabe** : tours 3 et 4 en français |
+| Bilan JSON (A, B, C, D, F, G scriptés) | valide | 6 / 6 valides au premier essai, null sur les critères non observés en acquisition (A : 2, F et G : 3), intégrité notée partout (65 à 80) |
+
+Défauts relevés sur DeepSeek :
+
+1. Retour au français en arabe : G scripté passe au français au tour 3, alors que les messages de Nour restent en arabe. Opus garde l'arabe sur les quatre tours. Le prompt ne contient aucune règle de langue : Opus suit la langue de l'apprenant·e de lui-même, DeepSeek glisse vers la langue du prompt.
+2. Bloc technique absent sur 2 tours sur 72, en mode Critique : la phase reste figée à la valeur précédente côté client, sans erreur visible.
+3. Mode Critique plus long qu'Opus en scripté (C 86 contre 64 mots) ; E simulé très court (29 mots), avec des questions sèches en consolidation.
+4. Bilans F et G rédigés en français, résumé à la troisième personne pour A et F (« Camille ouvre… », « Sam bute… ») au lieu du tutoiement. Le bilan reste en français avec les deux fournisseurs : `analysis.ts` ne prévoit aucune langue.
+5. Aucun défaut sur le diagnostic, le plan, les régimes, les sophismes du mode Critique ni le cadratin.
+
+Verdict : DeepSeek reste en repli pour l'atelier, AI_PROVIDER=claude. Il tient la forme technique et le bilan, mais il décroche de l'arabe en cours de session, défaut rédhibitoire pour un tiers des langues possibles de l'atelier. Le repli sur solde épuisé couvre le risque de crédit pendant l'atelier, au prix de ce même défaut sur les tours servis par DeepSeek. Une règle de langue dans STYLE_RULES (répondre dans la langue des messages de l'apprenant·e, bloc technique en français) corrigerait sans doute le défaut ; elle reste à écrire et à valider au banc.
+
 ## Banc
 
-`server/bench/chat-bench.ts` appelle la vraie fonction de chat (`createClaudeClient` ou DeepSeek selon `AI_PROVIDER`) avec le prompt de prod. Profils joués en série : en parallèle, la limite de connexions Claude déclencherait le repli DeepSeek. Un tour servi par le repli est signalé dans la colonne Fournisseur.
+`server/bench/chat-bench.ts` appelle la vraie fonction de chat (`createClaudeClient` ou DeepSeek selon `AI_PROVIDER`, ou selon `--provider` qui le remplace) avec le prompt de prod. Profils joués en série : en parallèle, la limite de connexions Claude déclencherait le repli DeepSeek. Un tour servi par le repli est signalé dans la colonne Fournisseur.
 
 | Profil | Mode | Corpus | Situation |
 |---|---|---|---|
@@ -160,6 +195,9 @@ Aucune. Refonte close le 16/10/2026.
 | B | Tuteur | Rousseau, Contrat social II, 3 | thèse défendue sur un corpus maîtrisé |
 | C | Critique | Rousseau, Contrat social II, 3 | même thèse |
 | D | Critique | aucun | même thèse, contrôle de la charge du premier message |
+| E | Tuteur | définition d'un groupe | révision avant partiel, simulé seulement |
+| F | Tuteur | aucun | novice anglophone, photosynthèse, 4 échanges, scripté seulement |
+| G | Tuteur | aucun | novice arabophone, effet de serre, 4 échanges, scripté seulement |
 
 - **Mode scripté** (par défaut) : ouverture identique à `ChatView.tsx`, puis 6 réponses fixes. Sert à la comparaison avant/après.
 - **Mode simulé** (`--simule`) : les 6 réponses sont générées par `claude-haiku-5-5` à partir d'une consigne de persona par profil. Le simulateur ne voit d'Argos que le texte affiché (sans marqueur ni ligne Plan).
@@ -169,7 +207,7 @@ Aucune. Refonte close le 16/10/2026.
 Lancement, depuis `server/` :
 
 ```
-npx tsx --env-file=/root/infra/env/argos.env bench/chat-bench.ts [--simule] [A B C D]
+npx tsx --env-file=/root/infra/env/argos.env bench/chat-bench.ts [--simule] [--provider claude|deepseek] [A B C D]
 ```
 
-Sans liste de profils, les quatre sont joués. Compter environ 5 minutes pour les quatre profils en scripté.
+Sans liste de profils, tous les profils jouables dans le mode choisi sont joués. Compter environ 5 minutes pour les quatre profils en scripté.
