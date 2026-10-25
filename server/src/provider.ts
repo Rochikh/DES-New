@@ -1,12 +1,13 @@
 import type { LlmClient } from './llm.js';
 
 /**
- * Repli quand AI_PROVIDER=deepseek : une erreur DeepSeek 429 ou 5xx, ou un
- * tour qui dépasse le délai (nouvel appel des garde-fous compris), bascule
- * l'appel sur le client de repli (Claude). Les autres erreurs sont propagées.
+ * Repli quand AI_PROVIDER=deepseek : une erreur DeepSeek 402 (solde
+ * insuffisant), 429 ou 5xx, ou un tour qui dépasse le délai (nouvel appel
+ * des garde-fous compris), bascule l'appel sur le client de repli (Claude).
+ * Les autres erreurs sont propagées.
  */
 const isUnavailable = (err: unknown): boolean =>
-  err instanceof Error && (err.name === 'TimeoutError' || /^DeepSeek (429|5\d\d):/.test(err.message));
+  err instanceof Error && (err.name === 'TimeoutError' || /^DeepSeek (402|429|5\d\d):/.test(err.message));
 
 const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> => {
   let timer: NodeJS.Timeout | undefined;

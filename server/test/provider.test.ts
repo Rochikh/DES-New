@@ -29,7 +29,7 @@ describe('withFallback : repli DeepSeek vers Claude', () => {
     expect(fallback.chat).not.toHaveBeenCalled();
   });
 
-  it.each(['DeepSeek 429: rate limit', 'DeepSeek 503: service unavailable', 'DeepSeek 500: internal error'])(
+  it.each(['DeepSeek 402: Insufficient Balance', 'DeepSeek 429: rate limit', 'DeepSeek 503: service unavailable', 'DeepSeek 500: internal error'])(
     'bascule sur Claude après « %s »',
     async (message) => {
       vi.spyOn(console, 'warn').mockImplementation(() => {});

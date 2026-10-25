@@ -31,7 +31,7 @@ if (provider !== 'claude' && provider !== 'deepseek') {
 
 // Les deux clés sont requises : chaque fournisseur sert de repli à l'autre.
 // Claude bascule sur DeepSeek (429, crédits épuisés) ; DeepSeek bascule sur
-// Claude (429, 5xx, délai dépassé).
+// Claude (402, 429, 5xx, délai dépassé).
 const deepseek = createDeepSeekClient(requireEnv('DEEPSEEK_API_KEY'));
 const claude = createClaudeClient(requireEnv('ANTHROPIC_API_KEY'), deepseek);
 const client = provider === 'claude' ? claude : withFallback(deepseek, claude, DEEPSEEK_TIMEOUT_MS);
