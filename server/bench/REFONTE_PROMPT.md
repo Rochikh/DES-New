@@ -185,6 +185,21 @@ Défauts relevés sur DeepSeek :
 
 Verdict : DeepSeek reste en repli pour l'atelier, AI_PROVIDER=claude. Il tient la forme technique et le bilan, mais il décroche de l'arabe en cours de session, défaut rédhibitoire pour un tiers des langues possibles de l'atelier. Le repli sur solde épuisé couvre le risque de crédit pendant l'atelier, au prix de ce même défaut sur les tours servis par DeepSeek. Une règle de langue dans STYLE_RULES (répondre dans la langue des messages de l'apprenant·e, bloc technique en français) corrigerait sans doute le défaut ; elle reste à écrire et à valider au banc.
 
+### Règle de langue (25/10/2026)
+
+- STYLE_RULES, puce « Langue » : réponse dans la langue des messages de l'apprenant·e, pour chaque phrase (salutation, annonce de direction, statut épistémique compris). Le premier message, gabarit de l'interface en français, est ignoré pour la langue : la réponse suit la langue du sujet. Mots-clés du bloc technique inchangés, en caractères latins, chiffres 0 à 9.
+- Bilan (`analysis.ts`) : summary, scoreRationales, keyStrengths et weaknesses dans la langue de l'apprenant·e, tutoiement, sans désigner l'apprenant·e par son prénom à la troisième personne. Clés JSON inchangées.
+- Une première version (sans mention des phrases ni du gabarit) laissait en français le tour 0 et l'annonce du tour 1 sur DeepSeek.
+
+| Critère | Opus | DeepSeek |
+|---|---|---|
+| G, arabe sur toutes les phrases des tours 0 à 4 | 2 runs sur 2 | 3 runs sur 3 |
+| Bloc technique bien formé, G | 10 / 10 | 12 / 15 : un run sans bloc du tour 2 au tour 4 |
+| Non-régression scriptée A / C / F (médianes, dernier banc A 87, C 64, F 77) | 94 / 73 / 82, bloc 19 / 19, F 5/5 en anglais (tour 0 compris) | non mesuré |
+| Bilan G | JSON valide, arabe, tutoiement en écriture inclusive (« تَ/ِ »), 3 null, intégrité 72 | JSON valide, arabe, tutoiement au féminin d'après le prénom, 3 null, intégrité 72 |
+
+Défauts DeepSeek restants : bloc technique abandonné en cours de session (3 tours consécutifs sur un run), genre déduit du prénom en arabe (dialogue et bilan). Verdict inchangé : Claude principal, DeepSeek en repli.
+
 ## Banc
 
 `server/bench/chat-bench.ts` appelle la vraie fonction de chat (`createClaudeClient` ou DeepSeek selon `AI_PROVIDER`, ou selon `--provider` qui le remplace) avec le prompt de prod. Profils joués en série : en parallèle, la limite de connexions Claude déclencherait le repli DeepSeek. Un tour servi par le repli est signalé dans la colonne Fournisseur.

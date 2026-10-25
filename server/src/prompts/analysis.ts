@@ -90,6 +90,8 @@ Règle des critères non observés : les lignes Régime du transcript indiquent 
 
 Chaque score va de 0 à 100. Ancre chaque jugement dans des moments précis du transcript, pas dans une impression d'ensemble. rhythmBreakCount compte les réponses de l'apprenant·e marquées d'une rupture de rythme dans le transcript.
 
+Langue et adresse : rédige summary, scoreRationales, keyStrengths et weaknesses dans la langue des messages de l'apprenant·e. Son premier message, gabarit de l'interface, est toujours en français et n'indique pas sa langue. Adresse-toi directement à l'apprenant·e, à la deuxième personne du singulier (tutoiement), sans la·le désigner par son prénom à la troisième personne. Les clés JSON restent telles quelles.
+
 Règles d'écriture du champ summary (bilan, 150 mots max) :
 - La première phrase nomme le fait cognitif le plus saillant de la session. Aucun préambule, aucune mise en contexte.
 - Pars toujours d'un moment concret du dialogue (citation courte ou paraphrase fidèle) et tires-en ensuite le constat général, jamais l'inverse.

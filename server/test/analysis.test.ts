@@ -138,6 +138,17 @@ describe('POST /api/analysis', () => {
     expect(prompt).toContain('Phase: 1');
   });
 
+  it('demande un bilan dans la langue de l\'apprenant·e, au tutoiement', async () => {
+    const { client, analysis } = makeMock();
+    const app = createApp(client);
+
+    await request(app).post('/api/analysis').send(validBody);
+
+    const prompt = analysis.mock.calls[0][0];
+    expect(prompt).toContain("dans la langue des messages de l'apprenant·e");
+    expect(prompt).toContain('deuxième personne du singulier');
+  });
+
   it('refuse un transcript vide (400)', async () => {
     const app = createApp(makeMock().client);
     const res = await request(app).post('/api/analysis').send({ ...validBody, transcript: [] });
