@@ -168,9 +168,9 @@ Opus : dernier banc de l'étape 8, sauf F et G (banc Claude du 25/10, `--provide
 | Médiane scriptée A / B / C / D | 87 / 53 / 64 / 90 | 75 / 54 / 86 / 78 |
 | Médiane scriptée F / G | 77 / 48 | 50 / 47 |
 | Médiane simulée A / B / C / D / E | 51 / 56 / 76 / 98 / 77 | 60 / 44 / 86 / 89 / 29 |
-| Bloc technique en forme exacte | 100 % | 70 / 72 (C4 scripté, C2 simulé sans bloc) |
+| Bloc technique en forme exacte | 100 % | 71 / 73 (C4 scripté, C2 simulé sans bloc) |
 | Marqueurs en caractères latins | oui | oui, y compris en F et G (ligne Plan rédigée en anglais pour F, en français pour G) |
-| Une question au plus par message | oui | oui, 72 / 72 (consignes à l'impératif et clôtures comprises) |
+| Une question au plus par message | oui | oui, 73 / 73 (consignes à l'impératif et clôtures comprises) |
 | Régime choisi, aucun recul de phase | oui | oui : A, F, G acquisition ; B, C, D épreuve ; E consolidation |
 | Langue de l'apprenant·e (tours 1 à 4) | F 4/4 anglais, G 4/4 arabe | F 4/4 anglais, **G 2/4 arabe** : tours 3 et 4 en français |
 | Bilan JSON (A, B, C, D, F, G scriptés) | valide | 6 / 6 valides au premier essai, null sur les critères non observés en acquisition (A : 2, F et G : 3), intégrité notée partout (65 à 80) |
@@ -178,7 +178,7 @@ Opus : dernier banc de l'étape 8, sauf F et G (banc Claude du 25/10, `--provide
 Défauts relevés sur DeepSeek :
 
 1. Retour au français en arabe : G scripté passe au français au tour 3, alors que les messages de Nour restent en arabe. Opus garde l'arabe sur les quatre tours. Le prompt ne contient aucune règle de langue : Opus suit la langue de l'apprenant·e de lui-même, DeepSeek glisse vers la langue du prompt.
-2. Bloc technique absent sur 2 tours sur 72, en mode Critique : la phase reste figée à la valeur précédente côté client, sans erreur visible.
+2. Bloc technique absent sur 2 tours sur 73, en mode Critique : la phase reste figée à la valeur précédente côté client, sans erreur visible.
 3. Mode Critique plus long qu'Opus en scripté (C 86 contre 64 mots) ; E simulé très court (29 mots), avec des questions sèches en consolidation.
 4. Bilans F et G rédigés en français, résumé à la troisième personne pour A et F (« Camille ouvre… », « Sam bute… ») au lieu du tutoiement. Le bilan reste en français avec les deux fournisseurs : `analysis.ts` ne prévoit aucune langue.
 5. Aucun défaut sur le diagnostic, le plan, les régimes, les sophismes du mode Critique ni le cadratin.
