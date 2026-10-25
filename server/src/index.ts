@@ -28,14 +28,14 @@ if (provider !== 'claude' && provider !== 'deepseek') {
   process.exit(1);
 }
 
-// DeepSeek est toujours requis : fournisseur principal ou repli sur 429 Claude.
+// DeepSeek est toujours requis : fournisseur principal ou repli de Claude (429, crédits épuisés).
 const deepseek = createDeepSeekClient(requireEnv('DEEPSEEK_API_KEY'));
 const client = provider === 'claude' ? createClaudeClient(requireEnv('ANTHROPIC_API_KEY'), deepseek) : deepseek;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const clientDist = path.resolve(here, '../../client/dist');
 
-const app = createApp(client, { clientDist });
+const app = createApp(client, { clientDist, provider });
 
 app.listen(PORT, () => {
   console.log(`Argos écoute sur le port ${PORT} (fournisseur : ${provider})`);

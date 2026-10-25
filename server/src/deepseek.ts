@@ -4,7 +4,7 @@ import type { LlmClient } from './llm.js';
 /**
  * Client minimal de l'endpoint chat/completions de l'API DeepSeek
  * (surface compatible OpenAI). Fournisseur principal si AI_PROVIDER=deepseek,
- * repli de Claude sur 429 sinon.
+ * repli de Claude sinon (429, crédits épuisés).
  *
  * Le champ `temperature` n'est jamais envoyé : on laisse la valeur par
  * défaut de l'API. Le raisonnement du modèle est facturé comme tokens de

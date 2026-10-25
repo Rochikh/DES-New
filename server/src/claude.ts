@@ -15,8 +15,9 @@ import { buildAnalysisSchema } from './prompts/analysis.js';
  * effort medium pour le dialogue, high pour le bilan, bilan en sortie
  * structurée par schéma JSON.
  *
- * Un 429 (limite de connexions simultanées du workspace) bascule l'appel en
- * cours sur le client de repli (DeepSeek), sans nouvel appel Claude.
+ * Un 429 (limite de connexions simultanées du workspace) ou un 400 de solde
+ * de crédits épuisé bascule l'appel en cours sur le client de repli
+ * (DeepSeek), sans nouvel appel Claude.
  */
 export const createClaudeClient = (apiKey: string, fallback: LlmClient): LlmClient => {
   // maxRetries à 0 : sinon le SDK relancerait de lui-même après une expiration.
@@ -25,7 +26,7 @@ export const createClaudeClient = (apiKey: string, fallback: LlmClient): LlmClie
   const call = async (
     label: string,
     params: Anthropic.MessageCreateParamsNonStreaming,
-    onRateLimit: () => Promise<string>
+    onFallback: () => Promise<string>
   ): Promise<string> => {
     const started = Date.now();
     let response: Anthropic.Message;
@@ -34,7 +35,11 @@ export const createClaudeClient = (apiKey: string, fallback: LlmClient): LlmClie
     } catch (err) {
       if (err instanceof Anthropic.RateLimitError) {
         console.warn(`Repli sur DeepSeek pour ${label} : Claude 429, limite de connexions simultanées atteinte`);
-        return onRateLimit();
+        return onFallback();
+      }
+      if (err instanceof Anthropic.BadRequestError && /credit balance/i.test(err.message)) {
+        console.warn(`Repli sur DeepSeek pour ${label} : Claude 400, solde de crédits Anthropic épuisé`);
+        return onFallback();
       }
       throw err;
     }

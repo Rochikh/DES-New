@@ -4,6 +4,7 @@ import { HelpCircle, ShieldAlert, MessageCircleQuestion, Upload, Info, UserCircl
 import { parseSessionFile } from '../utils/session';
 import { ArgosEye } from './PhaseTracker';
 import { GuideModal } from './GuideModal';
+import { useProvider, transitText } from '../utils/provider';
 
 const MAX_CORPUS_CHARS = 100000;
 
@@ -18,6 +19,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
   const [mode, setMode] = useState<SocraticMode>(SocraticMode.TUTOR);
   const [corpus, setCorpus] = useState('');
   const [showGuide, setShowGuide] = useState(false);
+  const provider = useProvider();
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const corpusFileRef = useRef<HTMLInputElement>(null);
@@ -197,7 +199,7 @@ export const SetupView: React.FC<SetupViewProps> = ({ onStart, onResume }) => {
       </div>
 
       <p className="mt-5 text-[12px] leading-relaxed text-muted text-center">
-        Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · Les échanges transitent par l'API d'Anthropic (Claude), ou par DeepSeek en cas de saturation, le temps de générer chaque réponse · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
+        Sans compte · Rien n'est stocké : ta session vit dans ton navigateur · {transitText(provider)} · Pseudonyme conseillé, aucune donnée personnelle dans les échanges
       </p>
       <div className="mt-4 flex items-center gap-2 text-muted2 label-mono">
         <Info size={12} />

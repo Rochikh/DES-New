@@ -21,6 +21,8 @@ interface CreateAppOptions {
   clientDist?: string;
   /** Plafond du rate limit, surchargeable en test */
   rateLimitMax?: number;
+  /** Fournisseur principal (AI_PROVIDER), nommé dans les textes de transparence du client */
+  provider?: 'claude' | 'deepseek';
 }
 
 const isHistoryEntry = (m: unknown): m is { role: 'user' | 'model'; text: string } =>
@@ -57,6 +59,10 @@ export const createApp = (client: LlmClient, options: CreateAppOptions = {}): Ex
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok' });
+  });
+
+  app.get('/api/config', (_req: Request, res: Response) => {
+    res.json({ provider: options.provider ?? 'deepseek' });
   });
 
   app.post('/api/chat', async (req: Request, res: Response) => {

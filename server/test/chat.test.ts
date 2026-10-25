@@ -122,3 +122,14 @@ describe('POST /api/chat', () => {
     expect(JSON.stringify(res.headers)).not.toContain(FAKE_KEY);
   });
 });
+
+describe('GET /api/config', () => {
+  it('nomme le fournisseur principal', async () => {
+    const { client } = makeMock();
+
+    const res = await request(createApp(client, { provider: 'claude' })).get('/api/config');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ provider: 'claude' });
+  });
+});

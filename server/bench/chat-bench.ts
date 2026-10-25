@@ -4,7 +4,10 @@
  * et sauvegarde les réponses brutes, avant tout parsing.
  *
  * Lancement (depuis server/) :
- *   npx tsx --env-file=/root/infra/env/argos.env bench/chat-bench.ts [--simule] [A|B|C|D...]
+ *   npx tsx --env-file=/root/infra/env/argos.env bench/chat-bench.ts [--simule] [--provider claude|deepseek] [A|B|C|D...]
+ *
+ * --provider remplace AI_PROVIDER pour ce lancement (client de prod du
+ * fournisseur choisi, sans repli instrumenté pour deepseek).
  *
  * Par défaut, les réponses d'apprenant·e sont scriptées (comparaison avant/
  * après). Avec --simule, claude-haiku-5-5 les génère à partir d'une
@@ -156,6 +159,35 @@ const PROFILES: Profile[] = [
     // Profil joué en simulé seulement.
     replies: [],
   },
+  {
+    id: 'F',
+    // Profils F et G joués en scripté seulement : langue de l'apprenant·e.
+    persona: '',
+    label: 'Novice anglophone, Tuteur, sans corpus',
+    mode: 'TUTOR',
+    studentName: 'Sam',
+    topic: 'understanding photosynthesis',
+    replies: [
+      "I'd like to understand it for my biology class. I know plants need sunlight, but not much more.",
+      'I think plants take in carbon dioxide and give out oxygen?',
+      "Maybe the light gives energy to make sugar? I'm not sure where the water goes.",
+      'So the oxygen comes from the water, not from the CO2? That surprises me.',
+    ],
+  },
+  {
+    id: 'G',
+    persona: '',
+    label: 'Novice arabophone, Tuteur, sans corpus',
+    mode: 'TUTOR',
+    studentName: 'Nour',
+    topic: 'فهم أسباب الاحتباس الحراري',
+    replies: [
+      'أريد أن أفهم هذا الموضوع لدرس الجغرافيا. أعرف أن الأرض تسخن، لكنني لا أعرف لماذا.',
+      'أظن أن ثاني أكسيد الكربون يحبس الحرارة؟',
+      'ربما لأن أشعة الشمس تدخل ولا تستطيع الخروج كلها؟',
+      'إذن الغازات تمتص الأشعة تحت الحمراء التي تصدرها الأرض؟',
+    ],
+  },
 ];
 
 /** Dernière ligne mentionnant « phase » (insensible à la casse), telle quelle. */
@@ -185,8 +217,8 @@ interface Turn {
   provider: string;
 }
 
-const buildClient = (onFallback: () => void): { client: LlmClient; provider: string } => {
-  const provider = (process.env.AI_PROVIDER ?? 'deepseek').trim().toLowerCase();
+const buildClient = (providerArg: string | undefined, onFallback: () => void): { client: LlmClient; provider: string } => {
+  const provider = (providerArg ?? process.env.AI_PROVIDER ?? 'deepseek').trim().toLowerCase();
   const deepseek = createDeepSeekClient(process.env.DEEPSEEK_API_KEY ?? '');
   if (provider !== 'claude') return { client: deepseek, provider: `deepseek ${MODEL_CHAT}` };
   // Le repli est instrumenté : un tour servi par DeepSeek est signalé.
@@ -229,9 +261,9 @@ const simulateReply = async (
   return { reply, stop: response.stop_reason };
 };
 
-const runProfile = async (profile: Profile, simulated: boolean, turns: Turn[]): Promise<void> => {
+const runProfile = async (profile: Profile, simulated: boolean, providerArg: string | undefined, turns: Turn[]): Promise<void> => {
   let fellBack = false;
-  const { client, provider } = buildClient(() => (fellBack = true));
+  const { client, provider } = buildClient(providerArg, () => (fellBack = true));
   const system = buildChatSystemParts(profile.mode, profile.topic, profile.corpus);
   // Même message d'ouverture que ChatView.tsx
   const opening = `Bonjour Argos, je suis ${profile.studentName}. Lancez la session sur : ${profile.topic}.`;
@@ -317,7 +349,14 @@ const median = (xs: number[]): number => {
 const main = async () => {
   const args = process.argv.slice(2);
   const simulated = args.includes('--simule');
-  const wanted = args.filter((a) => a !== '--simule').map((a) => a.toUpperCase());
+  const providerIndex = args.indexOf('--provider');
+  const providerArg = providerIndex >= 0 ? args[providerIndex + 1] : undefined;
+  if (providerIndex >= 0 && providerArg !== 'claude' && providerArg !== 'deepseek') {
+    throw new Error(`--provider vaut "${providerArg}", valeurs acceptées : claude ou deepseek.`);
+  }
+  const wanted = args
+    .filter((a, i) => a !== '--simule' && (providerIndex < 0 || (i !== providerIndex && i !== providerIndex + 1)))
+    .map((a) => a.toUpperCase());
   const selected = wanted.length ? PROFILES.filter((p) => wanted.includes(p.id)) : PROFILES;
   const here = path.dirname(fileURLToPath(import.meta.url));
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -332,9 +371,13 @@ const main = async () => {
       console.info(`[${profile.id}] ignoré en scripté : profil sans réponses fixes`);
       continue;
     }
+    if (simulated && !profile.persona) {
+      console.info(`[${profile.id}] ignoré en simulé : profil sans persona`);
+      continue;
+    }
     const turns: Turn[] = [];
     try {
-      await runProfile(profile, simulated, turns);
+      await runProfile(profile, simulated, providerArg, turns);
     } finally {
       // Tours déjà joués sauvegardés même si un appel échoue en cours de route.
       fs.writeFileSync(path.join(outDir, `${profile.id}.json`), JSON.stringify({ profile, simulated, turns }, null, 2));
